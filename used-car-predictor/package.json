@@ -1,0 +1,8 @@
+{
+  "scripts": {
+    "start:all": "concurrently -k -n FRONT,BACK -c blue,green \"npm start --prefix ui\" \"dotnet watch run --project ./used-car-predictor.csproj --launch-profile http\""
+  },
+  "devDependencies": {
+    "concurrently": "^9.2.0"
+  }
+}
