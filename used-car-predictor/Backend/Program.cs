@@ -1,14 +1,13 @@
 using Microsoft.Extensions.FileProviders;
+using used_car_predictor.Backend.Data;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services if needed
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 var app = builder.Build();
 
-// Enable Swagger in development
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
@@ -17,7 +16,6 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
-// Serve React build files directly from ui/build
 var reactBuildPath = Path.Combine(Directory.GetCurrentDirectory(), "ui", "build");
 
 app.UseDefaultFiles(new DefaultFilesOptions
@@ -30,13 +28,30 @@ app.UseStaticFiles(new StaticFileOptions
     RequestPath = ""
 });
 
-// Example API endpoint
 app.MapGet("/api/hello", () => Results.Ok(new { message = "Hello from .NET 9!" }));
 
-// Fallback for React client-side routes
 app.MapFallbackToFile("index.html", new StaticFileOptions
 {
     FileProvider = new PhysicalFileProvider(reactBuildPath)
 });
+
+if (args.Contains("--cli"))
+{
+    
+    string baseDir = AppContext.BaseDirectory;
+    string csvPath = Path.Combine(baseDir, "Backend", "datasets", "raw", "vehicles.csv");
+
+    if (!File.Exists(csvPath))
+    {
+        Console.WriteLine($" File not found: {csvPath}");
+        return;
+    }
+
+    var vehicles = CsvLoader.LoadVehicles(csvPath, maxRows: 100);
+    Console.WriteLine($"✅ Loaded {vehicles.Count} rows");
+
+    return; 
+}
+
 
 app.Run();

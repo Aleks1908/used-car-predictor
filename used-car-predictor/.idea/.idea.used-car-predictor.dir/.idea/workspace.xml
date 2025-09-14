@@ -11,6 +11,8 @@
   <component name="ChangeListManager">
     <list default="true" id="276999bb-11bc-4f5c-b78e-60cc006bd917" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/.idea.used-car-predictor.dir/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/.idea.used-car-predictor.dir/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Program.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Backend/Program.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/used-car-predictor.csproj" beforeDir="false" afterPath="$PROJECT_DIR$/used-car-predictor.csproj" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -31,7 +33,10 @@
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$/.." />
   </component>
   <component name="HighlightingSettingsPerFile">
-    <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/SourcesCache/484917e236e092d5ce76c5f373993d21fb07a86c2912aaaec5db139b77ac48/SwaggerGenServiceCollectionExtensions.cs" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/Backend/Data/CsvLoader.cs" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/Backend/Data/Preprocessor.cs" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/Backend/Data/Vehicle.cs" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file:///usr/local/share/dotnet/sdk/9.0.304/Sdks/Microsoft.NET.Sdk/analyzers/build/config/analysislevel_9_default.globalconfig" root0="FORCE_HIGHLIGHTING" />
   </component>
   <component name="KubernetesApiPersistence">{}</component>
   <component name="KubernetesApiProvider">{
@@ -42,33 +47,39 @@
   &quot;associatedIndex&quot;: 3
 }</component>
   <component name="ProjectId" id="31HemMn0mRDoraWve6hWh1ElIRS" />
+  <component name="ProjectLevelVcsManager">
+    <ConfirmationsSetting value="1" id="Add" />
+  </component>
   <component name="ProjectViewState">
+    <option name="autoscrollFromSource" value="true" />
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent">{
-  &quot;keyToString&quot;: {
-    &quot;.NET Executable.Unnamed.executor&quot;: &quot;Run&quot;,
-    &quot;.NET Launch Settings Profile.Unnamed.executor&quot;: &quot;Run&quot;,
-    &quot;.NET Launch Settings Profile.used-car-predictor: used_car_predictor.executor&quot;: &quot;Run&quot;,
-    &quot;ASKED_SHARE_PROJECT_CONFIGURATION_FILES&quot;: &quot;true&quot;,
-    &quot;ModuleVcsDetector.initialDetectionPerformed&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
-    &quot;SHARE_PROJECT_CONFIGURATION_FILES&quot;: &quot;true&quot;,
-    &quot;Shell Script.Unnamed.executor&quot;: &quot;Run&quot;,
-    &quot;git-widget-placeholder&quot;: &quot;main&quot;,
-    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
-    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
-    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
-    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
-    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
-    &quot;settings.editor.selected.configurable&quot;: &quot;preferences.keymap&quot;,
-    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    ".NET Executable.Unnamed.executor": "Run",
+    ".NET Launch Settings Profile.Unnamed.executor": "Run",
+    ".NET Launch Settings Profile.used-car-predictor: used_car_predictor.executor": "Run",
+    "ASKED_SHARE_PROJECT_CONFIGURATION_FILES": "true",
+    "ModuleVcsDetector.initialDetectionPerformed": "true",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252": "true",
+    "RunOnceActivity.git.unshallow": "true",
+    "SHARE_PROJECT_CONFIGURATION_FILES": "true",
+    "Shell Script.Run Cli.executor": "Run",
+    "Shell Script.Run.executor": "Run",
+    "Shell Script.Unnamed.executor": "Run",
+    "git-widget-placeholder": "main",
+    "node.js.detected.package.eslint": "true",
+    "node.js.detected.package.tslint": "true",
+    "node.js.selected.package.eslint": "(autodetect)",
+    "node.js.selected.package.tslint": "(autodetect)",
+    "nodejs_package_manager_path": "npm",
+    "settings.editor.selected.configurable": "preferences.keymap",
+    "vue.rearranger.settings.migration": "true"
   }
-}</component>
-  <component name="RunManager" selected="Shell Script.Run">
+}]]></component>
+  <component name="RunManager" selected="Shell Script.Run Cli">
     <configuration name="Unnamed" type="LaunchSettings" factoryName=".NET Launch Settings Profile" nameIsGenerated="true">
       <option name="LAUNCH_PROFILE_PROJECT_FILE_PATH" value="$PROJECT_DIR$/used-car-predictor.csproj" />
       <option name="LAUNCH_PROFILE_TFM" value="net9.0" />
@@ -169,6 +180,21 @@
         <option name="Build Solution" enabled="true" />
       </method>
     </configuration>
+    <configuration name="Run Cli" type="ShConfigurationType">
+      <option name="SCRIPT_TEXT" value="dotnet run -- --cli " />
+      <option name="INDEPENDENT_SCRIPT_PATH" value="true" />
+      <option name="SCRIPT_PATH" value="dotnet run -- --cli" />
+      <option name="SCRIPT_OPTIONS" value="" />
+      <option name="INDEPENDENT_SCRIPT_WORKING_DIRECTORY" value="true" />
+      <option name="SCRIPT_WORKING_DIRECTORY" value="$PROJECT_DIR$" />
+      <option name="INDEPENDENT_INTERPRETER_PATH" value="true" />
+      <option name="INTERPRETER_PATH" value="/bin/zsh" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="EXECUTE_IN_TERMINAL" value="true" />
+      <option name="EXECUTE_SCRIPT_FILE" value="false" />
+      <envs />
+      <method v="2" />
+    </configuration>
     <configuration name="Run" type="ShConfigurationType">
       <option name="SCRIPT_TEXT" value="npm run start:all " />
       <option name="INDEPENDENT_SCRIPT_PATH" value="true" />
@@ -191,6 +217,7 @@
       <item itemvalue=".NET Launch Settings Profile.used-car-predictor: https" />
       <item itemvalue=".NET Launch Settings Profile.used-car-predictor: used_car_predictor" />
       <item itemvalue=".NET Launch Settings Profile.Unnamed" />
+      <item itemvalue="Shell Script.Run Cli" />
       <item itemvalue="Shell Script.Run" />
     </list>
   </component>
@@ -211,6 +238,7 @@
       <workItem from="1755189995470" duration="403000" />
       <workItem from="1755190409745" duration="1410000" />
       <workItem from="1757321111345" duration="4221000" />
+      <workItem from="1757794497189" duration="6441000" />
     </task>
     <servers />
   </component>
