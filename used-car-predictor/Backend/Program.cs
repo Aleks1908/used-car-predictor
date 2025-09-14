@@ -36,10 +36,33 @@ app.MapFallbackToFile("index.html", new StaticFileOptions
     FileProvider = new PhysicalFileProvider(reactBuildPath)
 });
 
+double[] EncodeManualInput(
+    int year, 
+    int odometer, 
+    string fuel, 
+    string transmission, 
+    List<string> fuels, 
+    List<string> transmissions)
+{
+    var row = new double[2 + fuels.Count + transmissions.Count];
+
+    row[0] = year;
+    row[1] = odometer;
+
+    for (int j = 0; j < fuels.Count; j++)
+        row[2 + j] = fuel.Trim().ToLower() == fuels[j] ? 1 : 0;
+
+    for (int j = 0; j < transmissions.Count; j++)
+        row[2 + fuels.Count + j] = transmission.Trim().ToLower() == transmissions[j] ? 1 : 0;
+
+    return row;
+}
+
+
 if (args.Contains("--cli"))
 {
     string csvPath = Path.Combine(AppContext.BaseDirectory, "Backend", "datasets", "raw", "vehicles.csv");
-    var vehicles = CsvLoader.LoadVehicles(csvPath, maxRows: 100000);
+    var vehicles = CsvLoader.LoadVehicles(csvPath, maxRows: 20000);
 
     var selectedModel = "corolla";
     var modelRows = vehicles
@@ -48,25 +71,32 @@ if (args.Contains("--cli"))
 
     Console.WriteLine($"Training regression for {selectedModel} ({modelRows.Count} rows)");
 
-    var (features, labels) = Preprocessor.ToMatrix(modelRows);
-
+    var (features, labels, fuels, transmissions) = Preprocessor.ToMatrix(modelRows);
+    
     var featureScaler = new FeatureScaler();
     features = featureScaler.FitTransform(features);
 
     var labelScaler = new LabelScaler();
     var scaledLabels = labelScaler.FitTransform(labels);
-
+    
     var model = new LinearRegression(learningRate: 0.01, epochs: 5000);
     model.Fit(features, scaledLabels);
 
-    var scaledPredictions = model.Predict(features);
-    var predictions = labelScaler.InverseTransform(scaledPredictions);
+    var manualRow = EncodeManualInput(
+        2025,
+        100000,
+        "gas",
+        "automatic",
+        fuels,
+        transmissions
+    );
+    
+    var scaledRow = featureScaler.TransformRow(manualRow);
+    
+    var scaledPrediction = model.Predict(scaledRow);
+    var predictedPrice = labelScaler.InverseTransform(scaledPrediction);
 
-    for (int i = 0; i < Math.Min(10, modelRows.Count); i++)
-    {
-        Console.WriteLine($"Year={modelRows[i].Year}, Odo={modelRows[i].Odometer}, " +
-                          $"True={labels[i]}, Pred={predictions[i]:F2}");
-    }
+    Console.WriteLine($"Predicted 2025 Corolla automatic (100k km) price: {predictedPrice:F2}");
 
     return;
 }

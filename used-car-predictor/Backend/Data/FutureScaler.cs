@@ -17,18 +17,15 @@ public class FeatureScaler
 
         for (int j = 0; j < featureCount; j++)
         {
-            // mean
             double sum = 0;
             for (int i = 0; i < sampleCount; i++) sum += features[i, j];
             means[j] = sum / sampleCount;
-
-            // std
+            
             double variance = 0;
             for (int i = 0; i < sampleCount; i++)
                 variance += Math.Pow(features[i, j] - means[j], 2);
             stds[j] = Math.Sqrt(variance / sampleCount);
-
-            // scale
+            
             for (int i = 0; i < sampleCount; i++)
                 scaled[i, j] = stds[j] > 0 ? (features[i, j] - means[j]) / stds[j] : 0;
         }

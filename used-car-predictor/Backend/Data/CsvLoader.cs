@@ -39,19 +39,19 @@ public class CsvLoader
                     Transmission = csv.GetField<string>("transmission")
                 };
 
-                if (vehicle.Price is > 0 && vehicle.Year is not null && vehicle.Odometer is not null)
+                if (vehicle.Price is >= 1000 && vehicle.Year is not null && vehicle.Odometer is >= 50)
                 {
                     records.Add(vehicle);
-                }
+                    Console.WriteLine($"Row: year={vehicle.Year}, price={vehicle.Price}, odo={vehicle.Odometer}");
 
-                Console.WriteLine($"Row: year={vehicle.Year}, price={vehicle.Price}, odo={vehicle.Odometer}");
+                }
 
                 if (maxRows != null && records.Count >= maxRows.Value)
                     break;
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"⚠️ Skipped row: {ex.Message}");
+                Console.WriteLine($"Skipped row: {ex.Message}");
             }
         }
 

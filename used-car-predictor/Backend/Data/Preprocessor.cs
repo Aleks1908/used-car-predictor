@@ -2,7 +2,7 @@ namespace used_car_predictor.Backend.Data;
 
 public static class Preprocessor
 {
-    public static (double[,], double[]) ToMatrix(List<Vehicle> vehicles)
+    public static (double[,], double[], List<string>, List<string>) ToMatrix(List<Vehicle> vehicles)
     {
         int sampleCount = vehicles.Count;
 
@@ -44,8 +44,7 @@ public static class Preprocessor
             }
 
             labels[i] = v.Price ?? 0;
-        }
-
-        return (features, labels);
+        } 
+        return (features, labels, fuels, transmissions);
     }
 }
