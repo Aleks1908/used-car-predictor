@@ -37,21 +37,17 @@ app.MapFallbackToFile("index.html", new StaticFileOptions
 
 if (args.Contains("--cli"))
 {
-    
-    string baseDir = AppContext.BaseDirectory;
-    string csvPath = Path.Combine(baseDir, "Backend", "datasets", "raw", "vehicles.csv");
+    string csvPath = Path.Combine(AppContext.BaseDirectory, "Backend", "datasets", "raw", "vehicles.csv");
+    var vehicles = CsvLoader.LoadVehicles(csvPath, maxRows: 1000);
 
-    if (!File.Exists(csvPath))
-    {
-        Console.WriteLine($" File not found: {csvPath}");
-        return;
-    }
+    Console.WriteLine($"Loaded {vehicles.Count} rows");
 
-    var vehicles = CsvLoader.LoadVehicles(csvPath, maxRows: 100);
-    Console.WriteLine($"✅ Loaded {vehicles.Count} rows");
+    var (x, y) = Preprocessor.ToMatrix(vehicles);
+    Console.WriteLine($"Converted to matrix: {x.GetLength(0)} samples, {x.GetLength(1)} features");
 
-    return; 
+    return;
 }
+
 
 
 app.Run();
