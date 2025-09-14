@@ -21,7 +21,6 @@ public class CsvLoader
         using var csv = new CsvReader(reader, config);
         var records = new List<Vehicle>();
 
-        // ✅ Read header row first
         csv.Read();
         csv.ReadHeader();
 
@@ -40,7 +39,6 @@ public class CsvLoader
                     Transmission = csv.GetField<string>("transmission")
                 };
 
-                // ✅ Add filter
                 if (vehicle.Price is > 0 && vehicle.Year is not null && vehicle.Odometer is not null)
                 {
                     records.Add(vehicle);

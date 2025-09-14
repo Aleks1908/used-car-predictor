@@ -1,5 +1,6 @@
 using Microsoft.Extensions.FileProviders;
 using used_car_predictor.Backend.Data;
+using used_car_predictor.Backend.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -38,16 +39,36 @@ app.MapFallbackToFile("index.html", new StaticFileOptions
 if (args.Contains("--cli"))
 {
     string csvPath = Path.Combine(AppContext.BaseDirectory, "Backend", "datasets", "raw", "vehicles.csv");
-    var vehicles = CsvLoader.LoadVehicles(csvPath, maxRows: 1000);
+    var vehicles = CsvLoader.LoadVehicles(csvPath, maxRows: 100000);
 
-    Console.WriteLine($"Loaded {vehicles.Count} rows");
+    var selectedModel = "corolla";
+    var modelRows = vehicles
+        .Where(v => v.Model?.Trim().ToLower() == selectedModel)
+        .ToList();
 
-    var (x, y) = Preprocessor.ToMatrix(vehicles);
-    Console.WriteLine($"Converted to matrix: {x.GetLength(0)} samples, {x.GetLength(1)} features");
+    Console.WriteLine($"Training regression for {selectedModel} ({modelRows.Count} rows)");
+
+    var (features, labels) = Preprocessor.ToMatrix(modelRows);
+
+    var featureScaler = new FeatureScaler();
+    features = featureScaler.FitTransform(features);
+
+    var labelScaler = new LabelScaler();
+    var scaledLabels = labelScaler.FitTransform(labels);
+
+    var model = new LinearRegression(learningRate: 0.01, epochs: 5000);
+    model.Fit(features, scaledLabels);
+
+    var scaledPredictions = model.Predict(features);
+    var predictions = labelScaler.InverseTransform(scaledPredictions);
+
+    for (int i = 0; i < Math.Min(10, modelRows.Count); i++)
+    {
+        Console.WriteLine($"Year={modelRows[i].Year}, Odo={modelRows[i].Odometer}, " +
+                          $"True={labels[i]}, Pred={predictions[i]:F2}");
+    }
 
     return;
 }
-
-
 
 app.Run();
