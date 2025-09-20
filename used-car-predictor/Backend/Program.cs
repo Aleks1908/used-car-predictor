@@ -1,6 +1,7 @@
 using Microsoft.Extensions.FileProviders;
 using used_car_predictor.Backend.Data;
 using used_car_predictor.Backend.Models;
+using used_car_predictor.Backend.Evaluation;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -36,6 +37,7 @@ app.MapFallbackToFile("index.html", new StaticFileOptions
     FileProvider = new PhysicalFileProvider(reactBuildPath)
 });
 
+// Helper for encoding new inputs
 double[] EncodeManualInput(
     int year,
     int odometer,
@@ -43,7 +45,7 @@ double[] EncodeManualInput(
     string transmission,
     List<string> fuels,
     List<string> transmissions,
-    int targetYear = 2025) 
+    int targetYear = 2025)
 {
     var row = new double[2 + fuels.Count + transmissions.Count];
 
@@ -61,12 +63,10 @@ double[] EncodeManualInput(
     return row;
 }
 
-
-
 if (args.Contains("--cli"))
 {
     string csvPath = Path.Combine(AppContext.BaseDirectory, "Backend", "datasets", "raw", "vehicles.csv");
-    var vehicles = CsvLoader.LoadVehicles(csvPath, maxRows: 20000);
+    var vehicles = CsvLoader.LoadVehicles(csvPath, maxRows: 1000000);
 
     var selectedModel = "corolla";
     var modelRows = vehicles
@@ -76,15 +76,30 @@ if (args.Contains("--cli"))
     Console.WriteLine($"Training regression for {selectedModel} ({modelRows.Count} rows)");
 
     var (features, labels, fuels, transmissions) = Preprocessor.ToMatrix(modelRows);
-    
+
+    // Scale
     var featureScaler = new FeatureScaler();
     features = featureScaler.FitTransform(features);
 
     var labelScaler = new LabelScaler();
     var scaledLabels = labelScaler.FitTransform(labels);
+
+    // Train/Test split
+    var (trainFeatures, trainLabels, testFeatures, testLabels) =
+        DataSplitter.Split(features, scaledLabels, trainRatio: 0.8);
     
     var model = new LinearRegression(learningRate: 0.01, epochs: 5000);
-    model.Fit(features, scaledLabels);
+    model.Fit(trainFeatures, trainLabels);
+    
+    var scaledPreds = model.Predict(testFeatures);
+    var preds = labelScaler.InverseTransform(scaledPreds);
+    var trueVals = labelScaler.InverseTransform(testLabels);
+    
+    var mae = Metrics.MeanAbsoluteError(trueVals, preds);
+    var rmse = Metrics.RootMeanSquaredError(trueVals, preds);
+    var r2 = Metrics.RSquared(trueVals, preds);
+
+    Console.WriteLine($"MAE = {mae:F2}, RMSE = {rmse:F2}, R² = {r2:F3}");
 
     var manualRow = EncodeManualInput(
         2016,          // manufacturing year
@@ -96,13 +111,11 @@ if (args.Contains("--cli"))
         targetYear: 2030  // simulate for n year
     );
 
-    
     var scaledRow = featureScaler.TransformRow(manualRow);
-    
     var scaledPrediction = model.Predict(scaledRow);
     var predictedPrice = labelScaler.InverseTransform(scaledPrediction);
 
-    Console.WriteLine($"Predicted 2018 Corolla automatic (100k km) price: {predictedPrice:F2}");
+    Console.WriteLine($"Predicted 2018 Corolla automatic (100k km) price in 2025: {predictedPrice:F2}");
 
     return;
 }
