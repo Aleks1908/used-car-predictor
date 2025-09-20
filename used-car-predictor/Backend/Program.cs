@@ -37,16 +37,19 @@ app.MapFallbackToFile("index.html", new StaticFileOptions
 });
 
 double[] EncodeManualInput(
-    int year, 
-    int odometer, 
-    string fuel, 
-    string transmission, 
-    List<string> fuels, 
-    List<string> transmissions)
+    int year,
+    int odometer,
+    string fuel,
+    string transmission,
+    List<string> fuels,
+    List<string> transmissions,
+    int targetYear = 2025) 
 {
     var row = new double[2 + fuels.Count + transmissions.Count];
 
-    row[0] = year;
+    int age = targetYear - year;
+
+    row[0] = age;
     row[1] = odometer;
 
     for (int j = 0; j < fuels.Count; j++)
@@ -57,6 +60,7 @@ double[] EncodeManualInput(
 
     return row;
 }
+
 
 
 if (args.Contains("--cli"))
@@ -83,20 +87,22 @@ if (args.Contains("--cli"))
     model.Fit(features, scaledLabels);
 
     var manualRow = EncodeManualInput(
-        2025,
+        2016,          // manufacturing year
         100000,
         "gas",
         "automatic",
         fuels,
-        transmissions
+        transmissions,
+        targetYear: 2030  // simulate for n year
     );
+
     
     var scaledRow = featureScaler.TransformRow(manualRow);
     
     var scaledPrediction = model.Predict(scaledRow);
     var predictedPrice = labelScaler.InverseTransform(scaledPrediction);
 
-    Console.WriteLine($"Predicted 2025 Corolla automatic (100k km) price: {predictedPrice:F2}");
+    Console.WriteLine($"Predicted 2018 Corolla automatic (100k km) price: {predictedPrice:F2}");
 
     return;
 }

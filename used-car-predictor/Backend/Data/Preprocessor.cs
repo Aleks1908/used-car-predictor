@@ -29,14 +29,17 @@ public static class Preprocessor
         {
             var v = vehicles[i];
 
-            features[i, 0] = v.Year ?? 0;
-            features[i, 1] = v.Odometer ?? 0;
+            int targetYear = DateTime.Now.Year; 
+            int age = v.Year is not null ? targetYear - v.Year.Value : 0;
+
+            features[i, 0] = age;                    
+            features[i, 1] = v.Odometer ?? 0;        
 
             for (int j = 0; j < fuels.Count; j++)
             {
                 features[i, 2 + j] = (v.Fuel?.Trim().ToLower() == fuels[j]) ? 1 : 0;
             }
-
+            
             for (int j = 0; j < transmissions.Count; j++)
             {
                 features[i, 2 + fuels.Count + j] =
@@ -44,7 +47,8 @@ public static class Preprocessor
             }
 
             labels[i] = v.Price ?? 0;
-        } 
+        }
+
         return (features, labels, fuels, transmissions);
     }
 }
