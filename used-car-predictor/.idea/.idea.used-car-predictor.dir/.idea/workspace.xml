@@ -11,6 +11,7 @@
   <component name="ChangeListManager">
     <list default="true" id="276999bb-11bc-4f5c-b78e-60cc006bd917" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/.idea.used-car-predictor.dir/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/.idea.used-car-predictor.dir/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Backend/Program.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Backend/Program.cs" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -32,11 +33,14 @@
   </component>
   <component name="HighlightingSettingsPerFile">
     <setting file="file://$PROJECT_DIR$/Backend/Data/CsvLoader.cs" root0="FORCE_HIGHLIGHTING" />
-    <setting file="file://$PROJECT_DIR$/Backend/Data/FutureScaler.cs" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/Backend/Data/DataSplitter.cs" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/Backend/Data/FeatureScaler.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/Backend/Data/LabelScaler.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/Backend/Data/Preprocessor.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/Backend/Data/Vehicle.cs" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/Backend/Evaluation/Metrics.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/Backend/Models/LinearRegression.cs" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/Backend/Utils/ModelNormalizer.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file:///usr/local/share/dotnet/sdk/9.0.304/Sdks/Microsoft.NET.Sdk/analyzers/build/config/analysislevel_9_default.globalconfig" root0="FORCE_HIGHLIGHTING" />
   </component>
   <component name="KubernetesApiPersistence">{}</component>
@@ -56,30 +60,31 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    ".NET Executable.Unnamed.executor": "Run",
-    ".NET Launch Settings Profile.Unnamed.executor": "Run",
-    ".NET Launch Settings Profile.used-car-predictor: used_car_predictor.executor": "Run",
-    "ASKED_SHARE_PROJECT_CONFIGURATION_FILES": "true",
-    "ModuleVcsDetector.initialDetectionPerformed": "true",
-    "RunOnceActivity.ShowReadmeOnStart": "true",
-    "RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252": "true",
-    "RunOnceActivity.git.unshallow": "true",
-    "SHARE_PROJECT_CONFIGURATION_FILES": "true",
-    "Shell Script.Run Cli.executor": "Run",
-    "Shell Script.Run.executor": "Run",
-    "Shell Script.Unnamed.executor": "Run",
-    "git-widget-placeholder": "main",
-    "node.js.detected.package.eslint": "true",
-    "node.js.detected.package.tslint": "true",
-    "node.js.selected.package.eslint": "(autodetect)",
-    "node.js.selected.package.tslint": "(autodetect)",
-    "nodejs_package_manager_path": "npm",
-    "settings.editor.selected.configurable": "com.github.copilot.settings.completions.CompletionsConfigurable",
-    "vue.rearranger.settings.migration": "true"
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;.NET Executable.Unnamed.executor&quot;: &quot;Run&quot;,
+    &quot;.NET Launch Settings Profile.Unnamed.executor&quot;: &quot;Run&quot;,
+    &quot;.NET Launch Settings Profile.used-car-predictor: used_car_predictor.executor&quot;: &quot;Run&quot;,
+    &quot;ASKED_SHARE_PROJECT_CONFIGURATION_FILES&quot;: &quot;true&quot;,
+    &quot;ModuleVcsDetector.initialDetectionPerformed&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
+    &quot;SHARE_PROJECT_CONFIGURATION_FILES&quot;: &quot;true&quot;,
+    &quot;Shell Script.Run Cli.executor&quot;: &quot;Run&quot;,
+    &quot;Shell Script.Run.executor&quot;: &quot;Run&quot;,
+    &quot;Shell Script.Unnamed.executor&quot;: &quot;Run&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;main&quot;,
+    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
+    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
+    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
+    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
+    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
+    &quot;settings.editor.selected.configurable&quot;: &quot;com.github.copilot.settings.completions.CompletionsConfigurable&quot;,
+    &quot;ts.external.directory.path&quot;: &quot;/Applications/Rider.app/Contents/plugins/javascript-plugin/jsLanguageServicesImpl/external&quot;,
+    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
   }
-}]]></component>
+}</component>
   <component name="RunManager" selected="Shell Script.Run Cli">
     <configuration name="Unnamed" type="LaunchSettings" factoryName=".NET Launch Settings Profile" nameIsGenerated="true">
       <option name="LAUNCH_PROFILE_PROJECT_FILE_PATH" value="$PROJECT_DIR$/used-car-predictor.csproj" />
@@ -241,6 +246,9 @@
       <workItem from="1757321111345" duration="4221000" />
       <workItem from="1757794497189" duration="15047000" />
       <workItem from="1757875825594" duration="2281000" />
+      <workItem from="1758366281920" duration="11362000" />
+      <workItem from="1758486078699" duration="94000" />
+      <workItem from="1758537068465" duration="10604000" />
     </task>
     <servers />
   </component>
