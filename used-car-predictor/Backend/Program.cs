@@ -50,15 +50,15 @@ double[] EncodeManualInput(
 {
     var row = new double[2 + fuels.Count + transmissions.Count];
 
-    int age = targetYear - year;
+    var age = targetYear - year;
 
     row[0] = age;
     row[1] = odometer;
 
-    for (int j = 0; j < fuels.Count; j++)
+    for (var j = 0; j < fuels.Count; j++)
         row[2 + j] = fuel.Trim().ToLower() == fuels[j] ? 1 : 0;
 
-    for (int j = 0; j < transmissions.Count; j++)
+    for (var j = 0; j < transmissions.Count; j++)
         row[2 + fuels.Count + j] = transmission.Trim().ToLower() == transmissions[j] ? 1 : 0;
 
     return row;
@@ -155,11 +155,14 @@ if (args.Contains("--cli")){
     var (trainFeatures, trainLabels, testFeatures, testLabels) =
         DataSplitter.Split(features, scaledLabels, trainRatio: 0.8);
     
-    IRegressor linear = new LinearRegression();
+    IRegressor linear = new LinearRegression(learningRate: 0.0001, epochs: 10000);
     linear.Fit(trainFeatures, trainLabels);
     
-    IRegressor ridge = new RidgeRegression(learningRate: 0.0000001, epochs: 10000, lambda: 0.5);
-    ridge.Fit(trainFeatures, trainLabels);
+    var (trainValX, trainValY, testX, testY) = DataSplitter.Split(features, scaledLabels, trainRatio: 0.8);  // 80% train+val, 20% test
+    var (trainX, trainY, valX, valY) = DataSplitter.Split(trainValX, trainValY, trainRatio: 0.75);      // 75% train, 25% val (of the 80%) for tuning
+    var ridge = RidgeRegression.TrainWithBestParams(trainX, trainY, valX, valY, labelScaler);
+    Evaluator.Evaluate(ridge, testX, testY, labelScaler);
+
 
     var manualRow = EncodeManualInput(
         2016,          // manufacturing year
@@ -168,26 +171,27 @@ if (args.Contains("--cli")){
         "automatic",
         fuels,
         transmissions,
-        targetYear: 2030  // simulate for n year
+        targetYear: 2025  // simulate for n year
     );
     
     var scaledRow = featureScaler.TransformRow(manualRow);
     
-    // Linear Regression prediction
     var scaledPredictionLR = linear.Predict(scaledRow);
     var predictedPriceLR = labelScaler.InverseTransform(new double[] { scaledPredictionLR })[0];
 
-    Console.WriteLine($"[Linear] Predicted 2018 Corolla automatic (100k km) price in 2030: {predictedPriceLR:F2}");
 
     var scaledPredictionRR = ridge.Predict(scaledRow);
     var predictedPriceRR = labelScaler.InverseTransform(new double[] { scaledPredictionRR })[0];
+    
 
-    Console.WriteLine($"[Ridge ] Predicted 2018 Corolla automatic (100k km) price in 2030: {predictedPriceRR:F2}");
     
     Evaluator.Evaluate(linear, testFeatures, testLabels, labelScaler);
     
     Evaluator.Evaluate(ridge, testFeatures, testLabels, labelScaler);
 
+
+    Console.WriteLine($"[Linear] Predicted Corolla price: {predictedPriceLR:F2}");
+    Console.WriteLine($"[Ridge] Predicted Corolla price: {predictedPriceRR:F2}");
     
     return;
 }
