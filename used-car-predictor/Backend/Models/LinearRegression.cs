@@ -1,20 +1,22 @@
 namespace used_car_predictor.Backend.Models;
 
-public class LinearRegression
+public class LinearRegression : IRegressor
 {
-    private double[] weights = Array.Empty<double>();
+   private double[] weights = Array.Empty<double>();
     private double bias;
 
     private readonly double learningRate;
     private readonly int epochs;
 
+    public string Name => "Linear Regression";
+    
     public LinearRegression(double learningRate = 0.0000001, int epochs = 10000)
     {
         this.learningRate = learningRate;
         this.epochs = epochs;
     }
-
-    public void Fit(double[,] features, double[] labels)
+    
+    public void Fit(double[,] features, double[] labels) 
     {
         int sampleCount = features.GetLength(0);
         int featureCount = features.GetLength(1);
