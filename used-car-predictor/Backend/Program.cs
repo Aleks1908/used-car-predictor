@@ -142,8 +142,6 @@ if (args.Contains("--cli")){
     
     Console.WriteLine($"Training regression for {selectedModel} ({modelRows.Count} rows)");
     
-    
-    
     var (features, labels, fuels, transmissions) = Preprocessor.ToMatrix(modelRows);
     
     // Scale
@@ -159,17 +157,7 @@ if (args.Contains("--cli")){
     
     IRegressor model = new LinearRegression();
     model.Fit(trainFeatures, trainLabels);
-    
-    var scaledPreds = model.Predict(testFeatures);
-    var preds = model.Predict(testFeatures);
-    var trueVals = labelScaler.InverseTransform(testLabels);
-    
-    var mae = Metrics.MeanAbsoluteError(trueVals, preds);
-    var rmse = Metrics.RootMeanSquaredError(trueVals, preds);
-    var r2 = Metrics.RSquared(trueVals, preds);
-    
-    Console.WriteLine($"MAE = {mae:F2}, RMSE = {rmse:F2}, R² = {r2:F3}");
-    
+
     var manualRow = EncodeManualInput(
         2016,          // manufacturing year
         100000,
@@ -185,6 +173,7 @@ if (args.Contains("--cli")){
     var predictedPrice = labelScaler.InverseTransform(scaledPrediction);
     
     Console.WriteLine($"Predicted 2018 Corolla automatic (100k km) price in 2025: {predictedPrice:F2}");
+    Evaluator.Evaluate(model, testFeatures, testLabels, labelScaler);
     
     return;
 }
