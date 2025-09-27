@@ -155,8 +155,11 @@ if (args.Contains("--cli")){
     var (trainFeatures, trainLabels, testFeatures, testLabels) =
         DataSplitter.Split(features, scaledLabels, trainRatio: 0.8);
     
-    IRegressor model = new LinearRegression();
-    model.Fit(trainFeatures, trainLabels);
+    IRegressor linear = new LinearRegression();
+    linear.Fit(trainFeatures, trainLabels);
+    
+    IRegressor ridge = new RidgeRegression(learningRate: 0.0000001, epochs: 10000, lambda: 0.5);
+    ridge.Fit(trainFeatures, trainLabels);
 
     var manualRow = EncodeManualInput(
         2016,          // manufacturing year
@@ -169,11 +172,22 @@ if (args.Contains("--cli")){
     );
     
     var scaledRow = featureScaler.TransformRow(manualRow);
-    var scaledPrediction = model.Predict(scaledRow);
-    var predictedPrice = labelScaler.InverseTransform(scaledPrediction);
     
-    Console.WriteLine($"Predicted 2018 Corolla automatic (100k km) price in 2025: {predictedPrice:F2}");
-    Evaluator.Evaluate(model, testFeatures, testLabels, labelScaler);
+    // Linear Regression prediction
+    var scaledPredictionLR = linear.Predict(scaledRow);
+    var predictedPriceLR = labelScaler.InverseTransform(new double[] { scaledPredictionLR })[0];
+
+    Console.WriteLine($"[Linear] Predicted 2018 Corolla automatic (100k km) price in 2030: {predictedPriceLR:F2}");
+
+    var scaledPredictionRR = ridge.Predict(scaledRow);
+    var predictedPriceRR = labelScaler.InverseTransform(new double[] { scaledPredictionRR })[0];
+
+    Console.WriteLine($"[Ridge ] Predicted 2018 Corolla automatic (100k km) price in 2030: {predictedPriceRR:F2}");
+    
+    Evaluator.Evaluate(linear, testFeatures, testLabels, labelScaler);
+    
+    Evaluator.Evaluate(ridge, testFeatures, testLabels, labelScaler);
+
     
     return;
 }
