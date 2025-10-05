@@ -5,7 +5,7 @@ namespace used_car_predictor.Backend.Evaluation
 {
     public static class HyperparamSearch
     {
-        public static (IRegressor bestModel, double bestRmse) GridSearch(
+        public static (IRegressor bestModel, double bestRmse, Dictionary<string, object> bestParams) GridSearch(
             Func<Dictionary<string, object>, IRegressor> modelFactory,
             List<Dictionary<string, object>> paramGrid,
             double[,] trainFeat, double[] trainLbl,
@@ -14,7 +14,8 @@ namespace used_car_predictor.Backend.Evaluation
         {
             IRegressor? bestModel = null;
             double bestRmse = double.PositiveInfinity;
-            object gate = new object();
+            Dictionary<string, object>? bestParams = null;
+            object gate = new();
 
             System.Threading.Tasks.Parallel.ForEach(paramGrid, paramSet =>
             {
@@ -25,6 +26,11 @@ namespace used_car_predictor.Backend.Evaluation
                 var truth = labelScaler.InverseTransform(valLbl);
 
                 var rmse = Metrics.RootMeanSquaredError(truth, preds);
+                var mae = Metrics.MeanAbsoluteError(truth, preds);
+                var r2 = Metrics.RSquared(truth, preds);
+
+                Console.WriteLine(
+                    $"[{model.Name}] {string.Join(", ", paramSet.Select(kv => kv.Key + "=" + kv.Value))} -> RMSE={rmse:F2}, MAE={mae:F2}, R²={r2:F3}");
 
                 lock (gate)
                 {
@@ -32,12 +38,16 @@ namespace used_car_predictor.Backend.Evaluation
                     {
                         bestRmse = rmse;
                         bestModel = model;
+                        bestParams = new Dictionary<string, object>(paramSet);
                     }
                 }
             });
 
             if (bestModel == null) throw new InvalidOperationException("Grid search did not produce a model.");
-            return (bestModel, bestRmse);
+
+            Console.WriteLine(
+                $"[GridSearch] Best params: {string.Join(", ", bestParams!.Select(kv => kv.Key + "=" + kv.Value))}");
+            return (bestModel, bestRmse, bestParams!);
         }
     }
 }

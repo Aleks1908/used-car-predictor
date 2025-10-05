@@ -1,33 +1,39 @@
-namespace used_car_predictor.Backend.Data;
-
-public class LabelScaler
+namespace used_car_predictor.Backend.Data
 {
-    private double mean;
-    private double std;
-
-    public double[] FitTransform(double[] labels)
+    public class LabelScaler
     {
-        mean = labels.Average();
-        std = Math.Sqrt(labels.Select(v => Math.Pow(v - mean, 2)).Average());
+        private double _mean;
+        private double _std;
+        private readonly bool _useLog;
 
-        var scaled = new double[labels.Length];
-        for (int i = 0; i < labels.Length; i++)
+        public LabelScaler(bool useLog = true)
         {
-            scaled[i] = (labels[i] - mean) / std;
+            _useLog = useLog;
         }
-        return scaled;
-    }
 
-    public double[] InverseTransform(double[] scaledLabels)
-    {
-        var unscaled = new double[scaledLabels.Length];
-        for (int i = 0; i < scaledLabels.Length; i++)
+        public double[] FitTransform(double[] y)
         {
-            unscaled[i] = scaledLabels[i] * std + mean;
-        }
-        return unscaled;
-    }
+            if (_useLog)
+                y = y.Select(v => Math.Log(v + 1.0)).ToArray();
 
-    public double InverseTransform(double scaledValue) =>
-        scaledValue * std + mean;
+            _mean = y.Average();
+            _std = Math.Sqrt(y.Select(v => Math.Pow(v - _mean, 2)).Average());
+            return y.Select(v => (v - _mean) / _std).ToArray();
+        }
+
+        public double[] Transform(double[] y)
+        {
+            if (_useLog)
+                y = y.Select(v => Math.Log(v + 1.0)).ToArray();
+            return y.Select(v => (v - _mean) / _std).ToArray();
+        }
+
+        public double[] InverseTransform(double[] y)
+        {
+            var unscaled = y.Select(v => v * _std + _mean).ToArray();
+            if (_useLog)
+                unscaled = unscaled.Select(v => Math.Exp(v) - 1.0).ToArray();
+            return unscaled;
+        }
+    }
 }

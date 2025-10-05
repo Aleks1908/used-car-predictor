@@ -48,21 +48,36 @@ double[] EncodeManualInput(
     List<string> transmissions,
     int targetYear = 2025)
 {
-    var row = new double[2 + fuels.Count + transmissions.Count];
+    // 5 base features + one-hots
+    var row = new double[5 + fuels.Count + transmissions.Count];
 
-    var age = targetYear - year;
+    int age = Math.Max(0, targetYear - year);
+    double odo = Math.Max(0, (double)odometer);
 
+    double mileagePerYear = odo / (age + 1.0);
+    double logOdometer = Math.Log(odo + 1.0);
+    double age2 = age * (double)age;
+
+    // base features (must match Preprocessor indices)
     row[0] = age;
-    row[1] = odometer;
+    row[1] = odo;
+    row[2] = mileagePerYear;
+    row[3] = logOdometer;
+    row[4] = age2;
 
-    for (var j = 0; j < fuels.Count; j++)
-        row[2 + j] = fuel.Trim().ToLower() == fuels[j] ? 1 : 0;
+    // one-hots
+    var f = (fuel ?? "").Trim().ToLower();
+    for (int j = 0; j < fuels.Count; j++)
+        row[5 + j] = f == fuels[j] ? 1.0 : 0.0;
 
-    for (var j = 0; j < transmissions.Count; j++)
-        row[2 + fuels.Count + j] = transmission.Trim().ToLower() == transmissions[j] ? 1 : 0;
+    var t = (transmission ?? "").Trim().ToLower();
+    int baseIdx = 5 + fuels.Count;
+    for (int j = 0; j < transmissions.Count; j++)
+        row[baseIdx + j] = t == transmissions[j] ? 1.0 : 0.0;
 
     return row;
 }
+
 
 if (args.Contains("--cliCsvTest"))
 {
@@ -247,18 +262,19 @@ if (args.Contains("--cli"))
         {
             Console.WriteLine($"\n[{m.Model}] 🔍 Starting Random Forest hyperparameter tuning...");
 
-            // Split train set further into (train + val)
             var (tx, ty, vx, vy) = DataSplitter.Split(trainX, trainY, trainRatio: 0.75);
 
-            // --- Define search grid ---
             var rfParamGrid = new List<Dictionary<string, object>>();
-            int[] nTrees = { 30, 50, 80 };
-            int[] maxDepths = { 6, 8, 10 };
-            int[] minLeaf = { 3, 5, 8 };
+            int[] nTrees = { 50, 100 };
+            int[] maxDepths = { 4, 6, 8 };
+            int[] minLeaf = { 10, 20, 30 };
+            double[] sampleRatios = { 0.6, 0.8 };
+
 
             foreach (var nt in nTrees)
             foreach (var md in maxDepths)
             foreach (var ml in minLeaf)
+            foreach (var sr in sampleRatios)
                 rfParamGrid.Add(new Dictionary<string, object>
                 {
                     { "nEstimators", nt },
@@ -266,11 +282,10 @@ if (args.Contains("--cli"))
                     { "minSamplesSplit", 10 },
                     { "minSamplesLeaf", ml },
                     { "bootstrap", true },
-                    { "sampleRatio", 0.8 },
+                    { "sampleRatio", sr },
                     { "randomSeed", 42 }
                 });
 
-            // --- Factory to build a forest given a parameter dictionary ---
             Func<Dictionary<string, object>, IRegressor> rfFactory = p => new RandomForestRegressor(
                 (int)p["nEstimators"],
                 (int)p["maxDepth"],
@@ -281,8 +296,7 @@ if (args.Contains("--cli"))
                 (int)p["randomSeed"]
             );
 
-            // --- Run the grid search ---
-            var (bestModel, bestValRmse) = HyperparamSearch.GridSearch(
+            var (bestModel, bestValRmse, bestParams) = HyperparamSearch.GridSearch(
                 rfFactory,
                 rfParamGrid,
                 tx, ty,
@@ -292,12 +306,20 @@ if (args.Contains("--cli"))
 
             Console.WriteLine($"[{m.Model}] ✅ Best validation RMSE = {bestValRmse:F2}");
 
-            // --- Retrain best forest on full (train+val) data ---
-            var bestRf = (RandomForestRegressor)bestModel;
-            bestRf.Fit(trainX, trainY);
-
-            model = bestRf;
+            // Bump trees to 100 for final fit, keep other best params
+            var finalRf = new RandomForestRegressor(
+                nEstimators: 100,
+                maxDepth: (int)bestParams["maxDepth"],
+                minSamplesSplit: (int)bestParams["minSamplesSplit"],
+                minSamplesLeaf: (int)bestParams["minSamplesLeaf"],
+                bootstrap: (bool)bestParams["bootstrap"],
+                sampleRatio: (double)bestParams["sampleRatio"],
+                randomSeed: (int)bestParams["randomSeed"]
+            );
+            finalRf.Fit(trainX, trainY);
+            model = finalRf;
         }
+
 
         else if (wantGB)
         {

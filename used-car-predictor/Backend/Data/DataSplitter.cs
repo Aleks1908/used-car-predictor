@@ -2,33 +2,39 @@ namespace used_car_predictor.Backend.Data;
 
 public static class DataSplitter
 {
-    public static (double[,], double[], double[,], double[]) Split(
-        double[,] features, double[] labels, double trainRatio = 0.8)
+    public static (double[,], double[], double[,], double[]) Split(double[,] X, double[] y, double trainRatio = 0.8,
+        int seed = 42)
     {
-        int sampleCount = features.GetLength(0);
-        int featureCount = features.GetLength(1);
-        int trainSize = (int)(sampleCount * trainRatio);
-        int testSize = sampleCount - trainSize;
-
-        var trainFeatures = new double[trainSize, featureCount];
-        var trainLabels = new double[trainSize];
-        var testFeatures = new double[testSize, featureCount];
-        var testLabels = new double[testSize];
-
-        for (int i = 0; i < trainSize; i++)
+        int n = X.GetLength(0);
+        var idx = Enumerable.Range(0, n).ToArray();
+        var rng = new Random(seed);
+        for (int i = n - 1; i > 0; i--)
         {
-            for (int j = 0; j < featureCount; j++)
-                trainFeatures[i, j] = features[i, j];
-            trainLabels[i] = labels[i];
-        }
-        
-        for (int i = trainSize; i < sampleCount; i++)
-        {
-            for (int j = 0; j < featureCount; j++)
-                testFeatures[i - trainSize, j] = features[i, j];
-            testLabels[i - trainSize] = labels[i];
+            int j = rng.Next(i + 1);
+            (idx[i], idx[j]) = (idx[j], idx[i]);
         }
 
-        return (trainFeatures, trainLabels, testFeatures, testLabels);
+        int nTrain = (int)Math.Round(n * trainRatio);
+        var trX = new double[nTrain, X.GetLength(1)];
+        var trY = new double[nTrain];
+        var teX = new double[n - nTrain, X.GetLength(1)];
+        var teY = new double[n - nTrain];
+
+        for (int i = 0; i < nTrain; i++)
+        {
+            int s = idx[i];
+            for (int j = 0; j < X.GetLength(1); j++) trX[i, j] = X[s, j];
+            trY[i] = y[s];
+        }
+
+        for (int i = nTrain; i < n; i++)
+        {
+            int s = idx[i];
+            int r = i - nTrain;
+            for (int j = 0; j < X.GetLength(1); j++) teX[r, j] = X[s, j];
+            teY[r] = y[s];
+        }
+
+        return (trX, trY, teX, teY);
     }
 }
