@@ -247,18 +247,18 @@ if (args.Contains("--cli"))
         {
             Console.WriteLine($"\n[{m.Model}] 🔍 Starting Random Forest hyperparameter tuning...");
 
+            // Split train set further into (train + val)
             var (tx, ty, vx, vy) = DataSplitter.Split(trainX, trainY, trainRatio: 0.75);
 
+            // --- Define search grid ---
             var rfParamGrid = new List<Dictionary<string, object>>();
             int[] nTrees = { 30, 50, 80 };
             int[] maxDepths = { 6, 8, 10 };
-            int[] minLeaf = { 5, 10, 15 };
-            double[] sampleRatios = { 0.6, 0.8 };
+            int[] minLeaf = { 3, 5, 8 };
 
             foreach (var nt in nTrees)
             foreach (var md in maxDepths)
             foreach (var ml in minLeaf)
-            foreach (var sr in sampleRatios)
                 rfParamGrid.Add(new Dictionary<string, object>
                 {
                     { "nEstimators", nt },
@@ -266,10 +266,11 @@ if (args.Contains("--cli"))
                     { "minSamplesSplit", 10 },
                     { "minSamplesLeaf", ml },
                     { "bootstrap", true },
-                    { "sampleRatio", sr },
+                    { "sampleRatio", 0.8 },
                     { "randomSeed", 42 }
                 });
 
+            // --- Factory to build a forest given a parameter dictionary ---
             Func<Dictionary<string, object>, IRegressor> rfFactory = p => new RandomForestRegressor(
                 (int)p["nEstimators"],
                 (int)p["maxDepth"],
@@ -280,7 +281,8 @@ if (args.Contains("--cli"))
                 (int)p["randomSeed"]
             );
 
-            var (bestModel, bestValRmse, bestParams) = HyperparamSearch.GridSearch(
+            // --- Run the grid search ---
+            var (bestModel, bestValRmse) = HyperparamSearch.GridSearch(
                 rfFactory,
                 rfParamGrid,
                 tx, ty,
@@ -290,19 +292,13 @@ if (args.Contains("--cli"))
 
             Console.WriteLine($"[{m.Model}] ✅ Best validation RMSE = {bestValRmse:F2}");
 
-            // Bump trees to 100 for final fit, keep other best params
-            var finalRf = new RandomForestRegressor(
-                nEstimators: 100,
-                maxDepth: (int)bestParams["maxDepth"],
-                minSamplesSplit: (int)bestParams["minSamplesSplit"],
-                minSamplesLeaf: (int)bestParams["minSamplesLeaf"],
-                bootstrap: (bool)bestParams["bootstrap"],
-                sampleRatio: (double)bestParams["sampleRatio"],
-                randomSeed: (int)bestParams["randomSeed"]
-            );
-            finalRf.Fit(trainX, trainY);
-            model = finalRf;
+            // --- Retrain best forest on full (train+val) data ---
+            var bestRf = (RandomForestRegressor)bestModel;
+            bestRf.Fit(trainX, trainY);
+
+            model = bestRf;
         }
+
         else if (wantGB)
         {
             Console.WriteLine($"[{m.Model}] Gradient Boosting: not implemented yet.");
