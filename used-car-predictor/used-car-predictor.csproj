@@ -8,18 +8,18 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="CsvHelper" Version="33.1.0" />
-        <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="8.0.8" />
-        <PackageReference Include="Swashbuckle.AspNetCore" Version="6.4.0" />
+        <PackageReference Include="CsvHelper" Version="33.1.0"/>
+        <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="8.0.8"/>
+        <PackageReference Include="Swashbuckle.AspNetCore" Version="6.4.0"/>
     </ItemGroup>
 
     <ItemGroup>
-        <_ContentIncludedByDefault Remove="ui\build\asset-manifest.json" />
-        <_ContentIncludedByDefault Remove="ui\build\manifest.json" />
+        <_ContentIncludedByDefault Remove="ui\build\asset-manifest.json"/>
+        <_ContentIncludedByDefault Remove="ui\build\manifest.json"/>
     </ItemGroup>
 
     <ItemGroup>
-        <Folder Include="Backend\datasets\processed\" />
+        <Folder Include="Backend\datasets\processed\"/>
     </ItemGroup>
 
     <ItemGroup>
@@ -27,5 +27,12 @@
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </None>
     </ItemGroup>
+
+    <PropertyGroup>
+        <ServerGarbageCollection>true</ServerGarbageCollection>
+        <TieredCompilation>true</TieredCompilation>
+        <TieredPGO>true</TieredPGO>
+    </PropertyGroup>
+
 
 </Project>

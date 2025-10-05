@@ -1,7 +1,7 @@
 using Microsoft.Extensions.FileProviders;
 using used_car_predictor.Backend.Data;
-using used_car_predictor.Backend.Models;
 using used_car_predictor.Backend.Evaluation;
+using used_car_predictor.Backend.Models;
 using used_car_predictor.Backend.Utils;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -66,7 +66,7 @@ double[] EncodeManualInput(
 
 if (args.Contains("--cliCsvTest"))
 {
-    string csvPath = Path.Combine(AppContext.BaseDirectory, "Backend", "datasets", "raw", "vehicles.csv");
+    var csvPath = Path.Combine(AppContext.BaseDirectory, "Backend", "datasets", "raw", "vehicles.csv");
 
     var vehicles = CsvLoader.LoadVehicles(csvPath);
     var modelCounts = vehicles
@@ -85,22 +85,18 @@ if (args.Contains("--cliCsvTest"))
             var normalized = ModelNormalizer.Normalize(v.Model);
 
             if (frequentSet.Contains(normalized))
-            {
                 // keep full model
                 return new
                 {
                     FinalCategory = normalized,
                     Manufacturer = v.Manufacturer ?? "unknown"
                 };
-            }
-            else
+
+            return new
             {
-                return new
-                {
-                    FinalCategory = v.Manufacturer ?? "unknown",
-                    Manufacturer = v.Manufacturer ?? "unknown"
-                };
-            }
+                FinalCategory = v.Manufacturer ?? "unknown",
+                Manufacturer = v.Manufacturer ?? "unknown"
+            };
         })
         .ToList();
 
@@ -110,7 +106,7 @@ if (args.Contains("--cliCsvTest"))
         {
             Category = g.Key,
             Count = g.Count(),
-            Manufacturer = g.First().Manufacturer
+            g.First().Manufacturer
         })
         .OrderByDescending(g => g.Count)
         .ToList();
@@ -122,78 +118,75 @@ if (args.Contains("--cliCsvTest"))
 
     Console.WriteLine("Top 20 categories after fallback:");
     foreach (var entry in finalCounts.Take(20))
-    {
         Console.WriteLine(
             $"Manufacturer: {entry.Manufacturer,-12} | Category: {entry.Category,-25} | Count: {entry.Count}");
-    }
 
-    return;
-} 
-
-if (args.Contains("--cli")){
-    string csvPath = Path.Combine(AppContext.BaseDirectory, "Backend", "datasets", "raw", "vehicles.csv");
-    
-    var vehicles = CsvLoader.LoadVehicles(csvPath, maxRows: 1000000);
-    
-    var selectedModel = "corolla";
-    var modelRows = vehicles
-        .Where(v => v.Model?.Trim().ToLower() == selectedModel)
-        .ToList();
-    
-    Console.WriteLine($"Training regression for {selectedModel} ({modelRows.Count} rows)");
-    
-    var (features, labels, fuels, transmissions) = Preprocessor.ToMatrix(modelRows);
-    
-    // Scale
-    var featureScaler = new FeatureScaler();
-    features = featureScaler.FitTransform(features);
-    
-    var labelScaler = new LabelScaler();
-    var scaledLabels = labelScaler.FitTransform(labels);
-    
-    // Train/Test split
-    var (trainFeatures, trainLabels, testFeatures, testLabels) =
-        DataSplitter.Split(features, scaledLabels, trainRatio: 0.8);
-    
-    IRegressor linear = new LinearRegression(learningRate: 0.0001, epochs: 10000);
-    linear.Fit(trainFeatures, trainLabels);
-    
-    var (trainValX, trainValY, testX, testY) = DataSplitter.Split(features, scaledLabels, trainRatio: 0.8);  // 80% train+val, 20% test
-    var (trainX, trainY, valX, valY) = DataSplitter.Split(trainValX, trainValY, trainRatio: 0.75);      // 75% train, 25% val (of the 80%) for tuning
-    var ridge = RidgeRegression.TrainWithBestParams(trainX, trainY, valX, valY, labelScaler);
-    Evaluator.Evaluate(ridge, testX, testY, labelScaler);
-
-
-    var manualRow = EncodeManualInput(
-        2016,          // manufacturing year
-        100000,
-        "gas",
-        "automatic",
-        fuels,
-        transmissions,
-        targetYear: 2025  // simulate for n year
-    );
-    
-    var scaledRow = featureScaler.TransformRow(manualRow);
-    
-    var scaledPredictionLR = linear.Predict(scaledRow);
-    var predictedPriceLR = labelScaler.InverseTransform(new double[] { scaledPredictionLR })[0];
-
-
-    var scaledPredictionRR = ridge.Predict(scaledRow);
-    var predictedPriceRR = labelScaler.InverseTransform(new double[] { scaledPredictionRR })[0];
-    
-
-    
-    Evaluator.Evaluate(linear, testFeatures, testLabels, labelScaler);
-    
-    Evaluator.Evaluate(ridge, testFeatures, testLabels, labelScaler);
-
-
-    Console.WriteLine($"[Linear] Predicted Corolla price: {predictedPriceLR:F2}");
-    Console.WriteLine($"[Ridge] Predicted Corolla price: {predictedPriceRR:F2}");
-    
     return;
 }
+
+if (args.Contains("--cli"))
+{
+    var csvPath = Path.Combine(AppContext.BaseDirectory, "Backend", "datasets", "raw", "vehicles.csv");
+    var vehicles = CsvLoader.LoadVehicles(csvPath, 1_000_000);
+
+
+    // ====== PER-MODEL TRAIN (recommended) ======
+    Console.WriteLine("Per-model training (models with ≥50 rows) ...");
+
+    // 1) Count normalized models
+    var modelCounts = vehicles
+        .Where(v => !string.IsNullOrWhiteSpace(v.Model))
+        .GroupBy(v => ModelNormalizer.Normalize(v.Model))
+        .Select(g => new { Model = g.Key, Count = g.Count() })
+        .OrderByDescending(x => x.Count)
+        .ToList();
+
+    var eligible = modelCounts.Where(x => x.Count >= 50).ToList();
+    Console.WriteLine($"Eligible models (≥50 rows): {eligible.Count}");
+
+    int trained = 0;
+    foreach (var m in eligible)
+    {
+        // 2) Filter rows for this model
+        var rows = vehicles.Where(v => ModelNormalizer.Normalize(v.Model) == m.Model).ToList();
+        if (rows.Count < 50) continue; // defensive
+
+        // 3) Build matrix + scalers
+        var (features, labels, fuels, transmissions) = Preprocessor.ToMatrix(rows);
+        var fScaler = new FeatureScaler();
+        features = fScaler.FitTransform(features);
+        var yScaler = new LabelScaler();
+        var yScaled = yScaler.FitTransform(labels);
+
+        // 4) Split
+        var (trainX, trainY, testX, testY) = DataSplitter.Split(features, yScaled, trainRatio: 0.8);
+
+        // 5) Pick an algorithm (start with Ridge tuned or a small Random Forest)
+        // Ridge tuned on small grid:
+        var (tx, ty, vx, vy) = DataSplitter.Split(trainX, trainY, trainRatio: 0.75);
+        var ridge = RidgeRegression.TrainWithBestParams(tx, ty, vx, vy, yScaler);
+
+        // Retrain ridge on full train (tx+vx combined)
+        ridge.Fit(trainX, trainY);
+
+        // Evaluate
+        var preds = yScaler.InverseTransform(ridge.Predict(testX));
+        var truth = yScaler.InverseTransform(testY);
+        var mae = Metrics.MeanAbsoluteError(truth, preds);
+        var rmse = Metrics.RootMeanSquaredError(truth, preds);
+        var r2 = Metrics.RSquared(truth, preds);
+
+        Console.WriteLine($"{m.Model,-20} Count={m.Count,5}  MAE={mae,8:F0}  RMSE={rmse,8:F0}  R²={r2,5:F3}");
+
+        trained++;
+
+        // 6) (Next step) Save artifact for API use:
+        // SaveModel(m.Model, ridge, fScaler, yScaler, fuels, transmissions);
+    }
+
+    Console.WriteLine($"Trained models: {trained}/{eligible.Count}");
+    return;
+}
+
 
 app.Run();

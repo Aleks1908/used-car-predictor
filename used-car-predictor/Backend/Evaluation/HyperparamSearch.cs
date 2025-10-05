@@ -9,38 +9,34 @@ namespace used_car_predictor.Backend.Evaluation
             Func<Dictionary<string, object>, IRegressor> modelFactory,
             List<Dictionary<string, object>> paramGrid,
             double[,] trainFeat, double[] trainLbl,
-            double[,] valFeat,   double[] valLbl,
+            double[,] valFeat, double[] valLbl,
             LabelScaler labelScaler)
         {
             IRegressor? bestModel = null;
             double bestRmse = double.PositiveInfinity;
+            object gate = new object();
 
-            foreach (var paramSet in paramGrid)
+            System.Threading.Tasks.Parallel.ForEach(paramGrid, paramSet =>
             {
                 var model = modelFactory(paramSet);
                 model.Fit(trainFeat, trainLbl);
 
-                var scaledPreds = model.Predict(valFeat);
-                var preds = labelScaler.InverseTransform(scaledPreds);
-                var trueVals = labelScaler.InverseTransform(valLbl);
- 
-                var rmse = Metrics.RootMeanSquaredError(trueVals, preds);
-                var mae  = Metrics.MeanAbsoluteError(trueVals, preds);
-                var r2   = Metrics.RSquared(trueVals, preds);
+                var preds = labelScaler.InverseTransform(model.Predict(valFeat));
+                var truth = labelScaler.InverseTransform(valLbl);
 
-                Console.WriteLine($"[{model.Name}] {string.Join(", ", paramSet.Select(kv => kv.Key + "=" + kv.Value))} " +
-                                  $"-> RMSE={rmse:F2}, MAE={mae:F2}, R²={r2:F3}");
+                var rmse = Metrics.RootMeanSquaredError(truth, preds);
 
-                if (rmse < bestRmse)
+                lock (gate)
                 {
-                    bestRmse = rmse;
-                    bestModel = model;
+                    if (rmse < bestRmse)
+                    {
+                        bestRmse = rmse;
+                        bestModel = model;
+                    }
                 }
-            }
+            });
 
-            if (bestModel == null)
-                throw new InvalidOperationException("Grid search did not produce a model.");
-
+            if (bestModel == null) throw new InvalidOperationException("Grid search did not produce a model.");
             return (bestModel, bestRmse);
         }
     }
