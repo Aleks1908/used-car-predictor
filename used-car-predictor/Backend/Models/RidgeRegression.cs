@@ -77,7 +77,7 @@ namespace used_car_predictor.Backend.Models
             double[,] valFeatures, double[] valLabels,
             LabelScaler labelScaler)
         {
-            var lambdas = new double[] { 1e-6, 1e-5, 1e-4, 1e-3, 1e-2, 0.1, 1.0 };
+            var lambdas = new double[] { 1e-7, 1e-6, 1e-5, 1e-4, 1e-3, 1e-2, 0.1, 1 };
             var learningRates = new double[] { 1e-4, 5e-5 };
             var epochs = 10_000;
 
