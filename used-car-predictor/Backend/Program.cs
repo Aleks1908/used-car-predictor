@@ -3,6 +3,7 @@ using used_car_predictor.Backend.Data;
 using used_car_predictor.Backend.Evaluation;
 using used_car_predictor.Backend.Models;
 using used_car_predictor.Backend.Utils;
+using used_car_predictor.Backend.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -38,7 +39,18 @@ app.MapFallbackToFile("index.html", new StaticFileOptions
     FileProvider = new PhysicalFileProvider(reactBuildPath)
 });
 
-// -------------------- EncodeManualInput --------------------
+static string EnsureDir(string path)
+{
+    Directory.CreateDirectory(path);
+    return path;
+}
+
+static string? ArgValue(string[] a, string name)
+{
+    var i = Array.IndexOf(a, name);
+    return (i >= 0 && i + 1 < a.Length) ? a[i + 1] : null;
+}
+
 double[] EncodeManualInput(
     int year,
     int odometer,
@@ -46,11 +58,12 @@ double[] EncodeManualInput(
     string transmission,
     List<string> fuels,
     List<string> transmissions,
-    int targetYear = 2025)
+    int targetYear = 2030)
 {
     var row = new double[9 + fuels.Count + transmissions.Count];
+
     int age = Math.Max(0, targetYear - year);
-    double odo = Math.Max(0, (double)odometer);
+    double odo = Math.Max(0.0, odometer);
     double mileagePerYear = odo / (age + 1.0);
     double logOdometer = Math.Log(odo + 1.0);
     double age2 = age * age;
@@ -61,20 +74,21 @@ double[] EncodeManualInput(
     row[3] = logOdometer;
     row[4] = age2;
 
-    // interaction / polynomial
-    row[5 + fuels.Count + transmissions.Count] = age * mileagePerYear;
-    row[6 + fuels.Count + transmissions.Count] = age * logOdometer;
-    row[7 + fuels.Count + transmissions.Count] = Math.Pow(age, 3);
-    row[8 + fuels.Count + transmissions.Count] = Math.Pow(mileagePerYear, 3);
+    var f = (fuel ?? "").Trim().ToLowerInvariant();
+    var t = (transmission ?? "").Trim().ToLowerInvariant();
 
-    var f = (fuel ?? "").Trim().ToLower();
     for (int j = 0; j < fuels.Count; j++)
         row[5 + j] = f == fuels[j] ? 1.0 : 0.0;
 
-    var t = (transmission ?? "").Trim().ToLower();
     int baseIdx = 5 + fuels.Count;
     for (int j = 0; j < transmissions.Count; j++)
         row[baseIdx + j] = t == transmissions[j] ? 1.0 : 0.0;
+
+    int k = baseIdx + transmissions.Count;
+    row[k + 0] = age * logOdometer;
+    row[k + 1] = mileagePerYear * mileagePerYear;
+    row[k + 2] = age * age * age;
+    row[k + 3] = mileagePerYear * mileagePerYear * mileagePerYear;
 
     return row;
 }
@@ -82,19 +96,165 @@ double[] EncodeManualInput(
 // -------------------- CLI --------------------
 if (args.Contains("--cli"))
 {
-    var csvPath = Path.Combine(AppContext.BaseDirectory, "Backend", "datasets", "raw", "vehicles.csv");
-    var vehicles = CsvLoader.LoadVehicles(csvPath, 1_000_000);
+    string datasetsRoot = Path.Combine(builder.Environment.ContentRootPath, "Backend", "datasets");
+    var rawDir = Path.Combine(datasetsRoot, "raw");
+    var processedDir = EnsureDir(Path.Combine(datasetsRoot, "processed"));
+
+    var csvFromArg = ArgValue(args, "--csv");
+    var csvPath = csvFromArg ?? Path.Combine(rawDir, "vehicles.csv");
+    Console.WriteLine($"Loading vehicles from: {csvPath}");
+
+    var maxRowsArg = ArgValue(args, "--max");
+    int maxRows = int.TryParse(maxRowsArg, out var mr) ? mr : 1_000_000;
 
     bool wantLinear = args.Contains("--linear");
     bool wantRidge = args.Contains("--ridge");
-    bool wantTree = args.Contains("--tree");
     bool wantRF = args.Contains("--rf");
     bool wantGB = args.Contains("--gb");
     bool wantPredict = args.Contains("--predict");
+    if (!wantLinear && !wantRidge && !wantRF && !wantGB)
+        wantLinear = wantRidge = wantRF = wantGB = true;
+
+    int manualYear = 2016, manualOdo = 100000;
+    string manualFuel = "gas", manualTrans = "automatic";
+    var manualIdx = Array.FindIndex(args, a => a == "--manual");
+    if (manualIdx >= 0 && manualIdx + 4 < args.Length)
+    {
+        int.TryParse(args[manualIdx + 1], out manualYear);
+        int.TryParse(args[manualIdx + 2], out manualOdo);
+        manualFuel = args[manualIdx + 3] ?? "gas";
+        manualTrans = args[manualIdx + 4] ?? "automatic";
+        wantPredict = true;
+    }
+
+    bool debug = args.Contains("--debug");
+
+    var loadBundleArg = ArgValue(args, "--load-bundle");
+    if (!string.IsNullOrEmpty(loadBundleArg))
+    {
+        string bundlePath = loadBundleArg.EndsWith(".json", StringComparison.OrdinalIgnoreCase)
+            ? Path.GetFullPath(loadBundleArg)
+            : Path.Combine(processedDir, ModelNormalizer.Normalize(loadBundleArg) + ".json");
+
+        if (!File.Exists(bundlePath))
+        {
+            Console.WriteLine($"Bundle not found: {bundlePath}");
+            return;
+        }
+
+        var bundle = ModelPersistence.LoadBundle(bundlePath);
+
+        LinearRegression? linear = null;
+        if (bundle.Linear?.Weights != null && bundle.Linear.Weights.Length > 0)
+            linear = ModelPersistence.ImportLinear(bundle.Linear);
+
+        var ridge = ModelPersistence.ImportRidge(bundle.Ridge);
+        var rf = ModelPersistence.ImportRandomForest(bundle.RandomForest);
+        var gb = ModelPersistence.ImportGradientBoosting(bundle.GradientBoosting);
+        var fScaler =
+            ModelPersistence.ImportFeatureScaler(bundle.Preprocess.FeatureMeans, bundle.Preprocess.FeatureStds);
+        var yScaler = ModelPersistence.ImportLabelScaler(bundle.Preprocess.LabelMean, bundle.Preprocess.LabelStd,
+            bundle.Preprocess.LabelUseLog);
+        var fuels = bundle.Preprocess.Fuels;
+        var transmissions = bundle.Preprocess.Transmissions;
+
+        var row = EncodeManualInput(manualYear, manualOdo, manualFuel, manualTrans, fuels, transmissions);
+        var x = fScaler.TransformRow(row);
+
+        int p = x.Length;
+        if (bundle.Preprocess.FeatureMeans.Length != p)
+        {
+            Console.WriteLine(
+                $"[error] Feature means length ({bundle.Preprocess.FeatureMeans.Length}) != feature length ({p})");
+            return;
+        }
+
+        if (bundle.Ridge?.Weights == null || bundle.Ridge.Weights.Length != p)
+        {
+            Console.WriteLine(
+                $"[error] Ridge weights length ({bundle.Ridge?.Weights?.Length ?? 0}) != feature length ({p})");
+            return;
+        }
+
+        if (linear != null && (bundle.Linear?.Weights?.Length ?? 0) != p)
+        {
+            Console.WriteLine(
+                $"[error] Linear weights length ({bundle.Linear!.Weights.Length}) != feature length ({p})");
+            return;
+        }
+
+        if (debug)
+        {
+            Console.WriteLine(
+                $"[debug] dims: row={row.Length}, scaled={x.Length}, means={bundle.Preprocess.FeatureMeans.Length}, " +
+                $"ridge.w={bundle.Ridge.Weights.Length}, rf.trees={bundle.RandomForest?.Trees?.Count ?? 0}, " +
+                $"gb.trees={bundle.GradientBoosting?.Trees?.Count ?? 0}");
+        }
+
+        var preds = new List<(string key, string label, double val)>();
+
+        if (linear != null)
+        {
+            var pl = yScaler.InverseTransform(new[] { linear.Predict(x) })[0];
+            preds.Add(("linear", "Linear", pl));
+        }
+
+        var pr = yScaler.InverseTransform(new[] { ridge.Predict(x) })[0];
+        preds.Add(("ridge", "Ridge", pr));
+
+        var pf = yScaler.InverseTransform(new[] { rf.Predict(x) })[0];
+        preds.Add(("rf", "RF", pf));
+
+        var pg = yScaler.InverseTransform(new[] { gb.Predict(x) })[0];
+        preds.Add(("gb", "GB", pg));
+
+        if (debug)
+        {
+            var zRidge = ridge.Predict(x);
+            var yLogRidge = bundle.Preprocess.LabelMean + bundle.Preprocess.LabelStd * zRidge;
+            var yRidge = bundle.Preprocess.LabelUseLog ? Math.Exp(yLogRidge) - 1.0 : yLogRidge;
+
+            double dot = bundle.Ridge.Bias;
+            for (int j = 0; j < p; j++) dot += bundle.Ridge.Weights[j] * x[j];
+
+            Console.WriteLine($"[debug] ridge z={zRidge:F4} dot={dot:F4} -> y={yRidge:F2}");
+        }
+
+        foreach (var (key, label, val) in preds)
+            Console.WriteLine($"{label.ToLower()}={val:F0}");
+
+        double mean = 0;
+        foreach (var t in preds) mean += t.val;
+        mean /= preds.Count;
+        Console.WriteLine($"mean={mean:F0}");
+
+        if (bundle.Metrics != null && bundle.Metrics.Count > 0)
+        {
+            void Print(string k, string label)
+            {
+                if (bundle.Metrics.TryGetValue(k, out var m))
+                    Console.WriteLine($"[{label}] metrics: MAE={m.MAE:F0} RMSE={m.RMSE:F0} R²={m.R2:F3}");
+            }
+
+            Print("linear", "Linear");
+            Print("ridge", "Ridge");
+            Print("rf", "RF");
+            Print("gb", "GB");
+        }
+        else
+        {
+            Console.WriteLine("[info] No metrics stored in bundle.");
+        }
+
+        return;
+    }
+
+    // --------- Training flow (saves bundles to datasets/processed) ---------
+    var vehicles = CsvLoader.LoadVehicles(csvPath, maxRows);
 
     const int MinCount = 50;
     string? specificModel = null;
-    int mIdx = Array.FindIndex(args, a => a == "--model");
+    var mIdx = Array.FindIndex(args, a => a == "--model");
     if (mIdx >= 0 && mIdx + 1 < args.Length)
         specificModel = args[mIdx + 1]?.Trim().ToLower();
 
@@ -136,43 +296,87 @@ if (args.Contains("--cli"))
         var yScaled = yScaler.FitTransform(labels);
         var (trainX, trainY, testX, testY) = DataSplitter.Split(features, yScaled, trainRatio: 0.8);
 
-
-        void EvaluateAndPredict(string name, IRegressor model)
+        MetricsDto EvaluateAndPredict(string name, IRegressor model)
         {
             var preds = yScaler.InverseTransform(model.Predict(testX));
             var truth = yScaler.InverseTransform(testY);
-            Console.WriteLine(
-                $"{m.Model,-22} [{name}] MAE={Metrics.MeanAbsoluteError(truth, preds),7:F0} RMSE={Metrics.RootMeanSquaredError(truth, preds),7:F0} R²={Metrics.RSquared(truth, preds),5:F3}");
+
+            double mae = Metrics.MeanAbsoluteError(truth, preds);
+            double rmse = Metrics.RootMeanSquaredError(truth, preds);
+            double r2 = Metrics.RSquared(truth, preds);
+
+            Console.WriteLine($"{m.Model,-22} [{name}] MAE={mae,7:F0} RMSE={rmse,7:F0} R²={r2,5:F3}");
 
             if (wantPredict)
             {
-                var manualRow = EncodeManualInput(2016, 100000, "gas", "automatic", fuels, transmissions);
-                var manualPred = yScaler.InverseTransform(new double[] { model.Predict(manualRow) })[0];
+                var manualRow = EncodeManualInput(manualYear, manualOdo, manualFuel, manualTrans, fuels, transmissions);
+                var manualX = fScaler.TransformRow(manualRow);
+                var manualPred = yScaler.InverseTransform(new double[] { model.Predict(manualX) })[0];
                 Console.WriteLine($"{m.Model,-22} [{name}] Predicted manual price: {manualPred:F0}");
             }
+
+            return new MetricsDto { MAE = mae, RMSE = rmse, R2 = r2 };
         }
 
-
-        // Train/validation split for hyperparameter tuning
         var (tx, ty, vx, vy) = DataSplitter.Split(trainX, trainY, trainRatio: 0.75);
+
+        LinearRegression? linearModel = null;
+        RidgeRegression? ridgeModel = null;
+        RandomForestRegressor? rfModel = null;
+        GradientBoostingRegressor? gbModel = null;
+
+        var bundleMetrics = new Dictionary<string, MetricsDto>();
+
+        if (wantLinear)
+        {
+            linearModel = new LinearRegression();
+            linearModel.Fit(trainX, trainY);
+            bundleMetrics["linear"] = EvaluateAndPredict("Linear", linearModel);
+        }
 
         if (wantRidge)
         {
-            var ridge = RidgeRegression.TrainWithBestParams(tx, ty, vx, vy, yScaler);
-            ridge.Fit(trainX, trainY);
-            EvaluateAndPredict("Ridge", ridge);
+            ridgeModel = RidgeRegression.TrainWithBestParams(tx, ty, vx, vy, yScaler);
+            ridgeModel.Fit(trainX, trainY);
+            bundleMetrics["ridge"] = EvaluateAndPredict("Ridge", ridgeModel);
         }
 
         if (wantRF)
         {
-            var rf = RandomForestRegressor.TrainWithBestParams(tx, ty, vx, vy, yScaler);
-            EvaluateAndPredict("RF", rf);
+            rfModel = RandomForestRegressor.TrainWithBestParams(tx, ty, vx, vy, yScaler);
+            bundleMetrics["rf"] = EvaluateAndPredict("RF", rfModel);
         }
 
         if (wantGB)
         {
-            var gb = GradientBoostingRegressor.TrainWithBestParams(tx, ty, vx, vy, yScaler);
-            EvaluateAndPredict("GB", gb);
+            gbModel = GradientBoostingRegressor.TrainWithBestParams(tx, ty, vx, vy, yScaler);
+            bundleMetrics["gb"] = EvaluateAndPredict("GB", gbModel);
+        }
+
+        if (ridgeModel != null && rfModel != null && gbModel != null)
+        {
+            var id = ModelNormalizer.Normalize(m.Model);
+            var outPath = Path.Combine(processedDir, $"{id}.json");
+
+            var bundle = ModelPersistence.ExportBundle(
+                ridgeModel, rfModel, gbModel,
+                fScaler, yScaler,
+                fuels, transmissions,
+                notes: $"model={m.Model}, rows={rows.Count}"
+            );
+
+            if (linearModel != null)
+                bundle.Linear = ModelPersistence.ExportLinear(linearModel);
+
+            bundle.Metrics = bundleMetrics;
+
+            ModelPersistence.SaveBundle(bundle, outPath);
+            Console.WriteLine($"Saved model bundle -> {outPath}");
+        }
+        else
+        {
+            Console.WriteLine(
+                $"Skipping save for '{m.Model}': not all models were trained. (Use no flags or include --linear --ridge --rf --gb)");
         }
 
         trained++;

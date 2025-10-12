@@ -131,18 +131,18 @@ namespace used_car_predictor.Backend.Models
         public static GradientBoostingRegressor TrainWithBestParams(
             double[,] trainFeatures, double[] trainLabels,
             double[,] valFeatures, double[] valLabels,
-            LabelScaler labelScaler)
+            LabelScaler labelScaler,
+            int maxTrials = int.MaxValue,
+            bool randomize = true,
+            int randomSeed = 42,
+            bool verbose = true)
         {
-            // Define search grid
-            int[] nEstimatorsList = { 100, 150 };
+            int[] nEstimatorsList = { 150 };
             double[] learningRates = { 0.05, 0.1, 0.2 };
-            int[] maxDepths = { 2, 3, 4 };
-            int[] minLeaf = { 5, 10, 20 };
+            int[] maxDepths = { 2, 3 };
+            int[] minLeaf = { 10, 20 };
 
-            double bestRmse = double.PositiveInfinity;
-            GradientBoostingRegressor? bestModel = null;
-            Dictionary<string, object>? bestParams = null;
-
+            // Build all combinations
             var paramGrid = new List<Dictionary<string, object>>();
             foreach (var nEst in nEstimatorsList)
             foreach (var lr in learningRates)
@@ -158,8 +158,29 @@ namespace used_car_predictor.Backend.Models
                 });
             }
 
-            // Grid search loop
-            foreach (var paramSet in paramGrid)
+            // Optionally sample a subset for speed
+            IEnumerable<Dictionary<string, object>> candidates = paramGrid;
+            if (maxTrials < paramGrid.Count)
+            {
+                if (randomize)
+                {
+                    var rng = new Random(randomSeed);
+                    // Fisher–Yates shuffle
+                    for (int i = paramGrid.Count - 1; i > 0; i--)
+                    {
+                        int j = rng.Next(i + 1);
+                        (paramGrid[i], paramGrid[j]) = (paramGrid[j], paramGrid[i]);
+                    }
+                }
+
+                candidates = paramGrid.GetRange(0, Math.Min(maxTrials, paramGrid.Count));
+            }
+
+            double bestRmse = double.PositiveInfinity;
+            GradientBoostingRegressor? bestModel = null;
+            Dictionary<string, object>? bestParams = null;
+
+            foreach (var paramSet in candidates)
             {
                 var model = new GradientBoostingRegressor(
                     nEstimators: (int)paramSet["nEstimators"],
@@ -178,9 +199,12 @@ namespace used_car_predictor.Backend.Models
                 var mae = Metrics.MeanAbsoluteError(trueVals, preds);
                 var r2 = Metrics.RSquared(trueVals, preds);
 
-                Console.WriteLine($"[GB tune] nEst={paramSet["nEstimators"]}, lr={paramSet["learningRate"]}, " +
-                                  $"maxDepth={paramSet["maxDepth"]}, minLeaf={paramSet["minSamplesLeaf"]} " +
-                                  $"-> RMSE={rmse:F2}, MAE={mae:F2}, R²={r2:F3}");
+                if (verbose)
+                {
+                    Console.WriteLine($"[GB tune] nEst={paramSet["nEstimators"]}, lr={paramSet["learningRate"]}, " +
+                                      $"maxDepth={paramSet["maxDepth"]}, minLeaf={paramSet["minSamplesLeaf"]} " +
+                                      $"-> RMSE={rmse:F2}, MAE={mae:F2}, R²={r2:F3}");
+                }
 
                 if (rmse < bestRmse)
                 {
@@ -192,11 +216,13 @@ namespace used_car_predictor.Backend.Models
 
             if (bestModel == null) throw new InvalidOperationException("GB grid search failed.");
 
-            Console.WriteLine($"[GridSearch] Best params: nEstimators={bestParams!["nEstimators"]}, " +
-                              $"learningRate={bestParams!["learningRate"]}, maxDepth={bestParams!["maxDepth"]}, " +
-                              $"minLeaf={bestParams!["minSamplesLeaf"]}");
+            if (verbose)
+            {
+                Console.WriteLine($"[GridSearch] Best params: nEstimators={bestParams!["nEstimators"]}, " +
+                                  $"learningRate={bestParams!["learningRate"]}, maxDepth={bestParams!["maxDepth"]}, " +
+                                  $"minLeaf={bestParams!["minSamplesLeaf"]}");
+            }
 
-            // 🔹 Retrain best model on full train+val
             var finalGb = new GradientBoostingRegressor(
                 nEstimators: (int)bestParams!["nEstimators"],
                 learningRate: (double)bestParams!["learningRate"],

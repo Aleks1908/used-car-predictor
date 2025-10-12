@@ -36,18 +36,15 @@ public static class Preprocessor
             X[i, 3] = logOdometer;
             X[i, 4] = age2;
 
-            X[i, 5 + fuels.Count + transmissions.Count] = age * logOdometer; // interaction
-            X[i, 6 + fuels.Count + transmissions.Count] = Math.Pow(mileagePerYear, 2); // squared mileage
-            X[i, 7 + fuels.Count + transmissions.Count] = Math.Pow(age, 3); // age cubed
-            X[i, 8 + fuels.Count + transmissions.Count] = Math.Pow(mileagePerYear, 3); // mileage cubed
+            X[i, 5 + fuels.Count + transmissions.Count] = age * logOdometer;
+            X[i, 6 + fuels.Count + transmissions.Count] = Math.Pow(mileagePerYear, 2);
+            X[i, 7 + fuels.Count + transmissions.Count] = Math.Pow(age, 3);
+            X[i, 8 + fuels.Count + transmissions.Count] = Math.Pow(mileagePerYear, 3);
 
-
-            // 1-hot fuel
             var f = (r.Fuel ?? "").Trim().ToLower();
             for (int j = 0; j < fuels.Count; j++)
                 X[i, 5 + j] = f == fuels[j] ? 1.0 : 0.0;
 
-            // 1-hot transmission
             var t = (r.Transmission ?? "").Trim().ToLower();
             int baseIdx = 5 + fuels.Count;
             for (int j = 0; j < transmissions.Count; j++)
