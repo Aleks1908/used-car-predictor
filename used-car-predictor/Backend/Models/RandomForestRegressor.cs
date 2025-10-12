@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using used_car_predictor.Backend.Data;
+using used_car_predictor.Backend.Evaluation;
 
 namespace used_car_predictor.Backend.Models
 {
@@ -132,6 +134,93 @@ namespace used_car_predictor.Backend.Models
             for (int i = 0; i < indices.Length; i++)
                 result[i] = arr[indices[i]];
             return result;
+        }
+
+        public static RandomForestRegressor TrainWithBestParams(
+            double[,] trainFeatures, double[] trainLabels,
+            double[,] valFeatures, double[] valLabels,
+            LabelScaler labelScaler)
+        {
+            // Define hyperparameter grid
+            int[] nEstimatorsList = { 30, 50, 80 };
+            int[] maxDepths = { 6, 8, 10 };
+            int[] minLeaf = { 5, 10, 15 };
+            double[] sampleRatios = { 0.6, 0.8 };
+
+            double bestRmse = double.PositiveInfinity;
+            RandomForestRegressor? bestModel = null;
+            Dictionary<string, object>? bestParams = null;
+
+            var paramGrid = new List<Dictionary<string, object>>();
+            foreach (var nEst in nEstimatorsList)
+            foreach (var md in maxDepths)
+            foreach (var ml in minLeaf)
+            foreach (var sr in sampleRatios)
+            {
+                paramGrid.Add(new Dictionary<string, object>
+                {
+                    { "nEstimators", nEst },
+                    { "maxDepth", md },
+                    { "minSamplesLeaf", ml },
+                    { "sampleRatio", sr },
+                    { "minSamplesSplit", 10 },
+                    { "bootstrap", true },
+                    { "randomSeed", 42 }
+                });
+            }
+
+            // Grid search
+            foreach (var p in paramGrid)
+            {
+                var model = new RandomForestRegressor(
+                    nEstimators: (int)p["nEstimators"],
+                    maxDepth: (int)p["maxDepth"],
+                    minSamplesSplit: (int)p["minSamplesSplit"],
+                    minSamplesLeaf: (int)p["minSamplesLeaf"],
+                    bootstrap: (bool)p["bootstrap"],
+                    sampleRatio: (double)p["sampleRatio"],
+                    randomSeed: (int)p["randomSeed"]
+                );
+
+                model.Fit(trainFeatures, trainLabels);
+
+                var preds = labelScaler.InverseTransform(model.Predict(valFeatures));
+                var trueVals = labelScaler.InverseTransform(valLabels);
+
+                var rmse = Metrics.RootMeanSquaredError(trueVals, preds);
+                var mae = Metrics.MeanAbsoluteError(trueVals, preds);
+                var r2 = Metrics.RSquared(trueVals, preds);
+
+                Console.WriteLine($"[RF tune] nEst={p["nEstimators"]}, maxDepth={p["maxDepth"]}, " +
+                                  $"minLeaf={p["minSamplesLeaf"]}, sampleRatio={p["sampleRatio"]} -> RMSE={rmse:F2}, MAE={mae:F2}, R²={r2:F3}");
+
+                if (rmse < bestRmse)
+                {
+                    bestRmse = rmse;
+                    bestModel = model;
+                    bestParams = p;
+                }
+            }
+
+            if (bestModel == null) throw new InvalidOperationException("RF grid search failed.");
+
+            Console.WriteLine($"[GridSearch] Best params: nEstimators={bestParams!["nEstimators"]}, " +
+                              $"maxDepth={bestParams!["maxDepth"]}, minLeaf={bestParams!["minSamplesLeaf"]}, " +
+                              $"sampleRatio={bestParams!["sampleRatio"]}");
+
+            // Retrain best model on full training set
+            var finalRf = new RandomForestRegressor(
+                nEstimators: (int)bestParams!["nEstimators"],
+                maxDepth: (int)bestParams!["maxDepth"],
+                minSamplesSplit: (int)bestParams!["minSamplesSplit"],
+                minSamplesLeaf: (int)bestParams!["minSamplesLeaf"],
+                bootstrap: (bool)bestParams!["bootstrap"],
+                sampleRatio: (double)bestParams!["sampleRatio"],
+                randomSeed: (int)bestParams!["randomSeed"]
+            );
+
+            finalRf.Fit(trainFeatures, trainLabels);
+            return finalRf;
         }
     }
 }
