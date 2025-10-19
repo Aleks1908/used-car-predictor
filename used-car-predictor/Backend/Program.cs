@@ -29,7 +29,7 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
-
+// ---- React static hosting (SPA) ----
 var reactBuildPath = Path.Combine(Directory.GetCurrentDirectory(), "ui", "build");
 app.UseDefaultFiles(new DefaultFilesOptions
 {
@@ -41,7 +41,7 @@ app.UseStaticFiles(new StaticFileOptions
     RequestPath = ""
 });
 
-// ---- Controllers (replaces Minimal API endpoints) ----
+// ---- Controllers ----
 app.MapControllers();
 
 // ---- SPA fallback must be LAST ----
@@ -50,7 +50,7 @@ app.MapFallbackToFile("index.html", new StaticFileOptions
     FileProvider = new PhysicalFileProvider(reactBuildPath)
 });
 
-// -------------------- CLI TRAIN / EVAL FLOW (unchanged) --------------------
+// -------------------- CLI TRAIN / EVAL FLOW --------------------
 static string EnsureDir(string path)
 {
     Directory.CreateDirectory(path);
@@ -98,6 +98,7 @@ if (args.Contains("--cli"))
 
     bool debug = args.Contains("--debug");
 
+    // --------- Quick "predict from bundle" path ---------
     var loadBundleArg = ArgValue(args, "--load-bundle");
     if (!string.IsNullOrEmpty(loadBundleArg))
     {
@@ -165,7 +166,6 @@ if (args.Contains("--cli"))
         }
 
         var preds = new List<(string key, string label, double val)>();
-
         if (linear != null)
         {
             var pl = yScaler.InverseTransform(new[] { linear.Predict(x) })[0];
@@ -174,10 +174,8 @@ if (args.Contains("--cli"))
 
         var pr = yScaler.InverseTransform(new[] { ridge.Predict(x) })[0];
         preds.Add(("ridge", "Ridge", pr));
-
         var pf = yScaler.InverseTransform(new[] { rf.Predict(x) })[0];
         preds.Add(("rf", "RF", pf));
-
         var pg = yScaler.InverseTransform(new[] { gb.Predict(x) })[0];
         preds.Add(("gb", "GB", pg));
 
@@ -193,12 +191,9 @@ if (args.Contains("--cli"))
             Console.WriteLine($"[debug] ridge z={zRidge:F4} dot={dot:F4} -> y={yRidge:F2}");
         }
 
-        foreach (var (key, label, val) in preds)
-            Console.WriteLine($"{label.ToLower()}={val:F0}");
+        foreach (var (key, label, val) in preds) Console.WriteLine($"{label.ToLower()}={val:F0}");
 
-        double mean = 0;
-        foreach (var t in preds) mean += t.val;
-        mean /= preds.Count;
+        double mean = preds.Average(t => t.val);
         Console.WriteLine($"mean={mean:F0}");
 
         if (bundle.Metrics != null && bundle.Metrics.Count > 0)
@@ -214,10 +209,7 @@ if (args.Contains("--cli"))
             Print("rf", "RF");
             Print("gb", "GB");
         }
-        else
-        {
-            Console.WriteLine("[info] No metrics stored in bundle.");
-        }
+        else Console.WriteLine("[info] No metrics stored in bundle.");
 
         return;
     }
@@ -282,8 +274,8 @@ if (args.Contains("--cli"))
 
             if (wantPredict)
             {
-                var manualRow = ServingHelpers.EncodeManualInput(
-                    manualYear, manualOdo, manualFuel, manualTrans, fuels, transmissions);
+                var manualRow = ServingHelpers.EncodeManualInput(manualYear, manualOdo, manualFuel, manualTrans, fuels,
+                    transmissions);
                 var manualX = fScaler.TransformRow(manualRow);
                 var manualPred = yScaler.InverseTransform(new double[] { model.Predict(manualX) })[0];
                 Console.WriteLine($"{m.Model,-22} [{name}] Predicted manual price: {manualPred:F0}");
@@ -332,12 +324,27 @@ if (args.Contains("--cli"))
             var id = ModelNormalizer.Normalize(m.Model);
             var outPath = Path.Combine(processedDir, $"{id}.json");
 
+            var dominantMake = rows
+                .Where(r => !string.IsNullOrWhiteSpace(r.Manufacturer))
+                .GroupBy(r => r.Manufacturer.Trim(), StringComparer.OrdinalIgnoreCase)
+                .OrderByDescending(g => g.Count())
+                .FirstOrDefault()?.Key ?? "";
+
+            var displayModel = rows.FirstOrDefault()?.Model?.Trim() ?? m.Model;
+
             var bundle = ModelPersistence.ExportBundle(
                 ridgeModel, rfModel, gbModel,
                 fScaler, yScaler,
                 fuels, transmissions,
                 notes: $"model={m.Model}, rows={rows.Count}"
             );
+
+            // --- NEW: attach clean car metadata into the bundle ---
+            bundle.Car = new CarMetaDto
+            {
+                Make = dominantMake,
+                Model = displayModel
+            };
 
             if (linearModel != null)
                 bundle.Linear = ModelPersistence.ExportLinear(linearModel);
@@ -364,6 +371,7 @@ if (args.Contains("--cli"))
     return;
 }
 
+// -------------------- Load a default bundle on startup (optional) --------------------
 var defaultStartupBundlePath = Path.Combine(
     builder.Environment.ContentRootPath,
     "Backend", "datasets", "processed", "current.bundle.json");

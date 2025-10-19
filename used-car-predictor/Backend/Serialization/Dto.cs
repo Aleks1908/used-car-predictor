@@ -75,14 +75,21 @@ namespace used_car_predictor.Backend.Serialization
         public DateTime TrainedAtUtc { get; set; } = DateTime.UtcNow;
         public string? Notes { get; set; }
 
+        public CarMetaDto? Car { get; set; }
+
         public PreprocessDto Preprocess { get; set; } = new PreprocessDto();
 
-        public LinearDto Linear { get; set; } = new LinearDto(); // NEW
+        public LinearDto Linear { get; set; } = new LinearDto();
         public RidgeDto Ridge { get; set; } = new RidgeDto();
         public RandomForestDto RandomForest { get; set; } = new RandomForestDto();
         public GradientBoostingDto GradientBoosting { get; set; } = new GradientBoostingDto();
 
-        // Per‑algorithm metrics saved at training time. Keys: "linear", "ridge", "rf", "gb"
-        public Dictionary<string, MetricsDto> Metrics { get; set; } = new Dictionary<string, MetricsDto>(); // NEW
+        public Dictionary<string, MetricsDto> Metrics { get; set; } = new Dictionary<string, MetricsDto>();
+    }
+
+    public sealed class CarMetaDto
+    {
+        public string? Make { get; set; }
+        public string? Model { get; set; }
     }
 }

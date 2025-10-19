@@ -60,3 +60,21 @@ public sealed class ModelInfoDto
     public string Version { get; set; } = "unloaded";
     public DateTimeOffset TrainedAt { get; set; }
 }
+
+public sealed class CatalogItemDto
+{
+    public string ModelId { get; set; } = default!;
+
+    public string Make { get; set; } = "";
+
+    public string DisplayModel { get; set; } = default!;
+    public string FileName { get; set; } = default!;
+    public string Version { get; set; } = default!;
+    public DateTimeOffset TrainedAt { get; set; }
+    public string[] Algorithms { get; set; } = Array.Empty<string>();
+}
+
+public sealed class CatalogResponse
+{
+    public List<CatalogItemDto> Items { get; set; } = new();
+}
