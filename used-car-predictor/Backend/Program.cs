@@ -5,21 +5,22 @@ using used_car_predictor.Backend.Evaluation;
 using used_car_predictor.Backend.Models;
 using used_car_predictor.Backend.Serialization;
 using used_car_predictor.Backend.Services;
-using used_car_predictor.Backend.Api;
-
 
 var builder = WebApplication.CreateBuilder(args);
 
+// ---- Services / DI ----
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
-builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+builder.Services.AddControllers();
+
+// Core inference + model switching
 builder.Services.AddSingleton<ActiveModel>();
 builder.Services.AddSingleton<IBundleResolver, StaticBundleResolver>();
 builder.Services.AddSingleton<ModelHotLoader>();
 
 var app = builder.Build();
 
+// ---- Swagger ----
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
@@ -28,8 +29,8 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
-var reactBuildPath = Path.Combine(Directory.GetCurrentDirectory(), "ui", "build");
 
+var reactBuildPath = Path.Combine(Directory.GetCurrentDirectory(), "ui", "build");
 app.UseDefaultFiles(new DefaultFilesOptions
 {
     FileProvider = new PhysicalFileProvider(reactBuildPath)
@@ -40,113 +41,16 @@ app.UseStaticFiles(new StaticFileOptions
     RequestPath = ""
 });
 
+// ---- Controllers (replaces Minimal API endpoints) ----
+app.MapControllers();
 
-app.MapGet("/health", (ActiveModel active) =>
-{
-    return active.IsLoaded
-        ? Results.Ok(new { status = "ok", modelVersion = active.Version, trainedAt = active.TrainedAt })
-        : Results.StatusCode(503);
-});
-
-app.MapPost("/api/v1/predict", async (PredictRequest req, ActiveModel active, ModelHotLoader hotLoader) =>
-    {
-        await hotLoader.EnsureLoadedAsync(req.Make, req.Model);
-        if (!active.IsLoaded) return Results.Problem("No active model loaded.", statusCode: 503);
-
-        var raw = EncodeManualInput(
-            req.Year, req.MileageKm, req.FuelType, req.Transmission,
-            active.Fuels.ToList(), active.Transmissions.ToList(),
-            targetYear: req.Year);
-
-        var x = ScaleRow(raw, active.FeatureMeans, active.FeatureStds);
-
-        var zByAlgo = active.PredictAllScaled(x);
-
-        var results = new List<ModelPredictionDto>(zByAlgo.Count);
-        foreach (var (algo, z) in zByAlgo)
-        {
-            var price = InverseLabel(z, active.LabelMean, active.LabelStd, active.LabelUseLog);
-            active.MetricsByAlgo.TryGetValue(algo, out var m);
-
-            results.Add(new ModelPredictionDto
-            {
-                Algorithm = algo,
-                PredictedPrice = Math.Round((decimal)price, 2),
-                Metrics = new ModelMetricsDto { Mse = m.Mse, Mae = m.Mae, R2 = m.R2 }
-            });
-        }
-
-        var info = new ModelInfoDto { Version = active.Version, TrainedAt = active.TrainedAt };
-
-        return Results.Ok(new PredictResponse
-        {
-            Make = req.Make, Model = req.Model, Year = req.Year,
-            Currency = "EUR",
-            Results = results,
-            ModelInfo = info
-        });
-    })
-    .WithName("PredictPrice");
-
-app.MapPost("/api/v1/predict/range", async (PredictRangeRequest req, ActiveModel active, ModelHotLoader hotLoader) =>
-    {
-        await hotLoader.EnsureLoadedAsync(req.Make, req.Model);
-        if (!active.IsLoaded) return Results.Problem("No active model loaded.", statusCode: 503);
-        if (req.FromYear > req.ToYear) return Results.BadRequest(new { error = "FromYear must be <= ToYear" });
-
-        var items = new List<PredictResponse>();
-        for (int y = req.FromYear; y <= req.ToYear; y++)
-        {
-            var raw = EncodeManualInput(
-                y, req.MileageKm, req.FuelType, req.Transmission,
-                active.Fuels.ToList(), active.Transmissions.ToList(),
-                targetYear: y);
-
-            var x = ScaleRow(raw, active.FeatureMeans, active.FeatureStds);
-            var zByAlgo = active.PredictAllScaled(x);
-
-            var results = new List<ModelPredictionDto>(zByAlgo.Count);
-            foreach (var (algo, z) in zByAlgo)
-            {
-                var price = InverseLabel(z, active.LabelMean, active.LabelStd, active.LabelUseLog);
-                active.MetricsByAlgo.TryGetValue(algo, out var m);
-
-                results.Add(new ModelPredictionDto
-                {
-                    Algorithm = algo,
-                    PredictedPrice = Math.Round((decimal)price, 2),
-                    Metrics = new ModelMetricsDto { Mse = m.Mse, Mae = m.Mae, R2 = m.R2 }
-                });
-            }
-
-            items.Add(new PredictResponse
-            {
-                Make = req.Make, Model = req.Model, Year = y,
-                Currency = "EUR",
-                Results = results,
-                ModelInfo = new ModelInfoDto { Version = active.Version, TrainedAt = active.TrainedAt }
-            });
-        }
-
-        var info = new ModelInfoDto { Version = active.Version, TrainedAt = active.TrainedAt };
-
-        return Results.Ok(new PredictRangeResponse
-        {
-            Currency = "EUR",
-            Items = items,
-            ModelInfo = info
-        });
-    })
-    .WithName("PredictPriceRange");
-
-
-app.MapGet("/api/hello", () => Results.Ok(new { message = "Hello from .NET 9!" }));
-
+// ---- SPA fallback must be LAST ----
 app.MapFallbackToFile("index.html", new StaticFileOptions
 {
     FileProvider = new PhysicalFileProvider(reactBuildPath)
 });
 
+// -------------------- CLI TRAIN / EVAL FLOW (unchanged) --------------------
 static string EnsureDir(string path)
 {
     Directory.CreateDirectory(path);
@@ -157,64 +61,6 @@ static string? ArgValue(string[] a, string name)
 {
     var i = Array.IndexOf(a, name);
     return (i >= 0 && i + 1 < a.Length) ? a[i + 1] : null;
-}
-
-double[] EncodeManualInput(
-    int year,
-    int odometer,
-    string fuel,
-    string transmission,
-    List<string> fuels,
-    List<string> transmissions,
-    int targetYear = 2030)
-{
-    var row = new double[9 + fuels.Count + transmissions.Count];
-
-    int age = Math.Max(0, targetYear - year);
-    double odo = Math.Max(0.0, odometer);
-    double mileagePerYear = odo / (age + 1.0);
-    double logOdometer = Math.Log(odo + 1.0);
-    double age2 = age * age;
-
-    row[0] = age;
-    row[1] = odo;
-    row[2] = mileagePerYear;
-    row[3] = logOdometer;
-    row[4] = age2;
-
-    var f = (fuel ?? "").Trim().ToLowerInvariant();
-    var t = (transmission ?? "").Trim().ToLowerInvariant();
-
-    for (int j = 0; j < fuels.Count; j++)
-        row[5 + j] = f == fuels[j] ? 1.0 : 0.0;
-
-    int baseIdx = 5 + fuels.Count;
-    for (int j = 0; j < transmissions.Count; j++)
-        row[baseIdx + j] = t == transmissions[j] ? 1.0 : 0.0;
-
-    int k = baseIdx + transmissions.Count;
-    row[k + 0] = age * logOdometer;
-    row[k + 1] = mileagePerYear * mileagePerYear;
-    row[k + 2] = age * age * age;
-    row[k + 3] = mileagePerYear * mileagePerYear * mileagePerYear;
-
-    return row;
-}
-
-static double[] ScaleRow(double[] raw, double[] means, double[] stds)
-{
-    if (means.Length != raw.Length || stds.Length != raw.Length)
-        throw new InvalidOperationException("Feature scaler shape mismatch.");
-    var x = new double[raw.Length];
-    for (int i = 0; i < raw.Length; i++)
-        x[i] = stds[i] > 0 ? (raw[i] - means[i]) / stds[i] : 0.0;
-    return x;
-}
-
-static double InverseLabel(double yScaled, double mean, double std, bool useLog)
-{
-    var unscaled = yScaled * std + mean;
-    return useLog ? Math.Exp(unscaled) - 1.0 : unscaled;
 }
 
 if (args.Contains("--cli"))
@@ -274,14 +120,18 @@ if (args.Contains("--cli"))
         var ridge = ModelPersistence.ImportRidge(bundle.Ridge);
         var rf = ModelPersistence.ImportRandomForest(bundle.RandomForest);
         var gb = ModelPersistence.ImportGradientBoosting(bundle.GradientBoosting);
-        var fScaler =
-            ModelPersistence.ImportFeatureScaler(bundle.Preprocess.FeatureMeans, bundle.Preprocess.FeatureStds);
-        var yScaler = ModelPersistence.ImportLabelScaler(bundle.Preprocess.LabelMean, bundle.Preprocess.LabelStd,
-            bundle.Preprocess.LabelUseLog);
+
+        var fScaler = ModelPersistence.ImportFeatureScaler(
+            bundle.Preprocess.FeatureMeans, bundle.Preprocess.FeatureStds);
+        var yScaler = ModelPersistence.ImportLabelScaler(
+            bundle.Preprocess.LabelMean, bundle.Preprocess.LabelStd, bundle.Preprocess.LabelUseLog);
+
         var fuels = bundle.Preprocess.Fuels;
         var transmissions = bundle.Preprocess.Transmissions;
 
-        var row = EncodeManualInput(manualYear, manualOdo, manualFuel, manualTrans, fuels, transmissions);
+        // Use shared helper so CLI matches serving features
+        var row = ServingHelpers.EncodeManualInput(
+            manualYear, manualOdo, manualFuel, manualTrans, fuels, transmissions);
         var x = fScaler.TransformRow(row);
 
         int p = x.Length;
@@ -372,6 +222,7 @@ if (args.Contains("--cli"))
         return;
     }
 
+    // --------- Training flow (saves bundles to datasets/processed) ---------
     var vehicles = CsvLoader.LoadVehicles(csvPath, maxRows);
 
     const int MinCount = 50;
@@ -431,7 +282,8 @@ if (args.Contains("--cli"))
 
             if (wantPredict)
             {
-                var manualRow = EncodeManualInput(manualYear, manualOdo, manualFuel, manualTrans, fuels, transmissions);
+                var manualRow = ServingHelpers.EncodeManualInput(
+                    manualYear, manualOdo, manualFuel, manualTrans, fuels, transmissions);
                 var manualX = fScaler.TransformRow(manualRow);
                 var manualPred = yScaler.InverseTransform(new double[] { model.Predict(manualX) })[0];
                 Console.WriteLine($"{m.Model,-22} [{name}] Predicted manual price: {manualPred:F0}");
@@ -512,7 +364,6 @@ if (args.Contains("--cli"))
     return;
 }
 
-
 var defaultStartupBundlePath = Path.Combine(
     builder.Environment.ContentRootPath,
     "Backend", "datasets", "processed", "current.bundle.json");
@@ -532,7 +383,7 @@ try
     else
     {
         Console.WriteLine(
-            $"[Model] Bundle not found at '{startupBundlePath}'. Endpoints will return 503 until loaded.");
+            $"[Model] Bundle not found at '{startupBundlePath}'. Endpoints will return 503 until first hot-load.");
     }
 }
 catch (Exception ex)
@@ -540,69 +391,4 @@ catch (Exception ex)
     Console.WriteLine($"[Model] Failed to load bundle: {ex.Message}");
 }
 
-
 app.Run();
-
-
-public interface IBundleResolver
-{
-    (string Path, string Algorithm) Resolve(string make, string model);
-}
-
-public sealed class StaticBundleResolver : IBundleResolver
-{
-    private readonly string _processedDir;
-    private readonly string _defaultAlgorithm;
-
-    public StaticBundleResolver(IHostEnvironment env, IConfiguration cfg)
-    {
-        _processedDir = Path.Combine(env.ContentRootPath, "Backend", "datasets", "processed");
-        _defaultAlgorithm = cfg["Model:Algorithm"] ?? "ridge";
-    }
-
-    public (string Path, string Algorithm) Resolve(string make, string model)
-    {
-        var id = ModelNormalizer.Normalize(model);
-        var path = Path.Combine(_processedDir, $"{id}.json");
-        return (path, _defaultAlgorithm);
-    }
-}
-
-public sealed class ModelHotLoader
-{
-    private readonly ActiveModel _active;
-    private readonly IBundleResolver _resolver;
-    private readonly SemaphoreSlim _gate = new(1, 1);
-    private string? _currentKey;
-
-    public ModelHotLoader(ActiveModel active, IBundleResolver resolver)
-    {
-        _active = active;
-        _resolver = resolver;
-    }
-
-    public async Task EnsureLoadedAsync(string make, string model, CancellationToken ct = default)
-    {
-        var key = ModelNormalizer.Normalize(model);
-
-        if (_active.IsLoaded && _currentKey == key) return;
-
-        await _gate.WaitAsync(ct);
-        try
-        {
-            if (_active.IsLoaded && _currentKey == key) return;
-
-            var (path, algorithm) = _resolver.Resolve(make, model);
-            if (!File.Exists(path))
-                throw new FileNotFoundException($"Bundle not found: {path}");
-
-            _active.LoadFromBundle(path, algorithm);
-            _currentKey = key;
-            Console.WriteLine($"[Model] Hot-swapped: '{key}' via {algorithm} ({_active.Version})");
-        }
-        finally
-        {
-            _gate.Release();
-        }
-    }
-}
