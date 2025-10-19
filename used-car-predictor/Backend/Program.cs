@@ -2,7 +2,6 @@ using Microsoft.Extensions.FileProviders;
 using used_car_predictor.Backend.Data;
 using used_car_predictor.Backend.Evaluation;
 using used_car_predictor.Backend.Models;
-using used_car_predictor.Backend.Utils;
 using used_car_predictor.Backend.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
