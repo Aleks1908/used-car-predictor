@@ -91,7 +91,7 @@ if (args.Contains("--cli"))
 
     bool debug = args.Contains("--debug");
 
-
+    // --------- Quick "predict from bundle" path ---------
     var loadBundleArg = ArgValue(args, "--load-bundle");
     if (!string.IsNullOrEmpty(loadBundleArg))
     {
@@ -206,6 +206,7 @@ if (args.Contains("--cli"))
         return;
     }
 
+    // --------- Training flow (saves bundles to datasets/processed) ---------
     var vehicles = CsvLoader.LoadVehicles(csvPath, maxRows);
 
     const int MinCount = 50;
@@ -244,13 +245,22 @@ if (args.Contains("--cli"))
     foreach (var m in trainList)
     {
         var rows = vehicles.Where(v => ModelNormalizer.Normalize(v.Model) == m.Model).ToList();
-        var (features, labels, fuels, transmissions) = Preprocessor.ToMatrix(rows);
 
+        // == FIXED LEAKAGE: split BEFORE fitting scalers ==
+        var (rawX, rawY, fuels, transmissions) = Preprocessor.ToMatrix(rows);
+
+        // 80/20 split on RAW arrays
+        var (trainRawX, trainRawY, testRawX, testRawY) = DataSplitter.Split(rawX, rawY, trainRatio: 0.8);
+
+        // Fit scalers on TRAIN ONLY; transform both train & test
         var fScaler = new FeatureScaler();
-        features = fScaler.FitTransform(features);
         var yScaler = new LabelScaler();
-        var yScaled = yScaler.FitTransform(labels);
-        var (trainX, trainY, testX, testY) = DataSplitter.Split(features, yScaled, trainRatio: 0.8);
+
+        var trainX = fScaler.FitTransform(trainRawX);
+        var testX = fScaler.Transform(testRawX);
+
+        var trainY = yScaler.FitTransform(trainRawY);
+        var testY = yScaler.Transform(testRawY);
 
         MetricsDto EvaluateAndPredict(string name, IRegressor model)
         {
@@ -265,16 +275,17 @@ if (args.Contains("--cli"))
 
             if (wantPredict)
             {
-                var manualRow = ServingHelpers.EncodeManualInput(manualYear, manualOdo, manualFuel, manualTrans, fuels,
-                    transmissions);
+                var manualRow = ServingHelpers.EncodeManualInput(
+                    manualYear, manualOdo, manualFuel, manualTrans, fuels, transmissions);
                 var manualX = fScaler.TransformRow(manualRow);
-                var manualPred = yScaler.InverseTransform(new double[] { model.Predict(manualX) })[0];
+                var manualPred = yScaler.InverseTransform(new[] { model.Predict(manualX) })[0];
                 Console.WriteLine($"{m.Model,-22} [{name}] Predicted manual price: {manualPred:F0}");
             }
 
             return new MetricsDto { MAE = mae, RMSE = rmse, R2 = r2 };
         }
 
+        // Hyperparam tuning on a sub-split of the TRAIN set
         var (tx, ty, vx, vy) = DataSplitter.Split(trainX, trainY, trainRatio: 0.75);
 
         LinearRegression? linearModel = null;
