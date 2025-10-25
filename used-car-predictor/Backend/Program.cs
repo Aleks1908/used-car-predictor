@@ -8,6 +8,7 @@ using used_car_predictor.Backend.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// --- Services / DI ---
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddControllers();
@@ -18,6 +19,7 @@ builder.Services.AddSingleton<ModelHotLoader>();
 
 var app = builder.Build();
 
+// --- Swagger (dev only) ---
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
@@ -26,24 +28,65 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
-var reactBuildPath = Path.Combine(Directory.GetCurrentDirectory(), "ui", "build");
+// --- Serve Vite build (ui/dist) ---
+var spaRoot = Path.Combine(builder.Environment.ContentRootPath, "ui", "dist");
+if (!Directory.Exists(spaRoot))
+{
+    Console.WriteLine($"[SPA] Build folder NOT found: {spaRoot}");
+}
+else
+{
+    var idx = Path.Combine(spaRoot, "index.html");
+    Console.WriteLine($"[SPA] Serving index: {idx} (exists={File.Exists(idx)})");
+}
+
+// 1) Default files -> index.html from spaRoot only
 app.UseDefaultFiles(new DefaultFilesOptions
 {
-    FileProvider = new PhysicalFileProvider(reactBuildPath)
+    FileProvider = new PhysicalFileProvider(spaRoot),
+    DefaultFileNames = new List<string> { "index.html" }
 });
+
+// 2) Static files (assets) from spaRoot only + no-cache for index.html
 app.UseStaticFiles(new StaticFileOptions
 {
-    FileProvider = new PhysicalFileProvider(reactBuildPath),
-    RequestPath = ""
+    FileProvider = new PhysicalFileProvider(spaRoot),
+    RequestPath = "",
+    OnPrepareResponse = ctx =>
+    {
+        var path = ctx.File.PhysicalPath?.Replace('\\', '/') ?? "";
+        if (path.EndsWith("/index.html", StringComparison.OrdinalIgnoreCase))
+        {
+            ctx.Context.Response.Headers.CacheControl = "no-store, no-cache, must-revalidate, max-age=0";
+            ctx.Context.Response.Headers.Pragma = "no-cache";
+            ctx.Context.Response.Headers.Expires = "0";
+        }
+    }
 });
 
+// --- API routes ---
 app.MapControllers();
 
+// 3) SPA fallback LAST (for client-side routes)
 app.MapFallbackToFile("index.html", new StaticFileOptions
 {
-    FileProvider = new PhysicalFileProvider(reactBuildPath)
+    FileProvider = new PhysicalFileProvider(spaRoot),
+    OnPrepareResponse = ctx =>
+    {
+        ctx.Context.Response.Headers.CacheControl = "no-store, no-cache, must-revalidate, max-age=0";
+        ctx.Context.Response.Headers.Pragma = "no-cache";
+        ctx.Context.Response.Headers.Expires = "0";
+    }
 });
 
+// (Optional) quick probe to verify which folder is served
+app.MapGet("/_spa-root", () => new
+{
+    spaRoot,
+    indexExists = File.Exists(Path.Combine(spaRoot, "index.html"))
+});
+
+// -------------------- Helpers --------------------
 static string EnsureDir(string path)
 {
     Directory.CreateDirectory(path);
@@ -56,6 +99,7 @@ static string? ArgValue(string[] a, string name)
     return (i >= 0 && i + 1 < a.Length) ? a[i + 1] : null;
 }
 
+// -------------------- CLI MODE --------------------
 if (args.Contains("--cli"))
 {
     string datasetsRoot = Path.Combine(builder.Environment.ContentRootPath, "Backend", "datasets");
@@ -108,7 +152,7 @@ if (args.Contains("--cli"))
         var bundle = ModelPersistence.LoadBundle(bundlePath);
 
         LinearRegression? linear = null;
-        if (bundle.Linear?.Weights != null && bundle.Linear.Weights.Length > 0)
+        if (bundle.Linear?.Weights is { Length: > 0 })
             linear = ModelPersistence.ImportLinear(bundle.Linear);
 
         var ridge = ModelPersistence.ImportRidge(bundle.Ridge);
@@ -184,11 +228,10 @@ if (args.Contains("--cli"))
         }
 
         foreach (var (key, label, val) in preds) Console.WriteLine($"{label.ToLower()}={val:F0}");
-
         double mean = preds.Average(t => t.val);
         Console.WriteLine($"mean={mean:F0}");
 
-        if (bundle.Metrics != null && bundle.Metrics.Count > 0)
+        if (bundle.Metrics is { Count: > 0 })
         {
             void Print(string k, string label)
             {
@@ -206,7 +249,7 @@ if (args.Contains("--cli"))
         return;
     }
 
-    // --------- Training flow (saves bundles to datasets/processed) ---------
+    // --------- Training flow (leakage fixed) ---------
     var vehicles = CsvLoader.LoadVehicles(csvPath, maxRows);
 
     const int MinCount = 50;
@@ -372,6 +415,7 @@ if (args.Contains("--cli"))
     return;
 }
 
+// -------------------- Startup: load default model bundle --------------------
 var defaultStartupBundlePath = Path.Combine(
     builder.Environment.ContentRootPath,
     "Backend", "datasets", "processed", "current.bundle.json");
@@ -400,3 +444,67 @@ catch (Exception ex)
 }
 
 app.Run();
+
+// -------------------- Bundle resolver + hot loader --------------------
+public interface IBundleResolver
+{
+    (string Path, string Algorithm) Resolve(string make, string model);
+}
+
+public sealed class StaticBundleResolver : IBundleResolver
+{
+    private readonly string _processedDir;
+    private readonly string _defaultAlgorithm;
+
+    public StaticBundleResolver(IHostEnvironment env, IConfiguration cfg)
+    {
+        _processedDir = Path.Combine(env.ContentRootPath, "Backend", "datasets", "processed");
+        _defaultAlgorithm = cfg["Model:Algorithm"] ?? "ridge";
+    }
+
+    public (string Path, string Algorithm) Resolve(string make, string model)
+    {
+        var id = ModelNormalizer.Normalize(model);
+        var path = Path.Combine(_processedDir, $"{id}.json");
+        return (path, _defaultAlgorithm);
+    }
+}
+
+public sealed class ModelHotLoader
+{
+    private readonly ActiveModel _active;
+    private readonly IBundleResolver _resolver;
+    private readonly SemaphoreSlim _gate = new(1, 1);
+    private string? _currentKey;
+
+    public ModelHotLoader(ActiveModel active, IBundleResolver resolver)
+    {
+        _active = active;
+        _resolver = resolver;
+    }
+
+    public async Task EnsureLoadedAsync(string make, string model, CancellationToken ct = default)
+    {
+        var key = ModelNormalizer.Normalize(model);
+
+        if (_active.IsLoaded && _currentKey == key) return;
+
+        await _gate.WaitAsync(ct);
+        try
+        {
+            if (_active.IsLoaded && _currentKey == key) return;
+
+            var (path, algorithm) = _resolver.Resolve(make, model);
+            if (!File.Exists(path))
+                throw new FileNotFoundException($"Bundle not found: {path}");
+
+            _active.LoadFromBundle(path, algorithm);
+            _currentKey = key;
+            Console.WriteLine($"[Model] Hot-swapped: '{key}' via {algorithm} ({_active.Version})");
+        }
+        finally
+        {
+            _gate.Release();
+        }
+    }
+}
