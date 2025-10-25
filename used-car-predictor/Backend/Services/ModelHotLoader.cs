@@ -1,5 +1,3 @@
-// ModelHotLoader.cs
-
 using System.Threading;
 using used_car_predictor.Backend.Evaluation;
 
@@ -10,7 +8,7 @@ public sealed class ModelHotLoader
     private readonly ActiveModel _active;
     private readonly IBundleResolver _resolver;
     private readonly SemaphoreSlim _gate = new(1, 1);
-    private string? _currentKey; // normalized model id currently loaded
+    private string? _currentKey;
 
     public ModelHotLoader(ActiveModel active, IBundleResolver resolver)
     {

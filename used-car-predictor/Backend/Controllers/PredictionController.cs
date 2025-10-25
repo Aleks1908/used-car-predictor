@@ -49,8 +49,8 @@ public class PredictionController : ControllerBase
         {
             Make = req.Make,
             Model = req.Model,
-            YearOfProduction = req.YearOfProduction, // was YearProd
-            TargetYear = req.TargetYear, // ok
+            YearOfProduction = req.YearOfProduction,
+            TargetYear = req.TargetYear,
             Currency = "EUR",
             Results = results,
             ModelInfo = info

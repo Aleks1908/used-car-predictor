@@ -15,7 +15,6 @@ namespace used_car_predictor.Backend.Serialization
         private static readonly BindingFlags
             Inst = BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public;
 
-        // ---------------- JSON helpers ----------------
         private static readonly JsonSerializerOptions JsonOptions = new JsonSerializerOptions
         {
             WriteIndented = true
@@ -35,7 +34,6 @@ namespace used_car_predictor.Backend.Serialization
                    ?? throw new InvalidOperationException($"Could not parse bundle at {path}");
         }
 
-        // --------------- Export (objects -> DTOs) ----------------
         public static BundleDto ExportBundle(
             RidgeRegression ridge,
             RandomForestRegressor rf,
@@ -105,7 +103,6 @@ namespace used_car_predictor.Backend.Serialization
         {
             var dto = new GradientBoostingDto();
 
-            // Required fields in your class
             dto.NEstimators = (int)typeof(GradientBoostingRegressor).GetField("_nEstimators", Inst)!.GetValue(model)!;
             dto.LearningRate =
                 (double)typeof(GradientBoostingRegressor).GetField("_learningRate", Inst)!.GetValue(model)!;
@@ -117,11 +114,9 @@ namespace used_car_predictor.Backend.Serialization
             dto.Subsample = (double)typeof(GradientBoostingRegressor).GetField("_subsample", Inst)!.GetValue(model)!;
             dto.Init = (double)typeof(GradientBoostingRegressor).GetField("_init", Inst)!.GetValue(model)!;
 
-            // _randomSeed might not exist in your implementation; default to 42 if missing.
             var fSeed = typeof(GradientBoostingRegressor).GetField("_randomSeed", Inst);
             dto.RandomSeed = fSeed != null ? (int)fSeed.GetValue(model)! : 42;
 
-            // Trees
             var treesField = typeof(GradientBoostingRegressor).GetField("_trees", Inst)!;
             var treesObj = treesField.GetValue(model);
             var trees = treesObj as IEnumerable<DecisionTreeRegressor> ?? Array.Empty<DecisionTreeRegressor>();
@@ -155,7 +150,6 @@ namespace used_car_predictor.Backend.Serialization
             };
         }
 
-        // --------------- Import (DTOs -> objects) ----------------
         public static RidgeRegression ImportRidge(RidgeDto dto)
         {
             var model = new RidgeRegression();
@@ -214,7 +208,7 @@ namespace used_car_predictor.Backend.Serialization
 
         private static DecisionTreeRegressor ImportDecisionTree(TreeNodeDto dto)
         {
-            var tree = new DecisionTreeRegressor(); // depth etc. irrelevant at predict time
+            var tree = new DecisionTreeRegressor();
             var nodeField = typeof(DecisionTreeRegressor).GetField("_root", Inst)!;
             var nodeType = typeof(DecisionTreeRegressor).GetNestedType("Node", Inst)!;
 
@@ -265,20 +259,15 @@ namespace used_car_predictor.Backend.Serialization
             var mean = (double)typeof(LabelScaler).GetField("_mean", Inst)!.GetValue(yScaler)!;
             var std = (double)typeof(LabelScaler).GetField("_std", Inst)!.GetValue(yScaler)!;
             var ctor = typeof(LabelScaler).GetConstructor(new[] { typeof(bool) })!;
-            // We don't store 'UseLog' anywhere internal, get it by checking ctor arg? There's a readonly field.
-            // We can infer from behavior by checking whether InverseTransform(Math.E - 1) equals 1 +/- epsilon,
-            // but it's simpler to read private field if present.
             var fUseLog = typeof(LabelScaler).GetField("_useLog", Inst);
             bool useLog = fUseLog != null && (bool)fUseLog.GetValue(yScaler)!;
             return (mean, std, useLog);
         }
 
-        // Export the trained LinearRegression model to DTO
         public static LinearDto ExportLinear(LinearRegression model)
         {
             var t = typeof(LinearRegression);
 
-            // Try common field names to be robust
             var weightsField = t.GetField("_weights", Inst)
                                ?? t.GetField("weights", Inst)
                                ?? t.GetField("Coefficients", Inst);
@@ -304,7 +293,6 @@ namespace used_car_predictor.Backend.Serialization
             };
         }
 
-// Rehydrate a LinearRegression model from the DTO
         public static LinearRegression ImportLinear(LinearDto dto)
         {
             var model = new LinearRegression();

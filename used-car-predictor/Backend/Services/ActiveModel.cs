@@ -34,13 +34,9 @@ public sealed class ActiveModel
         _metricsByAlgo.TryGetValue("ridge", out var m) ? m :
         _metricsByAlgo.Count > 0 ? _metricsByAlgo.Values.First() : (0, 0, 0);
 
-    /// <summary>
-    /// Returns raw (scaled) predictions per algorithm: keys = "linear" | "ridge" | "rf" | "gb".
-    /// Caller should inverse-transform with LabelMean/Std/UseLog.
-    /// </summary>
     public Dictionary<string, double> PredictAllScaled(ReadOnlySpan<double> x)
     {
-        var models = Volatile.Read(ref _models); // snapshot
+        var models = Volatile.Read(ref _models);
         if (models.Count == 0) throw new InvalidOperationException("No models loaded.");
 
         var input = x.ToArray();
@@ -52,14 +48,11 @@ public sealed class ActiveModel
         return output;
     }
 
-    /// <summary>
-    /// Loads all available models + state from a bundle (linear/ridge/rf/gb if present).
-    /// </summary>
+
     public void LoadFromBundle(string path, string _ = "")
     {
         var bundle = ModelPersistence.LoadBundle(path);
 
-        // Build new immutable snapshots
         var newModels = new Dictionary<string, IRegressor>(StringComparer.OrdinalIgnoreCase);
 
         if (bundle.Linear?.Weights is { Length: > 0 })

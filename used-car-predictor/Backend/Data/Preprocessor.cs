@@ -5,7 +5,6 @@ public static class Preprocessor
     public static (double[,] X, double[] y, List<string> fuels, List<string> transmissions)
         ToMatrix(List<Vehicle> rows, int targetYear = 2025)
     {
-        // vocab
         var fuels = rows.Select(r => (r.Fuel ?? "").Trim().ToLower())
             .Distinct().Where(s => s != "").OrderBy(s => s).ToList();
         var transmissions = rows.Select(r => (r.Transmission ?? "").Trim().ToLower())
@@ -28,8 +27,6 @@ public static class Preprocessor
             double logOdometer = Math.Log(odo + 1.0);
             double age2 = age * age;
 
-            // base features
-            // Current base features: age, odo, mileagePerYear, logOdometer, age^2
             X[i, 0] = age;
             X[i, 1] = odo;
             X[i, 2] = mileagePerYear;

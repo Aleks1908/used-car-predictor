@@ -25,7 +25,6 @@ namespace used_car_predictor.Backend.Models
             _minSamplesLeaf = minSamplesLeaf;
             _maxSplitsPerFeature = maxSplitsPerFeature;
         }
-        // ------------------ API ------------------
 
         public void Fit(double[,] features, double[] labels)
         {
@@ -56,15 +55,12 @@ namespace used_car_predictor.Backend.Models
             return Traverse(_root, featureRow);
         }
 
-        // ------------------ Core logic ------------------
-
         private Node BuildTree(double[,] features, double[] labels, int depth)
         {
             int nSamples = features.GetLength(0);
             int nFeatures = features.GetLength(1);
             double currentVar = Variance(labels);
 
-            // Stopping criteria
             if (depth >= _maxDepth || nSamples < _minSamplesSplit || currentVar == 0)
                 return new Node { Value = Mean(labels) };
 
@@ -78,17 +74,14 @@ namespace used_car_predictor.Backend.Models
             {
                 double[] column = GetColumn(features, feature);
 
-// --- quantile-based candidate thresholds ---
                 var sorted = (double[])column.Clone();
                 Array.Sort(sorted);
 
                 int nSplits = Math.Min(_maxSplitsPerFeature, sorted.Length - 1);
-// guard: if too few unique values, skip feature
                 if (nSplits <= 0) continue;
 
                 for (int s = 1; s <= nSplits; s++)
                 {
-                    // pick positions between 0 and N using equal quantile spacing
                     int idx = (int)Math.Round((double)s / (nSplits + 1) * (sorted.Length - 1));
                     double threshold = sorted[idx];
 
@@ -111,11 +104,9 @@ namespace used_car_predictor.Backend.Models
                 }
             }
 
-            // If no split found, make a leaf
             if (bestFeature == -1 || bestGain == 0)
                 return new Node { Value = Mean(labels) };
 
-            // Build left/right subsets
             double[,] leftX = Subset(features, bestLeftIdx!);
             double[] leftYFinal = Subset(labels, bestLeftIdx!);
             double[,] rightX = Subset(features, bestRightIdx!);
@@ -141,7 +132,6 @@ namespace used_car_predictor.Backend.Models
                 return Traverse(node.Right, x);
         }
 
-        // ------------------ Helper functions ------------------
 
         private static double Variance(double[] y)
         {
@@ -215,7 +205,6 @@ namespace used_car_predictor.Backend.Models
             return result;
         }
 
-        // ------------------ Node definition ------------------
         private class Node
         {
             public int FeatureIndex;

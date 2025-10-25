@@ -95,7 +95,7 @@ namespace used_car_predictor.Backend.Models
             return y;
         }
 
-        // ---------- Helpers ----------
+
         private static double Mean(double[] arr)
         {
             double sum = 0;
@@ -133,7 +133,6 @@ namespace used_car_predictor.Backend.Models
             double[,] valFeatures, double[] valLabels,
             LabelScaler labelScaler)
         {
-            // Define search grid
             int[] nEstimatorsList = { 100, 150 };
             double[] learningRates = { 0.05, 0.1, 0.2 };
             int[] maxDepths = { 2, 3, 4 };
@@ -158,7 +157,6 @@ namespace used_car_predictor.Backend.Models
                 });
             }
 
-            // Grid search loop
             foreach (var paramSet in paramGrid)
             {
                 var model = new GradientBoostingRegressor(
@@ -196,7 +194,6 @@ namespace used_car_predictor.Backend.Models
                               $"learningRate={bestParams!["learningRate"]}, maxDepth={bestParams!["maxDepth"]}, " +
                               $"minLeaf={bestParams!["minSamplesLeaf"]}");
 
-            // 🔹 Retrain best model on full train+val
             var finalGb = new GradientBoostingRegressor(
                 nEstimators: (int)bestParams!["nEstimators"],
                 learningRate: (double)bestParams!["learningRate"],

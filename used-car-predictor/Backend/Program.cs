@@ -8,19 +8,16 @@ using used_car_predictor.Backend.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// ---- Services / DI ----
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddControllers();
 
-// Core inference + model switching
 builder.Services.AddSingleton<ActiveModel>();
 builder.Services.AddSingleton<IBundleResolver, StaticBundleResolver>();
 builder.Services.AddSingleton<ModelHotLoader>();
 
 var app = builder.Build();
 
-// ---- Swagger ----
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
@@ -29,7 +26,6 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
-// ---- React static hosting (SPA) ----
 var reactBuildPath = Path.Combine(Directory.GetCurrentDirectory(), "ui", "build");
 app.UseDefaultFiles(new DefaultFilesOptions
 {
@@ -41,16 +37,13 @@ app.UseStaticFiles(new StaticFileOptions
     RequestPath = ""
 });
 
-// ---- Controllers ----
 app.MapControllers();
 
-// ---- SPA fallback must be LAST ----
 app.MapFallbackToFile("index.html", new StaticFileOptions
 {
     FileProvider = new PhysicalFileProvider(reactBuildPath)
 });
 
-// -------------------- CLI TRAIN / EVAL FLOW --------------------
 static string EnsureDir(string path)
 {
     Directory.CreateDirectory(path);
@@ -98,7 +91,7 @@ if (args.Contains("--cli"))
 
     bool debug = args.Contains("--debug");
 
-    // --------- Quick "predict from bundle" path ---------
+
     var loadBundleArg = ArgValue(args, "--load-bundle");
     if (!string.IsNullOrEmpty(loadBundleArg))
     {
@@ -130,7 +123,6 @@ if (args.Contains("--cli"))
         var fuels = bundle.Preprocess.Fuels;
         var transmissions = bundle.Preprocess.Transmissions;
 
-        // Use shared helper so CLI matches serving features
         var row = ServingHelpers.EncodeManualInput(
             manualYear, manualOdo, manualFuel, manualTrans, fuels, transmissions);
         var x = fScaler.TransformRow(row);
@@ -214,7 +206,6 @@ if (args.Contains("--cli"))
         return;
     }
 
-    // --------- Training flow (saves bundles to datasets/processed) ---------
     var vehicles = CsvLoader.LoadVehicles(csvPath, maxRows);
 
     const int MinCount = 50;
@@ -339,7 +330,6 @@ if (args.Contains("--cli"))
                 notes: $"model={m.Model}, rows={rows.Count}"
             );
 
-            // --- NEW: attach clean car metadata into the bundle ---
             bundle.Car = new CarMetaDto
             {
                 Make = dominantMake,
@@ -371,7 +361,6 @@ if (args.Contains("--cli"))
     return;
 }
 
-// -------------------- Load a default bundle on startup (optional) --------------------
 var defaultStartupBundlePath = Path.Combine(
     builder.Environment.ContentRootPath,
     "Backend", "datasets", "processed", "current.bundle.json");

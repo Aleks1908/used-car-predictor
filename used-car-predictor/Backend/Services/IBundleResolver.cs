@@ -1,5 +1,3 @@
-// IBundleResolver.cs
-
 namespace used_car_predictor.Backend.Services;
 
 public interface IBundleResolver

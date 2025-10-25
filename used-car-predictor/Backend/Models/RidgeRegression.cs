@@ -95,9 +95,8 @@ namespace used_car_predictor.Backend.Models
             );
 
             Console.WriteLine(
-                $"[Ridge tune] ✅ Best RMSE={bestRmse:F2} (lr={(double)bestParams["learningRate"]:g}, λ={(double)bestParams["lambda"]:g})");
+                $"[Ridge tune] Best RMSE={bestRmse:F2} (lr={(double)bestParams["learningRate"]:g}, λ={(double)bestParams["lambda"]:g})");
 
-            // Retrain on train+val
             var (fullX, fullY) = Concat(trainFeatures, trainLabels, valFeatures, valLabels);
             var finalRidge = new RidgeRegression((double)bestParams["learningRate"], (int)bestParams["epochs"],
                 (double)bestParams["lambda"]);

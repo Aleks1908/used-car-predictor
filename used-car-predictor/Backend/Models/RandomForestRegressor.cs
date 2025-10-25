@@ -6,13 +6,6 @@ using used_car_predictor.Backend.Evaluation;
 
 namespace used_car_predictor.Backend.Models
 {
-    /// <summary>
-    /// Random Forest for regression built from multiple DecisionTreeRegressor models.
-    /// - Bagging (bootstrap samples of rows) per tree.
-    /// - Final prediction is the average of tree predictions.
-    /// NOTE: This baseline version uses all features in each tree. (Feature subsampling is a later enhancement.)
-    /// </summary>
-    ///
     public class RandomForestRegressor : IRegressor
 
     {
@@ -21,7 +14,7 @@ namespace used_car_predictor.Backend.Models
         private readonly int _minSamplesSplit;
         private readonly int _minSamplesLeaf;
         private readonly bool _bootstrap;
-        private readonly double _sampleRatio; // proportion of rows per tree (with replacement)
+        private readonly double _sampleRatio;
         private readonly int _randomSeed;
 
         private readonly List<DecisionTreeRegressor> _trees = new();
@@ -66,7 +59,7 @@ namespace used_car_predictor.Backend.Models
                     maxDepth: _maxDepth,
                     minSamplesSplit: _minSamplesSplit,
                     minSamplesLeaf: _minSamplesLeaf,
-                    maxSplitsPerFeature: 32 // see #4 below
+                    maxSplitsPerFeature: 32
                 );
                 tree.Fit(bagX, bagY);
                 trees[t] = tree;
@@ -90,7 +83,6 @@ namespace used_car_predictor.Backend.Models
                 for (int i = 0; i < n; i++) sums[i] += preds[i];
             }
 
-            // average
             for (int i = 0; i < n; i++) sums[i] /= _trees.Count;
             return sums;
         }
@@ -107,13 +99,11 @@ namespace used_car_predictor.Backend.Models
             return sum / _trees.Count;
         }
 
-        // ----------------- helpers -----------------
-
         private static int[] SampleWithReplacement(Random rng, int n, int k)
         {
             var idx = new int[k];
             for (int i = 0; i < k; i++)
-                idx[i] = rng.Next(n); // [0, n)
+                idx[i] = rng.Next(n);
             return idx;
         }
 
@@ -141,7 +131,6 @@ namespace used_car_predictor.Backend.Models
             double[,] valFeatures, double[] valLabels,
             LabelScaler labelScaler)
         {
-            // Define hyperparameter grid
             int[] nEstimatorsList = { 30, 50, 80 };
             int[] maxDepths = { 6, 8, 10 };
             int[] minLeaf = { 5, 10, 15 };
@@ -169,7 +158,6 @@ namespace used_car_predictor.Backend.Models
                 });
             }
 
-            // Grid search
             foreach (var p in paramGrid)
             {
                 var model = new RandomForestRegressor(
@@ -208,7 +196,6 @@ namespace used_car_predictor.Backend.Models
                               $"maxDepth={bestParams!["maxDepth"]}, minLeaf={bestParams!["minSamplesLeaf"]}, " +
                               $"sampleRatio={bestParams!["sampleRatio"]}");
 
-            // Retrain best model on full training set
             var finalRf = new RandomForestRegressor(
                 nEstimators: (int)bestParams!["nEstimators"],
                 maxDepth: (int)bestParams!["maxDepth"],

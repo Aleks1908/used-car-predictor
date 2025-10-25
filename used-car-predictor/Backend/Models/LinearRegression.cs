@@ -1,15 +1,16 @@
 using System;
 using System.Linq;
+
 namespace used_car_predictor.Backend.Models;
 
 public class LinearRegression(double learningRate = 0.01, int epochs = 10000) : IRegressor
 {
-   private double[] _weights = [];
+    private double[] _weights = [];
     private double _bias;
 
     public string Name => "Linear Regression";
 
-    public void Fit(double[,] features, double[] labels) 
+    public void Fit(double[,] features, double[] labels)
     {
         var sampleCount = features.GetLength(0);
         var featureCount = features.GetLength(1);
@@ -36,13 +37,15 @@ public class LinearRegression(double learningRate = 0.01, int epochs = 10000) : 
                 {
                     gradients[j] += error * features[i, j];
                 }
+
                 biasGradient += error;
             }
-            
+
             for (var j = 0; j < featureCount; j++)
             {
                 _weights[j] -= learningRate * gradients[j] / sampleCount;
             }
+
             _bias -= learningRate * biasGradient / sampleCount;
 
             if (epoch % 1000 == 0)
@@ -57,8 +60,8 @@ public class LinearRegression(double learningRate = 0.01, int epochs = 10000) : 
         return _bias + _weights.Select((t, j) => t * featureRow[j]).Sum();
     }
 
-    public double[] Weights => [.._weights]; // collection expression copy
-    public double[] Parameters => [.._weights, _bias]; // weights plus bias via collection expression
+    public double[] Weights => [.._weights];
+    public double[] Parameters => [.._weights, _bias];
 
     public double[] Predict(double[,] features)
     {

@@ -1,5 +1,3 @@
-// StaticBundleResolver.cs
-
 using used_car_predictor.Backend.Evaluation;
 using used_car_predictor.Backend.Serialization;
 
