@@ -8,7 +8,6 @@ using used_car_predictor.Backend.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// --- Services / DI ---
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddControllers();
@@ -19,7 +18,6 @@ builder.Services.AddSingleton<ModelHotLoader>();
 
 var app = builder.Build();
 
-// --- Swagger (dev only) ---
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
@@ -28,7 +26,6 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
-// --- Serve Vite build (ui/dist) ---
 var spaRoot = Path.Combine(builder.Environment.ContentRootPath, "ui", "dist");
 if (!Directory.Exists(spaRoot))
 {
@@ -40,14 +37,13 @@ else
     Console.WriteLine($"[SPA] Serving index: {idx} (exists={File.Exists(idx)})");
 }
 
-// 1) Default files -> index.html from spaRoot only
 app.UseDefaultFiles(new DefaultFilesOptions
 {
     FileProvider = new PhysicalFileProvider(spaRoot),
     DefaultFileNames = new List<string> { "index.html" }
 });
 
-// 2) Static files (assets) from spaRoot only + no-cache for index.html
+
 app.UseStaticFiles(new StaticFileOptions
 {
     FileProvider = new PhysicalFileProvider(spaRoot),
@@ -64,10 +60,8 @@ app.UseStaticFiles(new StaticFileOptions
     }
 });
 
-// --- API routes ---
 app.MapControllers();
 
-// 3) SPA fallback LAST (for client-side routes)
 app.MapFallbackToFile("index.html", new StaticFileOptions
 {
     FileProvider = new PhysicalFileProvider(spaRoot),
@@ -79,14 +73,12 @@ app.MapFallbackToFile("index.html", new StaticFileOptions
     }
 });
 
-// (Optional) quick probe to verify which folder is served
 app.MapGet("/_spa-root", () => new
 {
     spaRoot,
     indexExists = File.Exists(Path.Combine(spaRoot, "index.html"))
 });
 
-// -------------------- Helpers --------------------
 static string EnsureDir(string path)
 {
     Directory.CreateDirectory(path);
@@ -99,7 +91,6 @@ static string? ArgValue(string[] a, string name)
     return (i >= 0 && i + 1 < a.Length) ? a[i + 1] : null;
 }
 
-// -------------------- CLI MODE --------------------
 if (args.Contains("--cli"))
 {
     string datasetsRoot = Path.Combine(builder.Environment.ContentRootPath, "Backend", "datasets");
@@ -135,7 +126,6 @@ if (args.Contains("--cli"))
 
     bool debug = args.Contains("--debug");
 
-    // --------- Quick "predict from bundle" path ---------
     var loadBundleArg = ArgValue(args, "--load-bundle");
     if (!string.IsNullOrEmpty(loadBundleArg))
     {
@@ -249,7 +239,6 @@ if (args.Contains("--cli"))
         return;
     }
 
-    // --------- Training flow (leakage fixed) ---------
     var vehicles = CsvLoader.LoadVehicles(csvPath, maxRows);
 
     const int MinCount = 50;
@@ -289,13 +278,10 @@ if (args.Contains("--cli"))
     {
         var rows = vehicles.Where(v => ModelNormalizer.Normalize(v.Model) == m.Model).ToList();
 
-        // == FIXED LEAKAGE: split BEFORE fitting scalers ==
         var (rawX, rawY, fuels, transmissions) = Preprocessor.ToMatrix(rows);
 
-        // 80/20 split on RAW arrays
         var (trainRawX, trainRawY, testRawX, testRawY) = DataSplitter.Split(rawX, rawY, trainRatio: 0.8);
 
-        // Fit scalers on TRAIN ONLY; transform both train & test
         var fScaler = new FeatureScaler();
         var yScaler = new LabelScaler();
 
@@ -328,7 +314,6 @@ if (args.Contains("--cli"))
             return new MetricsDto { MAE = mae, RMSE = rmse, R2 = r2 };
         }
 
-        // Hyperparam tuning on a sub-split of the TRAIN set
         var (tx, ty, vx, vy) = DataSplitter.Split(trainX, trainY, trainRatio: 0.75);
 
         LinearRegression? linearModel = null;
@@ -415,7 +400,6 @@ if (args.Contains("--cli"))
     return;
 }
 
-// -------------------- Startup: load default model bundle --------------------
 var defaultStartupBundlePath = Path.Combine(
     builder.Environment.ContentRootPath,
     "Backend", "datasets", "processed", "current.bundle.json");
@@ -445,7 +429,6 @@ catch (Exception ex)
 
 app.Run();
 
-// -------------------- Bundle resolver + hot loader --------------------
 public interface IBundleResolver
 {
     (string Path, string Algorithm) Resolve(string make, string model);
