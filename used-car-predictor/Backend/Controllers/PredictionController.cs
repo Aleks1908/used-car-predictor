@@ -27,23 +27,29 @@ public class PredictionController : ControllerBase
             req.YearOfProduction, req.MileageKm, req.FuelType, req.Transmission,
             _active.Fuels, _active.Transmissions, targetYear: req.TargetYear);
 
-
         var x = ServingHelpers.ScaleRow(raw, _active.FeatureMeans, _active.FeatureStds);
         var zByAlgo = _active.PredictAllScaled(x);
 
         var results = zByAlgo.Select(kv =>
         {
             var price = ServingHelpers.InverseLabel(kv.Value, _active.LabelMean, _active.LabelStd, _active.LabelUseLog);
+
             _active.MetricsByAlgo.TryGetValue(kv.Key, out var m);
+
+            var roundedPrice = Math.Round((decimal)price, 0, MidpointRounding.AwayFromZero);
+            var roundedMse = Math.Round(m.Mse, 2);
+            var roundedMae = Math.Round(m.Mae, 2);
+            var roundedR2 = Math.Round(m.R2, 2);
+
             return new ModelPredictionDto
             {
                 Algorithm = kv.Key,
-                PredictedPrice = Math.Round((decimal)price, 2),
-                Metrics = new ModelMetricsDto { Mse = m.Mse, Mae = m.Mae, R2 = m.R2 }
+                PredictedPrice = roundedPrice,
+                Metrics = new ModelMetricsDto { Mse = roundedMse, Mae = roundedMae, R2 = roundedR2 }
             };
         }).ToList();
 
-        var info = new ModelInfoDto { Version = _active.Version, TrainedAt = _active.TrainedAt };
+        var info = new ModelInfoDto { TrainedAt = _active.TrainedAt };
 
         return Ok(new PredictResponse
         {
@@ -65,13 +71,13 @@ public class PredictionController : ControllerBase
         await _hotLoader.EnsureLoadedAsync(req.Manufacturer, req.Model, ct);
         if (!_active.IsLoaded) return Problem("No active model loaded.", statusCode: 503);
 
-        var items = new List<PredictResponse>();
+        var items = new List<PredictRangeItem>();
+
         for (int y = req.FromYear; y <= req.ToYear; y++)
         {
             var raw = ServingHelpers.EncodeManualInput(
                 req.YearOfProduction, req.MileageKm, req.FuelType, req.Transmission,
                 _active.Fuels, _active.Transmissions, targetYear: y);
-
 
             var x = ServingHelpers.ScaleRow(raw, _active.FeatureMeans, _active.FeatureStds);
             var zByAlgo = _active.PredictAllScaled(x);
@@ -84,23 +90,27 @@ public class PredictionController : ControllerBase
                 return new ModelPredictionDto
                 {
                     Algorithm = kv.Key,
-                    PredictedPrice = Math.Round((decimal)price, 2),
-                    Metrics = new ModelMetricsDto { Mse = m.Mse, Mae = m.Mae, R2 = m.R2 }
+                    PredictedPrice = Math.Round((decimal)price, 0),
+                    Metrics = new ModelMetricsDto
+                    {
+                        Mse = Math.Round(m.Mse, 2),
+                        Mae = Math.Round(m.Mae, 2),
+                        R2 = Math.Round(m.R2, 2)
+                    }
                 };
             }).ToList();
 
-            items.Add(new PredictResponse
+            items.Add(new PredictRangeItem
             {
                 Manufacturer = req.Manufacturer,
                 Model = req.Model,
                 YearOfProduction = req.YearOfProduction,
                 TargetYear = y,
-                Results = results,
-                ModelInfo = new ModelInfoDto { Version = _active.Version, TrainedAt = _active.TrainedAt }
+                Results = results
             });
         }
 
-        var info = new ModelInfoDto { Version = _active.Version, TrainedAt = _active.TrainedAt };
+        var info = new ModelInfoDto { TrainedAt = _active.TrainedAt };
         return Ok(new PredictRangeResponse { Items = items, ModelInfo = info });
     }
 }

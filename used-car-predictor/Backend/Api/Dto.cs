@@ -41,21 +41,15 @@ public sealed class PredictResponse
 {
     public string Manufacturer { get; set; } = default!;
     public string Model { get; set; } = default!;
-    public int YearOfProduction { get; set; } // ← include both years in the response
-    public int TargetYear { get; set; } // ← include both years in the response
+    public int YearOfProduction { get; set; }
+    public int TargetYear { get; set; }
     public List<ModelPredictionDto> Results { get; set; } = new();
-    public ModelInfoDto ModelInfo { get; set; } = new();
-}
 
-public sealed class PredictRangeResponse
-{
-    public List<PredictResponse> Items { get; set; } = new();
-    public ModelInfoDto ModelInfo { get; set; } = new();
+    public ModelInfoDto? ModelInfo { get; set; }
 }
 
 public sealed class ModelInfoDto
 {
-    public string Version { get; set; } = "unloaded";
     public DateTimeOffset TrainedAt { get; set; }
 }
 
@@ -67,7 +61,6 @@ public sealed class CatalogItemDto
 
     public string DisplayModel { get; set; } = default!;
     public string FileName { get; set; } = default!;
-    public string Version { get; set; } = default!;
     public DateTimeOffset TrainedAt { get; set; }
     public string[] Algorithms { get; set; } = Array.Empty<string>();
 }
@@ -84,13 +77,26 @@ public sealed class ManufacturerRequest
 
 public sealed class ModelDetailDto
 {
-    public string ModelId { get; set; } = "";
     public string Model { get; set; } = "";
     public string Manufacturer { get; set; } = "";
     public string FileName { get; set; } = "";
-    public string Version { get; set; } = "";
     public DateTimeOffset TrainedAt { get; set; }
     public string[] Fuels { get; set; } = Array.Empty<string>();
     public string[] Transmissions { get; set; } = Array.Empty<string>();
     public string[] Algorithms { get; set; } = Array.Empty<string>();
+}
+
+public sealed class PredictRangeItem
+{
+    public string Manufacturer { get; set; } = default!;
+    public string Model { get; set; } = default!;
+    public int YearOfProduction { get; set; }
+    public int TargetYear { get; set; }
+    public List<ModelPredictionDto> Results { get; set; } = new();
+}
+
+public sealed class PredictRangeResponse
+{
+    public List<PredictRangeItem> Items { get; set; } = new();
+    public ModelInfoDto ModelInfo { get; set; } = new(); // only at the top-level
 }

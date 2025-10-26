@@ -50,11 +50,9 @@ public sealed class ModelsController : ControllerBase
 
                 items.Add(new ModelDetailDto
                 {
-                    ModelId = modelId,
                     Model = modelName,
                     Manufacturer = make,
                     FileName = Path.GetFileName(file),
-                    Version = bundle.Version ?? string.Empty,
                     TrainedAt = bundle.TrainedAtUtc,
                     Fuels = fuels,
                     Transmissions = transmissions,
@@ -63,7 +61,7 @@ public sealed class ModelsController : ControllerBase
             }
             catch
             {
-                // ignore malformed bundle
+                // log
             }
         }
 

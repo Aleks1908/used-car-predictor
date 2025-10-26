@@ -14,7 +14,6 @@ public sealed class ActiveModel
 
     private readonly object _swapLock = new();
 
-    public string Version { get; private set; } = "unloaded";
     public DateTimeOffset TrainedAt { get; private set; } = DateTimeOffset.MinValue;
 
     public IReadOnlyList<string> Fuels { get; private set; } = Array.Empty<string>();
@@ -92,7 +91,6 @@ public sealed class ActiveModel
             LabelStd = bundle.Preprocess.LabelStd;
             LabelUseLog = bundle.Preprocess.LabelUseLog;
 
-            Version = bundle.Version;
             TrainedAt = bundle.TrainedAtUtc;
         }
     }

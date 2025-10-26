@@ -1,5 +1,4 @@
 using used_car_predictor.Backend.Evaluation;
-using used_car_predictor.Backend.Serialization;
 
 namespace used_car_predictor.Backend.Services;
 

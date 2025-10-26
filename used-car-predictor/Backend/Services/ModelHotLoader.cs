@@ -33,7 +33,7 @@ public sealed class ModelHotLoader
 
             _active.LoadFromBundle(path, algorithm);
             _currentKey = key;
-            Console.WriteLine($"[Model] Hot-swapped: '{key}' via {algorithm} ({_active.Version})");
+            Console.WriteLine($"[Model] Hot-swapped: '{key}' via {algorithm} ");
         }
         finally
         {

@@ -414,7 +414,7 @@ try
     {
         active.LoadFromBundle(startupBundlePath, startupAlgorithm);
         Console.WriteLine(
-            $"[Model] Loaded '{startupAlgorithm}' bundle: {active.Version} (trained {active.TrainedAt:u})");
+            $"[Model] Loaded '{startupAlgorithm}' bundle: (trained {active.TrainedAt:u})");
     }
     else
     {
@@ -428,66 +428,3 @@ catch (Exception ex)
 }
 
 app.Run();
-
-public interface IBundleResolver
-{
-    (string Path, string Algorithm) Resolve(string manufacturer, string model);
-}
-
-public sealed class StaticBundleResolver : IBundleResolver
-{
-    private readonly string _processedDir;
-    private readonly string _defaultAlgorithm;
-
-    public StaticBundleResolver(IHostEnvironment env, IConfiguration cfg)
-    {
-        _processedDir = Path.Combine(env.ContentRootPath, "Backend", "datasets", "processed");
-        _defaultAlgorithm = cfg["Model:Algorithm"] ?? "ridge";
-    }
-
-    public (string Path, string Algorithm) Resolve(string manufacturer, string model)
-    {
-        var id = ModelNormalizer.Normalize(model);
-        var path = Path.Combine(_processedDir, $"{id}.json");
-        return (path, _defaultAlgorithm);
-    }
-}
-
-public sealed class ModelHotLoader
-{
-    private readonly ActiveModel _active;
-    private readonly IBundleResolver _resolver;
-    private readonly SemaphoreSlim _gate = new(1, 1);
-    private string? _currentKey;
-
-    public ModelHotLoader(ActiveModel active, IBundleResolver resolver)
-    {
-        _active = active;
-        _resolver = resolver;
-    }
-
-    public async Task EnsureLoadedAsync(string manufacturer, string model, CancellationToken ct = default)
-    {
-        var key = ModelNormalizer.Normalize(model);
-
-        if (_active.IsLoaded && _currentKey == key) return;
-
-        await _gate.WaitAsync(ct);
-        try
-        {
-            if (_active.IsLoaded && _currentKey == key) return;
-
-            var (path, algorithm) = _resolver.Resolve(manufacturer, model);
-            if (!File.Exists(path))
-                throw new FileNotFoundException($"Bundle not found: {path}");
-
-            _active.LoadFromBundle(path, algorithm);
-            _currentKey = key;
-            Console.WriteLine($"[Model] Hot-swapped: '{key}' via {algorithm} ({_active.Version})");
-        }
-        finally
-        {
-            _gate.Release();
-        }
-    }
-}

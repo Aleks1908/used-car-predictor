@@ -10,6 +10,6 @@ public class HealthController : ControllerBase
     [HttpGet]
     public IActionResult Get([FromServices] ActiveModel active)
         => active.IsLoaded
-            ? Ok(new { status = "ok", modelVersion = active.Version, trainedAt = active.TrainedAt })
+            ? Ok(new { status = "ok", trainedAt = active.TrainedAt })
             : StatusCode(503);
 }

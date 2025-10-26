@@ -44,7 +44,6 @@ public sealed class CatalogController : ControllerBase
                     DisplayModel = model,
                     Manufacturer = manufacturer,
                     FileName = Path.GetFileName(file),
-                    Version = bundle.Version,
                     TrainedAt = bundle.TrainedAtUtc,
                     Algorithms = algos.ToArray()
                 });

@@ -69,7 +69,6 @@ namespace used_car_predictor.Backend.Serialization
 
     public class BundleDto
     {
-        public string Version { get; set; } = "v1";
         public DateTime TrainedAtUtc { get; set; } = DateTime.UtcNow;
         public string? Notes { get; set; }
 
