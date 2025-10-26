@@ -35,14 +35,14 @@ public sealed class CatalogController : ControllerBase
                 var modelId = Path.GetFileNameWithoutExtension(file);
 
                 // ← read clean meta (fallbacks if missing)
-                var make = bundle.Car?.Make ?? "";
+                var manufacturer = bundle.Car?.Manufacturer ?? "";
                 var model = bundle.Car?.Model ?? modelId;
 
                 items.Add(new CatalogItemDto
                 {
                     ModelId = modelId,
                     DisplayModel = model,
-                    Make = make,
+                    Manufacturer = manufacturer,
                     FileName = Path.GetFileName(file),
                     Version = bundle.Version,
                     TrainedAt = bundle.TrainedAtUtc,

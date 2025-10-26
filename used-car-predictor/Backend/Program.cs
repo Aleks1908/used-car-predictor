@@ -354,7 +354,7 @@ if (args.Contains("--cli"))
             var id = ModelNormalizer.Normalize(m.Model);
             var outPath = Path.Combine(processedDir, $"{id}.json");
 
-            var dominantMake = rows
+            var dominantManufacturer = rows
                 .Where(r => !string.IsNullOrWhiteSpace(r.Manufacturer))
                 .GroupBy(r => r.Manufacturer.Trim(), StringComparer.OrdinalIgnoreCase)
                 .OrderByDescending(g => g.Count())
@@ -371,7 +371,7 @@ if (args.Contains("--cli"))
 
             bundle.Car = new CarMetaDto
             {
-                Make = dominantMake,
+                Manufacturer = dominantManufacturer,
                 Model = displayModel
             };
 
@@ -431,7 +431,7 @@ app.Run();
 
 public interface IBundleResolver
 {
-    (string Path, string Algorithm) Resolve(string make, string model);
+    (string Path, string Algorithm) Resolve(string manufacturer, string model);
 }
 
 public sealed class StaticBundleResolver : IBundleResolver
@@ -445,7 +445,7 @@ public sealed class StaticBundleResolver : IBundleResolver
         _defaultAlgorithm = cfg["Model:Algorithm"] ?? "ridge";
     }
 
-    public (string Path, string Algorithm) Resolve(string make, string model)
+    public (string Path, string Algorithm) Resolve(string manufacturer, string model)
     {
         var id = ModelNormalizer.Normalize(model);
         var path = Path.Combine(_processedDir, $"{id}.json");
@@ -466,7 +466,7 @@ public sealed class ModelHotLoader
         _resolver = resolver;
     }
 
-    public async Task EnsureLoadedAsync(string make, string model, CancellationToken ct = default)
+    public async Task EnsureLoadedAsync(string manufacturer, string model, CancellationToken ct = default)
     {
         var key = ModelNormalizer.Normalize(model);
 
@@ -477,7 +477,7 @@ public sealed class ModelHotLoader
         {
             if (_active.IsLoaded && _currentKey == key) return;
 
-            var (path, algorithm) = _resolver.Resolve(make, model);
+            var (path, algorithm) = _resolver.Resolve(manufacturer, model);
             if (!File.Exists(path))
                 throw new FileNotFoundException($"Bundle not found: {path}");
 

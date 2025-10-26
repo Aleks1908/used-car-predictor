@@ -20,7 +20,7 @@ public class PredictionController : ControllerBase
     [HttpPost("predict")]
     public async Task<ActionResult<PredictResponse>> Predict([FromBody] PredictRequest req, CancellationToken ct)
     {
-        await _hotLoader.EnsureLoadedAsync(req.Make, req.Model, ct);
+        await _hotLoader.EnsureLoadedAsync(req.Manufacturer, req.Model, ct);
         if (!_active.IsLoaded) return Problem("No active model loaded.", statusCode: 503);
 
         var raw = ServingHelpers.EncodeManualInput(
@@ -47,11 +47,10 @@ public class PredictionController : ControllerBase
 
         return Ok(new PredictResponse
         {
-            Make = req.Make,
+            Manufacturer = req.Manufacturer,
             Model = req.Model,
             YearOfProduction = req.YearOfProduction,
             TargetYear = req.TargetYear,
-            Currency = "EUR",
             Results = results,
             ModelInfo = info
         });
@@ -63,7 +62,7 @@ public class PredictionController : ControllerBase
     {
         if (req.FromYear > req.ToYear) return BadRequest(new { error = "FromYear must be <= ToYear" });
 
-        await _hotLoader.EnsureLoadedAsync(req.Make, req.Model, ct);
+        await _hotLoader.EnsureLoadedAsync(req.Manufacturer, req.Model, ct);
         if (!_active.IsLoaded) return Problem("No active model loaded.", statusCode: 503);
 
         var items = new List<PredictResponse>();
@@ -92,17 +91,16 @@ public class PredictionController : ControllerBase
 
             items.Add(new PredictResponse
             {
-                Make = req.Make,
+                Manufacturer = req.Manufacturer,
                 Model = req.Model,
                 YearOfProduction = req.YearOfProduction,
                 TargetYear = y,
-                Currency = "EUR",
                 Results = results,
                 ModelInfo = new ModelInfoDto { Version = _active.Version, TrainedAt = _active.TrainedAt }
             });
         }
 
         var info = new ModelInfoDto { Version = _active.Version, TrainedAt = _active.TrainedAt };
-        return Ok(new PredictRangeResponse { Currency = "EUR", Items = items, ModelInfo = info });
+        return Ok(new PredictRangeResponse { Items = items, ModelInfo = info });
     }
 }

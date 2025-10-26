@@ -14,7 +14,7 @@ public sealed class StaticBundleResolver : IBundleResolver
         _defaultAlgorithm = cfg["Model:Algorithm"] ?? "ridge";
     }
 
-    public (string Path, string Algorithm) Resolve(string make, string model)
+    public (string Path, string Algorithm) Resolve(string manufacturer, string model)
     {
         var id = ModelNormalizer.Normalize(model);
         var path = Path.Combine(_processedDir, $"{id}.json");

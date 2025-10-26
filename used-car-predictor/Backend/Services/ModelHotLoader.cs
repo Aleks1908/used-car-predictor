@@ -16,7 +16,7 @@ public sealed class ModelHotLoader
         _resolver = resolver;
     }
 
-    public async Task EnsureLoadedAsync(string make, string model, CancellationToken ct = default)
+    public async Task EnsureLoadedAsync(string manufacturer, string model, CancellationToken ct = default)
     {
         var key = ModelNormalizer.Normalize(model);
 
@@ -27,7 +27,7 @@ public sealed class ModelHotLoader
         {
             if (_active.IsLoaded && _currentKey == key) return;
 
-            var (path, algorithm) = _resolver.Resolve(make, model);
+            var (path, algorithm) = _resolver.Resolve(manufacturer, model);
             if (!File.Exists(path))
                 throw new FileNotFoundException($"Bundle not found: {path}");
 

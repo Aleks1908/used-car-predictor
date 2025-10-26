@@ -2,7 +2,7 @@ namespace used_car_predictor.Backend.Api;
 
 public sealed class PredictRequest
 {
-    public string Make { get; set; } = default!;
+    public string Manufacturer { get; set; } = default!;
     public string Model { get; set; } = default!;
     public int YearOfProduction { get; set; }
     public int TargetYear { get; set; }
@@ -13,7 +13,7 @@ public sealed class PredictRequest
 
 public sealed class PredictRangeRequest
 {
-    public string Make { get; set; } = default!;
+    public string Manufacturer { get; set; } = default!;
     public string Model { get; set; } = default!;
     public string Transmission { get; set; } = default!;
     public string FuelType { get; set; } = default!;
@@ -25,7 +25,7 @@ public sealed class PredictRangeRequest
 
 public sealed class ModelPredictionDto
 {
-    public string Algorithm { get; set; } = default!; // "linear" | "ridge" | "rf" | "gb"
+    public string Algorithm { get; set; } = default!;
     public decimal PredictedPrice { get; set; }
     public ModelMetricsDto Metrics { get; set; } = new();
 }
@@ -39,18 +39,16 @@ public sealed class ModelMetricsDto
 
 public sealed class PredictResponse
 {
-    public string Make { get; set; } = default!;
+    public string Manufacturer { get; set; } = default!;
     public string Model { get; set; } = default!;
     public int YearOfProduction { get; set; } // ← include both years in the response
     public int TargetYear { get; set; } // ← include both years in the response
-    public string Currency { get; set; } = "EUR";
     public List<ModelPredictionDto> Results { get; set; } = new();
     public ModelInfoDto ModelInfo { get; set; } = new();
 }
 
 public sealed class PredictRangeResponse
 {
-    public string Currency { get; set; } = "EUR";
     public List<PredictResponse> Items { get; set; } = new();
     public ModelInfoDto ModelInfo { get; set; } = new();
 }
@@ -65,7 +63,7 @@ public sealed class CatalogItemDto
 {
     public string ModelId { get; set; } = default!;
 
-    public string Make { get; set; } = "";
+    public string Manufacturer { get; set; } = "";
 
     public string DisplayModel { get; set; } = default!;
     public string FileName { get; set; } = default!;
@@ -77,4 +75,22 @@ public sealed class CatalogItemDto
 public sealed class CatalogResponse
 {
     public List<CatalogItemDto> Items { get; set; } = new();
+}
+
+public sealed class ManufacturerRequest
+{
+    public string Manufacturer { get; set; } = string.Empty;
+}
+
+public sealed class ModelDetailDto
+{
+    public string ModelId { get; set; } = "";
+    public string Model { get; set; } = "";
+    public string Manufacturer { get; set; } = "";
+    public string FileName { get; set; } = "";
+    public string Version { get; set; } = "";
+    public DateTimeOffset TrainedAt { get; set; }
+    public string[] Fuels { get; set; } = Array.Empty<string>();
+    public string[] Transmissions { get; set; } = Array.Empty<string>();
+    public string[] Algorithms { get; set; } = Array.Empty<string>();
 }

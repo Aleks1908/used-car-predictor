@@ -87,7 +87,7 @@ namespace used_car_predictor.Backend.Serialization
 
     public sealed class CarMetaDto
     {
-        public string? Make { get; set; }
+        public string? Manufacturer { get; set; }
         public string? Model { get; set; }
     }
 }
