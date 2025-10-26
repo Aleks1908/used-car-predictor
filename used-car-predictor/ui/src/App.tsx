@@ -1,18 +1,13 @@
-import { Link, Route, Routes } from "react-router-dom";
-import "./App.css";
+import { Route, Routes } from "react-router-dom";
 import Home from "./pages/Home/Home";
 
 function App() {
   return (
-    <>
-      <nav>
-        <Link to="/">Home</Link>
-      </nav>
-
+    <div className="min-h-screen">
       <Routes>
         <Route path="/" element={<Home />} />
       </Routes>
-    </>
+    </div>
   );
 }
 

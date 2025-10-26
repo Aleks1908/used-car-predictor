@@ -70,11 +70,6 @@ public sealed class CatalogResponse
     public List<CatalogItemDto> Items { get; set; } = new();
 }
 
-public sealed class ManufacturerRequest
-{
-    public string Manufacturer { get; set; } = string.Empty;
-}
-
 public sealed class ModelDetailDto
 {
     public string Model { get; set; } = "";
@@ -98,5 +93,28 @@ public sealed class PredictRangeItem
 public sealed class PredictRangeResponse
 {
     public List<PredictRangeItem> Items { get; set; } = new();
-    public ModelInfoDto ModelInfo { get; set; } = new(); // only at the top-level
+    public ModelInfoDto ModelInfo { get; set; } = new();
+}
+
+public sealed class ManufacturerRequest
+{
+    public string Manufacturer { get; set; } = "";
+}
+
+public sealed class ModelDetailsRequest
+{
+    public string Manufacturer { get; set; } = "";
+    public string Model { get; set; } = "";
+}
+
+public sealed class LabeledValueDto
+{
+    public string Value { get; set; } = "";
+    public string Label { get; set; } = "";
+}
+
+public sealed class ModelFeatureMetaDto
+{
+    public LabeledValueDto[] Fuels { get; set; } = Array.Empty<LabeledValueDto>();
+    public LabeledValueDto[] Transmissions { get; set; } = Array.Empty<LabeledValueDto>();
 }

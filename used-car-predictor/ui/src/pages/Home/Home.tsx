@@ -1,45 +1,44 @@
-import { useState, useEffect } from "react";
-import { Button } from "@/components/ui/button";
+import { useState } from "react";
+import SinglePrediction from "./SinglePrediction";
 
 function Home() {
-  const [count, setCount] = useState(0);
-  const [catalog, setCatalog] = useState(null);
-  const [error, setError] = useState<string | null>(null);
+  const [activeView, setActiveView] = useState<string | null>(null);
 
-  useEffect(() => {
-    async function loadCatalog() {
-      try {
-        const res = await fetch("/api/v1/catalog");
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        const data = await res.json();
-        setCatalog(data);
-      } catch (err) {
-        console.error("Catalog fetch failed:", err);
-        setError(err instanceof Error ? err.message : "An error occurred");
-      }
-    }
-    loadCatalog();
-  }, []);
+  const options = [
+    { id: "single", title: "Single Prediction", path: "/single-prediction" },
+    { id: "range", title: "Range Prediction", path: "/range-prediction" },
+    { id: "comparison", title: "Car Comparison", path: "/car-comparison" },
+    {
+      id: "range-comparison",
+      title: "Range Comparison",
+      path: "/range-comparison",
+    },
+  ];
+
+  if (activeView === "single") {
+    return <SinglePrediction onBack={() => setActiveView(null)} />;
+  }
 
   return (
-    <>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.jsx</code> and save to test HMR
-        </p>
+    <div className="min-h-screen bg-linear-to-br from-gray-100 to-gray-200 p-8 flex items-center justify-center">
+      <div className="w-full max-w-5xl bg-white rounded-3xl shadow-2xl border-2 border-gray-300 p-12">
+        <h1 className="text-4xl font-bold text-center text-gray-900 mb-12">
+          Welcome to used-cars-pricePredictor
+        </h1>
+
+        <div className="grid grid-cols-2 gap-6 ">
+          {options.map((option) => (
+            <button
+              key={option.id}
+              className="h-40 cursor-pointer bg-white rounded-2xl border-2 border-gray-400 hover:border-gray-900 hover:shadow-lg transition-all duration-200 flex items-center justify-center text-xl font-semibold text-gray-900 hover:bg-gray-50"
+              onClick={() => setActiveView(option.id)}
+            >
+              {option.title}
+            </button>
+          ))}
+        </div>
       </div>
-      {error && <p style={{ color: "red" }}>Error: {error}</p>}
-      {catalog && <pre>{JSON.stringify(catalog, null, 2)}</pre>}
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-      <h1 className="text-3xl font-bold underline">Hello world!</h1>
-      <Button>aaaa</Button>
-    </>
+    </div>
   );
 }
 

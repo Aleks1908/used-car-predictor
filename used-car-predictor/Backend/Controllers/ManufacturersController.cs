@@ -15,11 +15,11 @@ public sealed class ManufacturersController : ControllerBase
     }
 
     [HttpGet]
-    public ActionResult<IEnumerable<string>> Get()
+    public ActionResult<IEnumerable<object>> Get()
     {
         var dir = Path.Combine(_env.ContentRootPath, "Backend", "datasets", "processed");
         if (!Directory.Exists(dir))
-            return Ok(Array.Empty<string>());
+            return Ok(Array.Empty<object>());
 
         var manufacturers = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
@@ -38,10 +38,15 @@ public sealed class ManufacturersController : ControllerBase
             }
         }
 
-        var sorted = manufacturers
+        var formatted = manufacturers
             .OrderBy(m => m, StringComparer.OrdinalIgnoreCase)
+            .Select(m => new
+            {
+                value = m.Trim().ToLowerInvariant(),
+                label = char.ToUpperInvariant(m[0]) + m.Substring(1).ToLowerInvariant()
+            })
             .ToArray();
 
-        return Ok(sorted);
+        return Ok(formatted);
     }
 }
