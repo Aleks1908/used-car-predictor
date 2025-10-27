@@ -23,17 +23,16 @@ export interface PredictionResponse {
 }
 
 export interface RangePredictionResponse {
-  manufacturer: string;
-  model: string;
-  yearOfProduction: number;
-  startYear: number;
-  endYear: number;
-  yearlyPredictions: {
-    year: number;
+  items: {
+    manufacturer: string;
+    model: string;
+    yearOfProduction: number;
+    targetYear: number;
     results: AlgorithmResult[];
   }[];
   modelInfo: {
     trainedAt: string;
     anchorTargetYear: number;
+    totalRows: number;
   };
 }

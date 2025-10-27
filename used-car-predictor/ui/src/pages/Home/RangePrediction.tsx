@@ -4,6 +4,7 @@ import { Field } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { PredictionForm } from "@/components/PredictionForm";
+import { PriceRangeChart } from "@/components/PriceRangeChart";
 import { usePredictionData } from "@/hooks/usePredictionData";
 import { validateYearRange } from "@/utils/validation";
 import type { RangePredictionResponse } from "@/types/prediction";
@@ -110,14 +111,20 @@ function RangePrediction({ onBack }: RangePredictionProps) {
             Range Prediction Results
           </h1>
 
+          {/* Chart Section */}
+          <div className="mb-12">
+            <PriceRangeChart items={predictionResult.items} />
+          </div>
+
+          {/* Detailed Results Grid */}
           <div className="space-y-8">
-            {predictionResult.yearlyPredictions?.map((yearData) => (
-              <div key={yearData.year} className="space-y-4">
+            {predictionResult.items?.map((item) => (
+              <div key={item.targetYear} className="space-y-4">
                 <h2 className="text-2xl font-bold text-gray-900 text-center">
-                  Year {yearData.year}
+                  Year {item.targetYear}
                 </h2>
                 <div className="grid grid-cols-4 gap-4">
-                  {yearData.results?.map((result) => (
+                  {item.results?.map((result) => (
                     <div
                       key={result.algorithm}
                       className="bg-white p-4 rounded-lg border-2 border-gray-300 shadow-sm"
