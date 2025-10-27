@@ -5,10 +5,11 @@ public sealed class PredictRequest
     public string Manufacturer { get; set; } = default!;
     public string Model { get; set; } = default!;
     public int YearOfProduction { get; set; }
-    public int TargetYear { get; set; }
     public string Transmission { get; set; } = default!;
     public string FuelType { get; set; } = default!;
     public int MileageKm { get; set; }
+
+    public int? TargetYear { get; set; }
 }
 
 public sealed class PredictRangeRequest
@@ -51,6 +52,8 @@ public sealed class PredictResponse
 public sealed class ModelInfoDto
 {
     public DateTimeOffset TrainedAt { get; set; }
+
+    public int? AnchorTargetYear { get; set; }
 }
 
 public sealed class CatalogItemDto
@@ -68,17 +71,6 @@ public sealed class CatalogItemDto
 public sealed class CatalogResponse
 {
     public List<CatalogItemDto> Items { get; set; } = new();
-}
-
-public sealed class ModelDetailDto
-{
-    public string Model { get; set; } = "";
-    public string Manufacturer { get; set; } = "";
-    public string FileName { get; set; } = "";
-    public DateTimeOffset TrainedAt { get; set; }
-    public string[] Fuels { get; set; } = Array.Empty<string>();
-    public string[] Transmissions { get; set; } = Array.Empty<string>();
-    public string[] Algorithms { get; set; } = Array.Empty<string>();
 }
 
 public sealed class PredictRangeItem
@@ -101,12 +93,6 @@ public sealed class ManufacturerRequest
     public string Manufacturer { get; set; } = "";
 }
 
-public sealed class ModelDetailsRequest
-{
-    public string Manufacturer { get; set; } = "";
-    public string Model { get; set; } = "";
-}
-
 public sealed class LabeledValueDto
 {
     public string Value { get; set; } = "";
@@ -117,4 +103,8 @@ public sealed class ModelFeatureMetaDto
 {
     public LabeledValueDto[] Fuels { get; set; } = Array.Empty<LabeledValueDto>();
     public LabeledValueDto[] Transmissions { get; set; } = Array.Empty<LabeledValueDto>();
+
+    public int? MinYear { get; set; }
+
+    public int? MaxYear { get; set; }
 }

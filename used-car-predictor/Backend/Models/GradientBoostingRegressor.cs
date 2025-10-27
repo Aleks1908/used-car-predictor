@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using used_car_predictor.Backend.Data;
 using used_car_predictor.Backend.Evaluation;
 
@@ -22,12 +23,12 @@ namespace used_car_predictor.Backend.Models
         public int BestIteration { get; private set; } = -1;
 
         public GradientBoostingRegressor(
-            int nEstimators = 200,
-            double learningRate = 0.1,
+            int nEstimators = 400,
+            double learningRate = 0.05,
             int maxDepth = 3,
             int minSamplesSplit = 10,
             int minSamplesLeaf = 5,
-            double subsample = 1.0,
+            double subsample = 0.8,
             int randomSeed = 42)
         {
             _nEstimators = Math.Max(1, nEstimators);
@@ -39,26 +40,29 @@ namespace used_car_predictor.Backend.Models
             _rng = new Random(randomSeed);
         }
 
-        public void Fit(double[,] X, double[] y)
-        {
-            Fit(X, y, null, null, null);
-        }
+        public void Fit(double[,] X, double[] y) => Fit(X, y, null, null, null);
 
         public void Fit(
             double[,] X, double[] y,
             double[,]? Xval,
             double[]? yval,
             LabelScaler? labelScaler,
-            int evalEvery = 10,
-            int patience = 50,
+            int evalEvery = 5,
+            int patience = 20,
             double minDelta = 1e-6)
         {
             _trees.Clear();
             int n = X.GetLength(0);
             _init = Mean(y);
 
-            var pred = new double[n];
-            for (int i = 0; i < n; i++) pred[i] = _init;
+            var pred = Enumerable.Repeat(_init, n).ToArray();
+
+            double[]? valPred = null;
+            if (Xval is not null)
+            {
+                int nv = Xval.GetLength(0);
+                valPred = Enumerable.Repeat(_init, nv).ToArray();
+            }
 
             double bestRmse = double.PositiveInfinity;
             int lastImproveAt = -1;
@@ -83,28 +87,33 @@ namespace used_car_predictor.Backend.Models
                 tree.Fit(Xt, rt);
                 _trees.Add(tree);
 
-                var stepPred = tree.Predict(X);
+                var stepPredTrain = tree.Predict(X);
                 for (int i = 0; i < n; i++)
-                    pred[i] += _learningRate * stepPred[i];
+                    pred[i] += _learningRate * stepPredTrain[i];
 
-                if (Xval != null && yval != null && labelScaler != null && (t + 1) % evalEvery == 0)
+                if (Xval is not null && valPred is not null && (t + 1) % evalEvery == 0)
                 {
-                    var valScaled = Predict(Xval);
-                    var preds = labelScaler.InverseTransform(valScaled);
-                    var truth = labelScaler.InverseTransform(yval);
+                    var stepPredVal = tree.Predict(Xval);
+                    for (int i = 0; i < valPred.Length; i++)
+                        valPred[i] += _learningRate * stepPredVal[i];
 
-                    var rmse = Metrics.RootMeanSquaredError(truth, preds);
+                    if (labelScaler is not null && yval is not null)
+                    {
+                        var preds = labelScaler.InverseTransform(valPred);
+                        var truth = labelScaler.InverseTransform(yval);
+                        var rmse = Metrics.RootMeanSquaredError(truth, preds);
 
-                    if (rmse + minDelta < bestRmse)
-                    {
-                        bestRmse = rmse;
-                        BestIteration = t + 1;
-                        lastImproveAt = t;
-                    }
-                    else if (t - lastImproveAt >= patience)
-                    {
-                        if (BestIteration > 0) TruncateTrees(BestIteration);
-                        break;
+                        if (rmse + minDelta < bestRmse)
+                        {
+                            bestRmse = rmse;
+                            BestIteration = t + 1;
+                            lastImproveAt = t;
+                        }
+                        else if (t - lastImproveAt >= patience)
+                        {
+                            if (BestIteration > 0) TruncateTrees(BestIteration);
+                            break;
+                        }
                     }
                 }
             }
@@ -116,8 +125,7 @@ namespace used_car_predictor.Backend.Models
         public double[] Predict(double[,] X)
         {
             int n = X.GetLength(0);
-            var outp = new double[n];
-            for (int i = 0; i < n; i++) outp[i] = _init;
+            var outp = Enumerable.Repeat(_init, n).ToArray();
 
             foreach (var tree in _trees)
             {
@@ -190,15 +198,18 @@ namespace used_car_predictor.Backend.Models
                 _trees.RemoveRange(keep, _trees.Count - keep);
         }
 
-
         public static GradientBoostingRegressor TrainWithBestParams(
             double[,] trainFeatures, double[] trainLabels,
             double[,] valFeatures, double[] valLabels,
-            LabelScaler labelScaler)
+            LabelScaler labelScaler,
+            int maxConfigs = 60,
+            int randomSeed = 42)
         {
-            int[] nEstimatorsList = { 200, 400, 800 };
+            var rng = new Random(randomSeed);
+
+            int[] nEstimatorsList = { 200, 300, 400 };
             double[] learningRates = { 0.03, 0.05, 0.1 };
-            int[] maxDepths = { 2, 3, 4, 5 };
+            int[] maxDepths = { 2, 3, 4 };
             int[] minLeaf = { 1, 3, 5, 10 };
             int[] minSplit = { 2, 10, 20 };
             double[] subsamples = { 0.6, 0.8, 1.0 };
@@ -207,27 +218,18 @@ namespace used_car_predictor.Backend.Models
             GradientBoostingRegressor? bestModel = null;
             Dictionary<string, object>? bestParams = null;
 
-            var paramGrid = new List<Dictionary<string, object>>();
-            foreach (var nEst in nEstimatorsList)
-            foreach (var lr in learningRates)
-            foreach (var md in maxDepths)
-            foreach (var ml in minLeaf)
-            foreach (var ms in minSplit)
-            foreach (var ss in subsamples)
+            for (int trial = 0; trial < maxConfigs; trial++)
             {
-                paramGrid.Add(new Dictionary<string, object>
+                var p = new Dictionary<string, object>
                 {
-                    { "nEstimators", nEst },
-                    { "learningRate", lr },
-                    { "maxDepth", md },
-                    { "minSamplesLeaf", ml },
-                    { "minSamplesSplit", ms },
-                    { "subsample", ss }
-                });
-            }
+                    ["nEstimators"] = nEstimatorsList[rng.Next(nEstimatorsList.Length)],
+                    ["learningRate"] = learningRates[rng.Next(learningRates.Length)],
+                    ["maxDepth"] = maxDepths[rng.Next(maxDepths.Length)],
+                    ["minSamplesLeaf"] = minLeaf[rng.Next(minLeaf.Length)],
+                    ["minSamplesSplit"] = minSplit[rng.Next(minSplit.Length)],
+                    ["subsample"] = subsamples[rng.Next(subsamples.Length)],
+                };
 
-            foreach (var p in paramGrid)
-            {
                 var model = new GradientBoostingRegressor(
                     nEstimators: (int)p["nEstimators"],
                     learningRate: (double)p["learningRate"],
@@ -238,7 +240,7 @@ namespace used_car_predictor.Backend.Models
                 );
 
                 model.Fit(trainFeatures, trainLabels, valFeatures, valLabels, labelScaler,
-                    evalEvery: 10, patience: 50);
+                    evalEvery: 5, patience: 20);
 
                 var valScaled = model.Predict(valFeatures);
                 var preds = labelScaler.InverseTransform(valScaled);
@@ -248,10 +250,10 @@ namespace used_car_predictor.Backend.Models
                 var mae = Metrics.MeanAbsoluteError(truth, preds);
                 var r2 = Metrics.RSquared(truth, preds);
 
-                Console.WriteLine($"[GB tune] nEst={p["nEstimators"]}, lr={p["learningRate"]}, " +
-                                  $"maxDepth={p["maxDepth"]}, minSplit={p["minSamplesSplit"]}, minLeaf={p["minSamplesLeaf"]}, " +
-                                  $"subsample={p["subsample"]} -> RMSE={rmse:F2}, MAE={mae:F2}, R²={r2:F3}, " +
-                                  $"bestIt={model.BestIteration}");
+                Console.WriteLine(
+                    $"[GB tune rnd] try={trial + 1}/{maxConfigs} nEst={p["nEstimators"]}, lr={p["learningRate"]}, " +
+                    $"maxDepth={p["maxDepth"]}, minSplit={p["minSamplesSplit"]}, minLeaf={p["minSamplesLeaf"]}, " +
+                    $"subsample={p["subsample"]} -> RMSE={rmse:F2}, MAE={mae:F2}, R²={r2:F3}, bestIt={model.BestIteration}");
 
                 if (rmse < bestRmse)
                 {
@@ -262,26 +264,14 @@ namespace used_car_predictor.Backend.Models
             }
 
             if (bestModel == null)
-                throw new InvalidOperationException("GB grid search failed.");
+                throw new InvalidOperationException("GB randomized search failed.");
 
-            Console.WriteLine($"[GB GridSearch] Best params: " +
-                              $"nEstimators={bestParams!["nEstimators"]}, lr={bestParams!["learningRate"]}, " +
+            Console.WriteLine($"[GB Best] nEst={bestParams!["nEstimators"]}, lr={bestParams!["learningRate"]}, " +
                               $"maxDepth={bestParams!["maxDepth"]}, minSplit={bestParams!["minSamplesSplit"]}, " +
-                              $"minLeaf={bestParams!["minSamplesLeaf"]}, subsample={bestParams!["subsample"]}");
+                              $"minLeaf={bestParams!["minSamplesLeaf"]}, subsample={bestParams!["subsample"]}, " +
+                              $"bestIt={bestModel.BestIteration}");
 
-            var finalGb = new GradientBoostingRegressor(
-                nEstimators: (int)bestParams["nEstimators"],
-                learningRate: (double)bestParams["learningRate"],
-                maxDepth: (int)bestParams["maxDepth"],
-                minSamplesSplit: (int)bestParams["minSamplesSplit"],
-                minSamplesLeaf: (int)bestParams["minSamplesLeaf"],
-                subsample: (double)bestParams["subsample"]
-            );
-
-            finalGb.Fit(trainFeatures, trainLabels, valFeatures, valLabels, labelScaler,
-                evalEvery: 10, patience: 50);
-
-            return finalGb;
+            return bestModel;
         }
     }
 }

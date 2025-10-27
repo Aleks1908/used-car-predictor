@@ -23,6 +23,7 @@ public sealed class ActiveModel
     public double LabelMean { get; private set; }
     public double LabelStd { get; private set; }
     public bool LabelUseLog { get; private set; }
+    public int? AnchorTargetYear { get; private set; }
 
     public bool IsLoaded => _models.Count > 0;
 
@@ -90,6 +91,7 @@ public sealed class ActiveModel
             LabelMean = bundle.Preprocess.LabelMean;
             LabelStd = bundle.Preprocess.LabelStd;
             LabelUseLog = bundle.Preprocess.LabelUseLog;
+            AnchorTargetYear = bundle.Preprocess?.AnchorTargetYear;
 
             TrainedAt = bundle.TrainedAtUtc;
         }

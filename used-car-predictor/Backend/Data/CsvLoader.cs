@@ -4,7 +4,7 @@ using System.Globalization;
 
 namespace used_car_predictor.Backend.Data;
 
-public class CsvLoader
+public abstract class CsvLoader
 {
     public static List<Vehicle> LoadVehicles(string filePath, int? maxRows = null)
     {
@@ -43,7 +43,6 @@ public class CsvLoader
                 {
                     records.Add(vehicle);
                     Console.WriteLine($"Row: year={vehicle.Year}, price={vehicle.Price}, odo={vehicle.Odometer}");
-
                 }
 
                 if (maxRows != null && records.Count >= maxRows.Value)
@@ -57,5 +56,4 @@ public class CsvLoader
 
         return records;
     }
-
 }

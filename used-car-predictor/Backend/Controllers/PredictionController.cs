@@ -23,9 +23,12 @@ public class PredictionController : ControllerBase
         await _hotLoader.EnsureLoadedAsync(req.Manufacturer, req.Model, ct);
         if (!_active.IsLoaded) return Problem("No active model loaded.", statusCode: 503);
 
+        int targetYear = req.TargetYear ?? DateTime.UtcNow.Year;
+        targetYear = Math.Clamp(targetYear, 1990, DateTime.UtcNow.Year + 5);
+
         var raw = ServingHelpers.EncodeManualInput(
             req.YearOfProduction, req.MileageKm, req.FuelType, req.Transmission,
-            _active.Fuels, _active.Transmissions, targetYear: req.TargetYear);
+            _active.Fuels, _active.Transmissions, targetYear: targetYear);
 
         var x = ServingHelpers.ScaleRow(raw, _active.FeatureMeans, _active.FeatureStds);
         var zByAlgo = _active.PredictAllScaled(x);
@@ -36,29 +39,31 @@ public class PredictionController : ControllerBase
 
             _active.MetricsByAlgo.TryGetValue(kv.Key, out var m);
 
-            var roundedPrice = Math.Round((decimal)price, 0, MidpointRounding.AwayFromZero);
-            var roundedMse = Math.Round(m.Mse, 2);
-            var roundedMae = Math.Round(m.Mae, 2);
-            var roundedR2 = Math.Round(m.R2, 2);
-
             return new ModelPredictionDto
             {
                 Algorithm = kv.Key,
-                PredictedPrice = roundedPrice,
-                Metrics = new ModelMetricsDto { Mse = roundedMse, Mae = roundedMae, R2 = roundedR2 }
+                PredictedPrice = (decimal)Math.Round(price, 0),
+                Metrics = new ModelMetricsDto
+                {
+                    Mse = Math.Round(m.Mse, 2),
+                    Mae = Math.Round(m.Mae, 2),
+                    R2 = Math.Round(m.R2, 2)
+                }
             };
         }).ToList();
-
-        var info = new ModelInfoDto { TrainedAt = _active.TrainedAt };
 
         return Ok(new PredictResponse
         {
             Manufacturer = req.Manufacturer,
             Model = req.Model,
             YearOfProduction = req.YearOfProduction,
-            TargetYear = req.TargetYear,
+            TargetYear = targetYear,
             Results = results,
-            ModelInfo = info
+            ModelInfo = new ModelInfoDto
+            {
+                TrainedAt = _active.TrainedAt,
+                AnchorTargetYear = _active.AnchorTargetYear
+            }
         });
     }
 
@@ -86,7 +91,9 @@ public class PredictionController : ControllerBase
             {
                 var price = ServingHelpers.InverseLabel(kv.Value, _active.LabelMean, _active.LabelStd,
                     _active.LabelUseLog);
+
                 _active.MetricsByAlgo.TryGetValue(kv.Key, out var m);
+
                 return new ModelPredictionDto
                 {
                     Algorithm = kv.Key,
@@ -110,7 +117,12 @@ public class PredictionController : ControllerBase
             });
         }
 
-        var info = new ModelInfoDto { TrainedAt = _active.TrainedAt };
+        var info = new ModelInfoDto
+        {
+            TrainedAt = _active.TrainedAt,
+            AnchorTargetYear = _active.AnchorTargetYear
+        };
+
         return Ok(new PredictRangeResponse { Items = items, ModelInfo = info });
     }
 }

@@ -43,7 +43,6 @@ app.UseDefaultFiles(new DefaultFilesOptions
     DefaultFileNames = new List<string> { "index.html" }
 });
 
-
 app.UseStaticFiles(new StaticFileOptions
 {
     FileProvider = new PhysicalFileProvider(spaRoot),
@@ -104,6 +103,11 @@ if (args.Contains("--cli"))
     var maxRowsArg = ArgValue(args, "--max");
     int maxRows = int.TryParse(maxRowsArg, out var mr) ? mr : 1_000_000;
 
+    var anchorYearArg = ArgValue(args, "--anchor-year") ?? ArgValue(args, "--anchor");
+    int anchorYear = int.TryParse(anchorYearArg, out var ay) ? ay : 2030;
+    anchorYear = Math.Clamp(anchorYear, 1990, DateTime.UtcNow.Year + 10);
+    Console.WriteLine($"[Train] Anchor target year = {anchorYear} (prices modeled relative to this year)");
+
     bool wantLinear = args.Contains("--linear");
     bool wantRidge = args.Contains("--ridge");
     bool wantRF = args.Contains("--rf");
@@ -125,119 +129,6 @@ if (args.Contains("--cli"))
     }
 
     bool debug = args.Contains("--debug");
-
-    var loadBundleArg = ArgValue(args, "--load-bundle");
-    if (!string.IsNullOrEmpty(loadBundleArg))
-    {
-        string bundlePath = loadBundleArg.EndsWith(".json", StringComparison.OrdinalIgnoreCase)
-            ? Path.GetFullPath(loadBundleArg)
-            : Path.Combine(processedDir, ModelNormalizer.Normalize(loadBundleArg) + ".json");
-
-        if (!File.Exists(bundlePath))
-        {
-            Console.WriteLine($"Bundle not found: {bundlePath}");
-            return;
-        }
-
-        var bundle = ModelPersistence.LoadBundle(bundlePath);
-
-        LinearRegression? linear = null;
-        if (bundle.Linear?.Weights is { Length: > 0 })
-            linear = ModelPersistence.ImportLinear(bundle.Linear);
-
-        var ridge = ModelPersistence.ImportRidge(bundle.Ridge);
-        var rf = ModelPersistence.ImportRandomForest(bundle.RandomForest);
-        var gb = ModelPersistence.ImportGradientBoosting(bundle.GradientBoosting);
-
-        var fScaler = ModelPersistence.ImportFeatureScaler(
-            bundle.Preprocess.FeatureMeans, bundle.Preprocess.FeatureStds);
-        var yScaler = ModelPersistence.ImportLabelScaler(
-            bundle.Preprocess.LabelMean, bundle.Preprocess.LabelStd, bundle.Preprocess.LabelUseLog);
-
-        var fuels = bundle.Preprocess.Fuels;
-        var transmissions = bundle.Preprocess.Transmissions;
-
-        var row = ServingHelpers.EncodeManualInput(
-            manualYear, manualOdo, manualFuel, manualTrans, fuels, transmissions);
-        var x = fScaler.TransformRow(row);
-
-        int p = x.Length;
-        if (bundle.Preprocess.FeatureMeans.Length != p)
-        {
-            Console.WriteLine(
-                $"[error] Feature means length ({bundle.Preprocess.FeatureMeans.Length}) != feature length ({p})");
-            return;
-        }
-
-        if (bundle.Ridge?.Weights == null || bundle.Ridge.Weights.Length != p)
-        {
-            Console.WriteLine(
-                $"[error] Ridge weights length ({bundle.Ridge?.Weights?.Length ?? 0}) != feature length ({p})");
-            return;
-        }
-
-        if (linear != null && (bundle.Linear?.Weights?.Length ?? 0) != p)
-        {
-            Console.WriteLine(
-                $"[error] Linear weights length ({bundle.Linear!.Weights.Length}) != feature length ({p})");
-            return;
-        }
-
-        if (debug)
-        {
-            Console.WriteLine(
-                $"[debug] dims: row={row.Length}, scaled={x.Length}, means={bundle.Preprocess.FeatureMeans.Length}, " +
-                $"ridge.w={bundle.Ridge.Weights.Length}, rf.trees={bundle.RandomForest?.Trees?.Count ?? 0}, " +
-                $"gb.trees={bundle.GradientBoosting?.Trees?.Count ?? 0}");
-        }
-
-        var preds = new List<(string key, string label, double val)>();
-        if (linear != null)
-        {
-            var pl = yScaler.InverseTransform(new[] { linear.Predict(x) })[0];
-            preds.Add(("linear", "Linear", pl));
-        }
-
-        var pr = yScaler.InverseTransform(new[] { ridge.Predict(x) })[0];
-        preds.Add(("ridge", "Ridge", pr));
-        var pf = yScaler.InverseTransform(new[] { rf.Predict(x) })[0];
-        preds.Add(("rf", "RF", pf));
-        var pg = yScaler.InverseTransform(new[] { gb.Predict(x) })[0];
-        preds.Add(("gb", "GB", pg));
-
-        if (debug)
-        {
-            var zRidge = ridge.Predict(x);
-            var yLogRidge = bundle.Preprocess.LabelMean + bundle.Preprocess.LabelStd * zRidge;
-            var yRidge = bundle.Preprocess.LabelUseLog ? Math.Exp(yLogRidge) - 1.0 : yLogRidge;
-
-            double dot = bundle.Ridge.Bias;
-            for (int j = 0; j < p; j++) dot += bundle.Ridge.Weights[j] * x[j];
-
-            Console.WriteLine($"[debug] ridge z={zRidge:F4} dot={dot:F4} -> y={yRidge:F2}");
-        }
-
-        foreach (var (key, label, val) in preds) Console.WriteLine($"{label.ToLower()}={val:F0}");
-        double mean = preds.Average(t => t.val);
-        Console.WriteLine($"mean={mean:F0}");
-
-        if (bundle.Metrics is { Count: > 0 })
-        {
-            void Print(string k, string label)
-            {
-                if (bundle.Metrics.TryGetValue(k, out var m))
-                    Console.WriteLine($"[{label}] metrics: MAE={m.MAE:F0} RMSE={m.RMSE:F0} R²={m.R2:F3}");
-            }
-
-            Print("linear", "Linear");
-            Print("ridge", "Ridge");
-            Print("rf", "RF");
-            Print("gb", "GB");
-        }
-        else Console.WriteLine("[info] No metrics stored in bundle.");
-
-        return;
-    }
 
     var vehicles = CsvLoader.LoadVehicles(csvPath, maxRows);
 
@@ -278,7 +169,11 @@ if (args.Contains("--cli"))
     {
         var rows = vehicles.Where(v => ModelNormalizer.Normalize(v.Model) == m.Model).ToList();
 
-        var (rawX, rawY, fuels, transmissions) = Preprocessor.ToMatrix(rows);
+        var yearVals = rows.Where(r => r.Year.HasValue).Select(r => r.Year!.Value).ToList();
+        int? minYear = yearVals.Count > 0 ? yearVals.Min() : (int?)null;
+        int? maxYear = yearVals.Count > 0 ? yearVals.Max() : (int?)null;
+
+        var (rawX, rawY, fuels, transmissions) = Preprocessor.ToMatrix(rows, targetYear: anchorYear);
 
         var (trainRawX, trainRawY, testRawX, testRawY) = DataSplitter.Split(rawX, rawY, trainRatio: 0.8);
 
@@ -305,10 +200,10 @@ if (args.Contains("--cli"))
             if (wantPredict)
             {
                 var manualRow = ServingHelpers.EncodeManualInput(
-                    manualYear, manualOdo, manualFuel, manualTrans, fuels, transmissions);
+                    manualYear, manualOdo, manualFuel, manualTrans, fuels, transmissions, targetYear: anchorYear);
                 var manualX = fScaler.TransformRow(manualRow);
                 var manualPred = yScaler.InverseTransform(new[] { model.Predict(manualX) })[0];
-                Console.WriteLine($"{m.Model,-22} [{name}] Predicted manual price: {manualPred:F0}");
+                Console.WriteLine($"{m.Model,-22} [{name}] Predicted manual price (@{anchorYear}): {manualPred:F0}");
             }
 
             return new MetricsDto { MAE = mae, RMSE = rmse, R2 = r2 };
@@ -366,14 +261,24 @@ if (args.Contains("--cli"))
                 ridgeModel, rfModel, gbModel,
                 fScaler, yScaler,
                 fuels, transmissions,
-                notes: $"model={m.Model}, rows={rows.Count}"
+                notes: $"model={m.Model}, rows={rows.Count}; anchorTargetYear={anchorYear}"
             );
+
 
             bundle.Car = new CarMetaDto
             {
                 Manufacturer = dominantManufacturer,
-                Model = displayModel
+                Model = displayModel,
+                MinYear = minYear,
+                MaxYear = maxYear
             };
+
+            if (bundle.Preprocess != null)
+            {
+                bundle.Preprocess.AnchorTargetYear = anchorYear;
+                bundle.Preprocess.MinYear = minYear;
+                bundle.Preprocess.MaxYear = maxYear;
+            }
 
             if (linearModel != null)
                 bundle.Linear = ModelPersistence.ExportLinear(linearModel);
@@ -385,8 +290,7 @@ if (args.Contains("--cli"))
         }
         else
         {
-            Console.WriteLine(
-                $"Skipping save for '{m.Model}': not all models were trained. (Use no flags or include --linear --ridge --rf --gb)");
+            Console.WriteLine($"Skipping save for '{m.Model}': not all models were trained.");
         }
 
         trained++;
@@ -413,8 +317,9 @@ try
     if (File.Exists(startupBundlePath))
     {
         active.LoadFromBundle(startupBundlePath, startupAlgorithm);
-        Console.WriteLine(
-            $"[Model] Loaded '{startupAlgorithm}' bundle: (trained {active.TrainedAt:u})");
+        Console.WriteLine($"[Model] Loaded '{startupAlgorithm}' bundle (trained {active.TrainedAt:u})");
+        if (active.AnchorTargetYear.HasValue)
+            Console.WriteLine($"[Model] Anchor target year in bundle: {active.AnchorTargetYear.Value}");
     }
     else
     {

@@ -3,7 +3,7 @@ namespace used_car_predictor.Backend.Data;
 public static class Preprocessor
 {
     public static (double[,] X, double[] y, List<string> fuels, List<string> transmissions)
-        ToMatrix(List<Vehicle> rows, int targetYear = 2025)
+        ToMatrix(List<Vehicle> rows, int targetYear = 2030)
     {
         var fuels = rows.Select(r => (r.Fuel ?? "").Trim().ToLower())
             .Distinct().Where(s => s != "").OrderBy(s => s).ToList();
