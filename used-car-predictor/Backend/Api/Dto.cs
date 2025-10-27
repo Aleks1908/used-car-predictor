@@ -20,8 +20,8 @@ public sealed class PredictRangeRequest
     public string FuelType { get; set; } = default!;
     public int MileageKm { get; set; }
     public int YearOfProduction { get; set; }
-    public int FromYear { get; set; }
-    public int ToYear { get; set; }
+    public int StartYear { get; set; }
+    public int EndYear { get; set; }
 }
 
 public sealed class ModelPredictionDto
@@ -109,4 +109,41 @@ public sealed class ModelFeatureMetaDto
     public int? MinYear { get; set; }
 
     public int? MaxYear { get; set; }
+}
+
+public sealed class TwoCarPredictRequest
+{
+    public PredictRequest CarA { get; set; } = default!;
+    public PredictRequest CarB { get; set; } = default!;
+}
+
+public sealed class TwoCarPredictResponse
+{
+    public PredictResponse CarA { get; set; } = default!;
+    public PredictResponse CarB { get; set; } = default!;
+}
+
+public sealed class TwoCarPredictRangeRequest
+{
+    public PredictRequest CarA { get; set; } = default!;
+    public PredictRequest CarB { get; set; } = default!;
+    public int StartYear { get; set; }
+    public int EndYear { get; set; }
+
+    public string Algorithm { get; set; } = "ridge";
+}
+
+public sealed class TwoCarPredictRangeResponse
+{
+    public string Algorithm { get; set; } = "";
+    public List<YearlyPrediction> CarA { get; set; } = new();
+    public List<YearlyPrediction> CarB { get; set; } = new();
+    public ModelInfoDto ModelInfoA { get; set; } = new();
+    public ModelInfoDto ModelInfoB { get; set; } = new();
+}
+
+public sealed class YearlyPrediction
+{
+    public int Year { get; set; }
+    public decimal PredictedPrice { get; set; }
 }

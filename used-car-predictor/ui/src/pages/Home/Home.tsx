@@ -1,5 +1,6 @@
 import { useState } from "react";
 import SinglePrediction from "./SinglePrediction";
+import RangePrediction from "./RangePrediction";
 
 function Home() {
   const [activeView, setActiveView] = useState<string | null>(null);
@@ -17,6 +18,10 @@ function Home() {
 
   if (activeView === "single") {
     return <SinglePrediction onBack={() => setActiveView(null)} />;
+  }
+
+  if (activeView === "range") {
+    return <RangePrediction onBack={() => setActiveView(null)} />;
   }
 
   return (
