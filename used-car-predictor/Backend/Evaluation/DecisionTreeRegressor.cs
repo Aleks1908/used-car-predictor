@@ -1,30 +1,17 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
+using used_car_predictor.Backend.Models;
 
-namespace used_car_predictor.Backend.Models
+namespace used_car_predictor.Backend.Evaluation
 {
-    public class DecisionTreeRegressor : IRegressor
+    public class DecisionTreeRegressor(
+        int maxDepth = 10,
+        int minSamplesSplit = 2,
+        int minSamplesLeaf = 1,
+        int maxSplitsPerFeature = 32)
+        : IRegressor
     {
         private Node? _root;
-        private readonly int _maxDepth;
-        private readonly int _minSamplesSplit;
-        private readonly int _minSamplesLeaf;
-        private readonly int _maxSplitsPerFeature;
 
         public string Name => "Decision Tree Regressor";
-
-        public DecisionTreeRegressor(
-            int maxDepth = 10,
-            int minSamplesSplit = 2,
-            int minSamplesLeaf = 1,
-            int maxSplitsPerFeature = 32)
-        {
-            _maxDepth = maxDepth;
-            _minSamplesSplit = minSamplesSplit;
-            _minSamplesLeaf = minSamplesLeaf;
-            _maxSplitsPerFeature = maxSplitsPerFeature;
-        }
 
         public void Fit(double[,] features, double[] labels)
         {
@@ -61,7 +48,7 @@ namespace used_car_predictor.Backend.Models
             int nFeatures = features.GetLength(1);
             double currentVar = Variance(labels);
 
-            if (depth >= _maxDepth || nSamples < _minSamplesSplit || currentVar == 0)
+            if (depth >= maxDepth || nSamples < minSamplesSplit || currentVar == 0)
                 return new Node { Value = Mean(labels) };
 
             double bestGain = 0;
@@ -77,7 +64,7 @@ namespace used_car_predictor.Backend.Models
                 var sorted = (double[])column.Clone();
                 Array.Sort(sorted);
 
-                int nSplits = Math.Min(_maxSplitsPerFeature, sorted.Length - 1);
+                int nSplits = Math.Min(maxSplitsPerFeature, sorted.Length - 1);
                 if (nSplits <= 0) continue;
 
                 for (int s = 1; s <= nSplits; s++)
@@ -86,7 +73,7 @@ namespace used_car_predictor.Backend.Models
                     double threshold = sorted[idx];
 
                     var (leftIdx, rightIdx) = SplitIndices(column, threshold);
-                    if (leftIdx.Count < _minSamplesLeaf || rightIdx.Count < _minSamplesLeaf)
+                    if (leftIdx.Count < minSamplesLeaf || rightIdx.Count < minSamplesLeaf)
                         continue;
 
                     double[] leftY = Subset(labels, leftIdx);

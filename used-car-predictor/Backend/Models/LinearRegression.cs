@@ -60,8 +60,6 @@ public class LinearRegression(double learningRate = 0.01, int epochs = 10000) : 
         return _bias + _weights.Select((t, j) => t * featureRow[j]).Sum();
     }
 
-    public double[] Weights => [.._weights];
-    public double[] Parameters => [.._weights, _bias];
 
     public double[] Predict(double[,] features)
     {

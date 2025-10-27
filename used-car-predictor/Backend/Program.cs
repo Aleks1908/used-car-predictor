@@ -116,19 +116,15 @@ if (args.Contains("--cli"))
     if (!wantLinear && !wantRidge && !wantRF && !wantGB)
         wantLinear = wantRidge = wantRF = wantGB = true;
 
-    int manualYear = 2016, manualOdo = 100000;
     string manualFuel = "gas", manualTrans = "automatic";
     var manualIdx = Array.FindIndex(args, a => a == "--manual");
     if (manualIdx >= 0 && manualIdx + 4 < args.Length)
     {
-        int.TryParse(args[manualIdx + 1], out manualYear);
-        int.TryParse(args[manualIdx + 2], out manualOdo);
         manualFuel = args[manualIdx + 3] ?? "gas";
         manualTrans = args[manualIdx + 4] ?? "automatic";
         wantPredict = true;
     }
 
-    bool debug = args.Contains("--debug");
 
     var vehicles = CsvLoader.LoadVehicles(csvPath, maxRows);
 
@@ -197,14 +193,6 @@ if (args.Contains("--cli"))
 
             Console.WriteLine($"{m.Model,-22} [{name}] MAE={mae,7:F0} RMSE={rmse,7:F0} R²={r2,5:F3}");
 
-            if (wantPredict)
-            {
-                var manualRow = ServingHelpers.EncodeManualInput(
-                    manualYear, manualOdo, manualFuel, manualTrans, fuels, transmissions, targetYear: anchorYear);
-                var manualX = fScaler.TransformRow(manualRow);
-                var manualPred = yScaler.InverseTransform(new[] { model.Predict(manualX) })[0];
-                Console.WriteLine($"{m.Model,-22} [{name}] Predicted manual price (@{anchorYear}): {manualPred:F0}");
-            }
 
             return new MetricsDto { MAE = mae, RMSE = rmse, R2 = r2 };
         }
@@ -234,7 +222,8 @@ if (args.Contains("--cli"))
 
         if (wantRF)
         {
-            rfModel = RandomForestRegressor.TrainWithBestParams(tx, ty, vx, vy, yScaler);
+            rfModel = RandomForestRegressor.TrainWithBestParams(tx, ty, vx, vy, yScaler, null
+            );
             bundleMetrics["rf"] = EvaluateAndPredict("RF", rfModel);
         }
 
@@ -251,17 +240,20 @@ if (args.Contains("--cli"))
 
             var dominantManufacturer = rows
                 .Where(r => !string.IsNullOrWhiteSpace(r.Manufacturer))
-                .GroupBy(r => r.Manufacturer.Trim(), StringComparer.OrdinalIgnoreCase)
+                .GroupBy(r => r.Manufacturer?.Trim(), StringComparer.OrdinalIgnoreCase)
                 .OrderByDescending(g => g.Count())
                 .FirstOrDefault()?.Key ?? "";
 
             var displayModel = rows.FirstOrDefault()?.Model?.Trim() ?? m.Model;
 
+            int totalRows = rows.Count;
+
             var bundle = ModelPersistence.ExportBundle(
                 ridgeModel, rfModel, gbModel,
                 fScaler, yScaler,
                 fuels, transmissions,
-                notes: $"model={m.Model}, rows={rows.Count}; anchorTargetYear={anchorYear}"
+                notes: $"model={m.Model}, rows={rows.Count}; anchorTargetYear={anchorYear}, totalRows={totalRows}",
+                totalRows: totalRows
             );
 
 

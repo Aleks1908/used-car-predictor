@@ -7,13 +7,8 @@ namespace used_car_predictor.Backend.Data
         private double _mean;
         private double _std;
         private bool _fitted;
-
-        public bool UseLog => _useLog;
         private readonly bool _useLog;
 
-        public double Mean => _mean;
-        public double Std => _std;
-        public bool IsFitted => _fitted;
 
         public LabelScaler(bool useLog = true)
         {

@@ -25,6 +25,8 @@ public sealed class ActiveModel
     public bool LabelUseLog { get; private set; }
     public int? AnchorTargetYear { get; private set; }
 
+    public int? TotalRows { get; private set; }
+
     public bool IsLoaded => _models.Count > 0;
 
     public IReadOnlyDictionary<string, (double Mse, double Mae, double R2)> MetricsByAlgo
@@ -92,6 +94,7 @@ public sealed class ActiveModel
             LabelStd = bundle.Preprocess.LabelStd;
             LabelUseLog = bundle.Preprocess.LabelUseLog;
             AnchorTargetYear = bundle.Preprocess?.AnchorTargetYear;
+            TotalRows = bundle.Preprocess?.TotalRows;
 
             TrainedAt = bundle.TrainedAtUtc;
         }

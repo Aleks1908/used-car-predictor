@@ -62,7 +62,8 @@ public class PredictionController : ControllerBase
             ModelInfo = new ModelInfoDto
             {
                 TrainedAt = _active.TrainedAt,
-                AnchorTargetYear = _active.AnchorTargetYear
+                AnchorTargetYear = _active.AnchorTargetYear,
+                TotalRows = _active.TotalRows
             }
         });
     }
@@ -120,7 +121,8 @@ public class PredictionController : ControllerBase
         var info = new ModelInfoDto
         {
             TrainedAt = _active.TrainedAt,
-            AnchorTargetYear = _active.AnchorTargetYear
+            AnchorTargetYear = _active.AnchorTargetYear,
+            TotalRows = _active.TotalRows
         };
 
         return Ok(new PredictRangeResponse { Items = items, ModelInfo = info });

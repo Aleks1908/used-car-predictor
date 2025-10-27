@@ -82,6 +82,8 @@ public sealed class PreprocessDto
     public int? MaxYear { get; set; }
 
     public int? AnchorTargetYear { get; set; }
+
+    public int TotalRows { get; set; }
 }
 
 public class BundleDto

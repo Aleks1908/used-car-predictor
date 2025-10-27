@@ -1,6 +1,7 @@
 using System.Reflection;
 using System.Text.Json;
 using used_car_predictor.Backend.Data;
+using used_car_predictor.Backend.Evaluation;
 using used_car_predictor.Backend.Models;
 
 
@@ -8,8 +9,7 @@ namespace used_car_predictor.Backend.Serialization
 {
     public static class ModelPersistence
     {
-        private static readonly BindingFlags
-            Inst = BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public;
+        private const BindingFlags Inst = BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public;
 
         private static readonly JsonSerializerOptions JsonOptions = new()
         {
@@ -30,13 +30,6 @@ namespace used_car_predictor.Backend.Serialization
             var dto = JsonSerializer.Deserialize<BundleDto>(json, JsonOptions)
                       ?? throw new InvalidOperationException($"Could not parse bundle at {path}");
 
-            dto.Preprocess ??= new PreprocessDto();
-            dto.Preprocess.Fuels ??= new List<string>();
-            dto.Preprocess.Transmissions ??= new List<string>();
-            dto.Preprocess.FeatureMeans ??= Array.Empty<double>();
-            dto.Preprocess.FeatureStds ??= Array.Empty<double>();
-            dto.Metrics ??= new Dictionary<string, MetricsDto>(StringComparer.OrdinalIgnoreCase);
-
             return dto;
         }
 
@@ -52,7 +45,7 @@ namespace used_car_predictor.Backend.Serialization
             string? notes = null,
             int? anchorTargetYear = null,
             int? minYear = null,
-            int? maxYear = null)
+            int? maxYear = null, int totalRows = 0)
         {
             return new BundleDto
             {
@@ -60,7 +53,7 @@ namespace used_car_predictor.Backend.Serialization
                 Notes = notes,
                 Preprocess = ExportPreprocess(
                     fScaler, yScaler, fuels, transmissions,
-                    anchorTargetYear, minYear, maxYear),
+                    anchorTargetYear, minYear, maxYear, totalRows),
                 Ridge = ExportRidge(ridge),
                 RandomForest = ExportRandomForest(rf),
                 GradientBoosting = ExportGradientBoosting(gb)
@@ -75,15 +68,16 @@ namespace used_car_predictor.Backend.Serialization
             List<string> transmissions,
             int? anchorTargetYear = null,
             int? minYear = null,
-            int? maxYear = null)
+            int? maxYear = null,
+            int totalRows = 0)
         {
             var (means, stds) = GetFeatureScalerState(fScaler);
             var (yMean, yStd, yUseLog) = GetLabelScalerState(yScaler);
 
             return new PreprocessDto
             {
-                Fuels = fuels?.ToList() ?? new List<string>(),
-                Transmissions = transmissions?.ToList() ?? new List<string>(),
+                Fuels = fuels?.ToList() ?? [],
+                Transmissions = transmissions?.ToList() ?? [],
                 FeatureMeans = means,
                 FeatureStds = stds,
                 LabelMean = yMean,
@@ -91,52 +85,9 @@ namespace used_car_predictor.Backend.Serialization
                 LabelUseLog = yUseLog,
                 AnchorTargetYear = anchorTargetYear,
                 MinYear = minYear,
-                MaxYear = maxYear
+                MaxYear = maxYear,
+                TotalRows = totalRows
             };
-        }
-
-        public static FeatureScaler ImportFeatureScaler(double[] means, double[] stds)
-        {
-            if (means == null || stds == null || means.Length != stds.Length)
-                throw new ArgumentException("Invalid means/stds for FeatureScaler.");
-
-            var scaler = new FeatureScaler();
-
-            var t = typeof(FeatureScaler);
-            var fMeans = t.GetField("means", Inst) ?? t.GetField("_means", Inst);
-            var fStds = t.GetField("stds", Inst) ?? t.GetField("_stds", Inst);
-            if (fMeans == null || fStds == null)
-                throw new MissingFieldException("FeatureScaler fields for means/stds not found.");
-
-            fMeans.SetValue(scaler, means.ToArray());
-            fStds.SetValue(scaler, stds.ToArray());
-
-            var fFitted = t.GetField("_fitted", Inst) ?? t.GetField("fitted", Inst);
-            fFitted?.SetValue(scaler, true);
-
-            return scaler;
-        }
-
-        public static LabelScaler ImportLabelScaler(double mean, double std, bool useLog)
-        {
-            var scaler = (LabelScaler)Activator.CreateInstance(typeof(LabelScaler), new object[] { useLog })!;
-            var t = typeof(LabelScaler);
-
-            var fMean = t.GetField("_mean", Inst) ?? t.GetField("mean", Inst);
-            var fStd = t.GetField("_std", Inst) ?? t.GetField("std", Inst);
-            if (fMean == null || fStd == null)
-                throw new MissingFieldException("LabelScaler fields for mean/std not found.");
-
-            fMean.SetValue(scaler, mean);
-            fStd.SetValue(scaler, std <= 0 ? 1e-12 : std);
-
-            var fUseLog = t.GetField("_useLog", Inst) ?? t.GetField("useLog", Inst);
-            fUseLog?.SetValue(scaler, useLog);
-
-            var fFitted = t.GetField("_fitted", Inst) ?? t.GetField("fitted", Inst);
-            fFitted?.SetValue(scaler, true);
-
-            return scaler;
         }
 
         private static (double[] Means, double[] Stds) GetFeatureScalerState(FeatureScaler fScaler)
@@ -145,7 +96,7 @@ namespace used_car_predictor.Backend.Serialization
             var fMeans = t.GetField("means", Inst) ?? t.GetField("_means", Inst);
             var fStds = t.GetField("stds", Inst) ?? t.GetField("_stds", Inst);
             if (fMeans == null || fStds == null)
-                throw new MissingFieldException("FeatureScaler fields for means/stds not found.");
+                throw new MissingFieldException("FeatureScaler fields for means not found.");
 
             var means = (double[])fMeans.GetValue(fScaler)!;
             var stds = (double[])fStds.GetValue(fScaler)!;
@@ -276,8 +227,7 @@ namespace used_car_predictor.Backend.Serialization
                 minSamplesSplit: dto.MinSamplesSplit,
                 minSamplesLeaf: dto.MinSamplesLeaf,
                 bootstrap: true,
-                sampleRatio: 1.0,
-                randomSeed: 42
+                sampleRatio: 1.0
             );
 
             var listField = typeof(RandomForestRegressor).GetField("_trees", Inst)!;
@@ -317,19 +267,13 @@ namespace used_car_predictor.Backend.Serialization
 
         public static GradientBoostingRegressor ImportGradientBoosting(GradientBoostingDto dto)
         {
-            int maxDepth = dto.MaxDepth > 0 ? dto.MaxDepth : 3;
-            int minSplit = dto.MinSamplesSplit > 0 ? dto.MinSamplesSplit : 2;
-            int minLeaf = dto.MinSamplesLeaf > 0 ? dto.MinSamplesLeaf : 1;
-            double subs = dto.Subsample > 0 ? dto.Subsample : 1.0;
-
             var model = new GradientBoostingRegressor(
                 nEstimators: dto.Trees?.Count ?? 0,
                 learningRate: dto.LearningRate,
-                maxDepth: maxDepth,
-                minSamplesSplit: minSplit,
-                minSamplesLeaf: minLeaf,
-                subsample: subs,
-                randomSeed: 42
+                maxDepth: dto.MaxDepth,
+                minSamplesSplit: dto.MinSamplesSplit,
+                minSamplesLeaf: dto.MinSamplesLeaf,
+                subsample: dto.Subsample
             );
 
             typeof(GradientBoostingRegressor).GetField("_init", Inst)!.SetValue(model, dto.InitValue);

@@ -9,18 +9,14 @@ namespace used_car_predictor.Backend.Models
     public class RandomForestRegressor : IRegressor
 
     {
-        private readonly int _nEstimators;
-        private readonly int _maxDepth;
-        private readonly int _minSamplesSplit;
-        private readonly int _minSamplesLeaf;
+        private readonly int _nEstimators, _maxDepth, _minSamplesSplit, _minSamplesLeaf;
         private readonly bool _bootstrap;
         private readonly double _sampleRatio;
-        private readonly int _randomSeed;
-
         private readonly List<DecisionTreeRegressor> _trees = new();
         private Random _rng;
 
         public string Name => "Random Forest Regressor";
+
 
         public RandomForestRegressor(
             int nEstimators = 50,
@@ -29,7 +25,7 @@ namespace used_car_predictor.Backend.Models
             int minSamplesLeaf = 5,
             bool bootstrap = true,
             double sampleRatio = 1.0,
-            int randomSeed = 42)
+            int? randomSeed = null) // null = random each run
         {
             _nEstimators = Math.Max(1, nEstimators);
             _maxDepth = maxDepth;
@@ -37,9 +33,12 @@ namespace used_car_predictor.Backend.Models
             _minSamplesLeaf = minSamplesLeaf;
             _bootstrap = bootstrap;
             _sampleRatio = Math.Clamp(sampleRatio, 0.1, 1.0);
-            _randomSeed = randomSeed;
-            _rng = new Random(_randomSeed);
+
+            Seed = randomSeed ?? Random.Shared.Next();
+            _rng = new Random(Seed);
         }
+
+        public int Seed { get; }
 
         public void Fit(double[,] features, double[] labels)
         {
@@ -50,7 +49,7 @@ namespace used_car_predictor.Backend.Models
 
             System.Threading.Tasks.Parallel.For(0, _nEstimators, t =>
             {
-                var rng = new Random(_randomSeed + t);
+                var rng = new Random(Seed + t);
                 int[] idx = SampleWithReplacement(rng, n, bagSize);
                 var bagX = Subset(features, idx);
                 var bagY = Subset(labels, idx);
@@ -129,7 +128,9 @@ namespace used_car_predictor.Backend.Models
         public static RandomForestRegressor TrainWithBestParams(
             double[,] trainFeatures, double[] trainLabels,
             double[,] valFeatures, double[] valLabels,
-            LabelScaler labelScaler)
+            LabelScaler labelScaler, int? randomSeed = null
+        )
+
         {
             int[] nEstimatorsList = { 30, 50, 80 };
             int[] maxDepths = { 6, 8, 10 };
@@ -154,7 +155,7 @@ namespace used_car_predictor.Backend.Models
                     { "sampleRatio", sr },
                     { "minSamplesSplit", 10 },
                     { "bootstrap", true },
-                    { "randomSeed", 42 }
+                    { "randomSeed", Random.Shared.Next() }
                 });
             }
 
@@ -167,7 +168,7 @@ namespace used_car_predictor.Backend.Models
                     minSamplesLeaf: (int)p["minSamplesLeaf"],
                     bootstrap: (bool)p["bootstrap"],
                     sampleRatio: (double)p["sampleRatio"],
-                    randomSeed: (int)p["randomSeed"]
+                    randomSeed: randomSeed
                 );
 
                 model.Fit(trainFeatures, trainLabels);
@@ -203,7 +204,7 @@ namespace used_car_predictor.Backend.Models
                 minSamplesLeaf: (int)bestParams!["minSamplesLeaf"],
                 bootstrap: (bool)bestParams!["bootstrap"],
                 sampleRatio: (double)bestParams!["sampleRatio"],
-                randomSeed: (int)bestParams!["randomSeed"]
+                randomSeed: randomSeed
             );
 
             finalRf.Fit(trainFeatures, trainLabels);

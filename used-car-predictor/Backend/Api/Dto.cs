@@ -54,6 +54,8 @@ public sealed class ModelInfoDto
     public DateTimeOffset TrainedAt { get; set; }
 
     public int? AnchorTargetYear { get; set; }
+
+    public int? TotalRows { get; set; }
 }
 
 public sealed class CatalogItemDto

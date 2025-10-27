@@ -28,8 +28,7 @@ namespace used_car_predictor.Backend.Models
             int maxDepth = 3,
             int minSamplesSplit = 10,
             int minSamplesLeaf = 5,
-            double subsample = 0.8,
-            int randomSeed = 42)
+            double subsample = 0.8)
         {
             _nEstimators = Math.Max(1, nEstimators);
             _learningRate = Math.Max(1e-6, learningRate);
@@ -37,7 +36,8 @@ namespace used_car_predictor.Backend.Models
             _minSamplesSplit = Math.Max(2, minSamplesSplit);
             _minSamplesLeaf = Math.Max(1, minSamplesLeaf);
             _subsample = Math.Clamp(subsample, 0.3, 1.0);
-            _rng = new Random(randomSeed);
+
+            _rng = Random.Shared;
         }
 
         public void Fit(double[,] X, double[] y) => Fit(X, y, null, null, null);
@@ -156,14 +156,9 @@ namespace used_car_predictor.Backend.Models
         {
             int k = Math.Max(1, (int)Math.Round(n * frac));
             if (k >= n)
-            {
-                var idxAll = new int[n];
-                for (int i = 0; i < n; i++) idxAll[i] = i;
-                return idxAll;
-            }
+                return Enumerable.Range(0, n).ToArray();
 
-            var idx = new int[n];
-            for (int i = 0; i < n; i++) idx[i] = i;
+            var idx = Enumerable.Range(0, n).ToArray();
             for (int i = 0; i < k; i++)
             {
                 int j = _rng.Next(i, n);
@@ -202,10 +197,9 @@ namespace used_car_predictor.Backend.Models
             double[,] trainFeatures, double[] trainLabels,
             double[,] valFeatures, double[] valLabels,
             LabelScaler labelScaler,
-            int maxConfigs = 60,
-            int randomSeed = 42)
+            int maxConfigs = 60)
         {
-            var rng = new Random(randomSeed);
+            var rng = Random.Shared;
 
             int[] nEstimatorsList = { 200, 300, 400 };
             double[] learningRates = { 0.03, 0.05, 0.1 };
@@ -251,9 +245,11 @@ namespace used_car_predictor.Backend.Models
                 var r2 = Metrics.RSquared(truth, preds);
 
                 Console.WriteLine(
-                    $"[GB tune rnd] try={trial + 1}/{maxConfigs} nEst={p["nEstimators"]}, lr={p["learningRate"]}, " +
-                    $"maxDepth={p["maxDepth"]}, minSplit={p["minSamplesSplit"]}, minLeaf={p["minSamplesLeaf"]}, " +
-                    $"subsample={p["subsample"]} -> RMSE={rmse:F2}, MAE={mae:F2}, R²={r2:F3}, bestIt={model.BestIteration}");
+                    $"[GB tune] try={trial + 1}/{maxConfigs} " +
+                    $"nEst={p["nEstimators"]}, lr={p["learningRate"]}, " +
+                    $"maxDepth={p["maxDepth"]}, minSplit={p["minSamplesSplit"]}, " +
+                    $"minLeaf={p["minSamplesLeaf"]}, subsample={p["subsample"]} -> " +
+                    $"RMSE={rmse:F2}, MAE={mae:F2}, R²={r2:F3}, bestIt={model.BestIteration}");
 
                 if (rmse < bestRmse)
                 {
@@ -266,10 +262,11 @@ namespace used_car_predictor.Backend.Models
             if (bestModel == null)
                 throw new InvalidOperationException("GB randomized search failed.");
 
-            Console.WriteLine($"[GB Best] nEst={bestParams!["nEstimators"]}, lr={bestParams!["learningRate"]}, " +
-                              $"maxDepth={bestParams!["maxDepth"]}, minSplit={bestParams!["minSamplesSplit"]}, " +
-                              $"minLeaf={bestParams!["minSamplesLeaf"]}, subsample={bestParams!["subsample"]}, " +
-                              $"bestIt={bestModel.BestIteration}");
+            Console.WriteLine(
+                $"[GB Best] nEst={bestParams!["nEstimators"]}, lr={bestParams!["learningRate"]}, " +
+                $"maxDepth={bestParams!["maxDepth"]}, minSplit={bestParams!["minSamplesSplit"]}, " +
+                $"minLeaf={bestParams!["minSamplesLeaf"]}, subsample={bestParams!["subsample"]}, " +
+                $"bestIt={bestModel.BestIteration}");
 
             return bestModel;
         }
