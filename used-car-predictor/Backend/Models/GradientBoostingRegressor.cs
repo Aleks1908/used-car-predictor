@@ -271,7 +271,7 @@ namespace used_car_predictor.Backend.Models
             return bestModel;
         }
 
-        // in used_car_predictor.Backend.Models.GradientBoostingRegressor
+
         public static GradientBoostingRegressor TrainResidualsWithBestParams(
             double[,] trainX, double[] trainResidualY,
             double[,] valX, double[] valResidualY,
@@ -302,10 +302,9 @@ namespace used_car_predictor.Backend.Models
                     subsample: subsamples[rng.Next(subsamples.Length)]
                 );
 
-                // Fit on residuals; pass null labelScaler so early stopping is skipped (full fit).
                 model.Fit(trainX, trainResidualY, valX, valResidualY, labelScaler: null, evalEvery: 5, patience: 20);
 
-                var valPredRes = model.Predict(valX); // residual space
+                var valPredRes = model.Predict(valX);
                 var rmse = Metrics.RootMeanSquaredError(valResidualY, valPredRes);
 
                 if (rmse < bestRmse)

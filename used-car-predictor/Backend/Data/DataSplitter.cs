@@ -9,7 +9,7 @@ namespace used_car_predictor.Backend.Data
             double[,] X,
             double[] y,
             double trainRatio = 0.8,
-            int? seed = null) // null = random each run; set a value for reproducibility
+            int? seed = null)
         {
             int n = X.GetLength(0);
             var idx = Enumerable.Range(0, n).ToArray();

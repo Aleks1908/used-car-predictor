@@ -11,14 +11,12 @@ namespace used_car_predictor.Backend.Models
         private double _bias;
         private double _alpha;
 
-        // Keep GD knobs for compatibility; default to closed-form.
         private readonly bool _useClosedForm;
         private readonly double _learningRate;
         private readonly int _epochs;
 
         public string Name => "Ridge Regression";
 
-        // Expose for persistence/inspection
         public double[] Weights => _weights;
         public double Bias => _bias;
         public double Alpha => _alpha;
@@ -69,13 +67,11 @@ namespace used_car_predictor.Backend.Models
             return outp;
         }
 
-        // ---------- Closed-form ridge: (Xc'Xc + λI) w = Xc' yc, b = ȳ − x̄·w ----------
         private static void FitClosedForm(double[,] X, double[] y, double alpha, out double[] w, out double b)
         {
             int n = X.GetLength(0);
             int p = X.GetLength(1);
 
-            // Means
             var meanX = new double[p];
             for (int j = 0; j < p; j++)
             {
@@ -88,7 +84,6 @@ namespace used_car_predictor.Backend.Models
             for (int i = 0; i < n; i++) meanY += y[i];
             meanY /= n;
 
-            // Build Gram (Xc'Xc) and rhs (Xc'yc)
             var G = new double[p, p];
             var r = new double[p];
 
@@ -104,17 +99,14 @@ namespace used_car_predictor.Backend.Models
                 }
             }
 
-            // Symmetrize + regularize
             for (int j = 0; j < p; j++)
             {
                 for (int k = 0; k < j; k++) G[k, j] = G[j, k];
-                G[j, j] += alpha; // ridge penalty (bias NOT penalized)
+                G[j, j] += alpha;
             }
 
-            // Solve (SPD) via Cholesky
             w = SolveCholesky(G, r);
 
-            // Intercept
             double bb = meanY;
             for (int j = 0; j < p; j++) bb -= meanX[j] * w[j];
             b = bb;
@@ -135,7 +127,7 @@ namespace used_car_predictor.Backend.Models
                     if (i == j)
                     {
                         double v = A[i, i] - sum;
-                        if (v <= 1e-12) v = 1e-12; // numerical floor
+                        if (v <= 1e-12) v = 1e-12;
                         L[i, i] = Math.Sqrt(v);
                     }
                     else
@@ -145,7 +137,6 @@ namespace used_car_predictor.Backend.Models
                 }
             }
 
-            // Forward solve: L y = b
             var y = new double[n];
             for (int i = 0; i < n; i++)
             {
@@ -154,7 +145,6 @@ namespace used_car_predictor.Backend.Models
                 y[i] = (b[i] - sum) / L[i, i];
             }
 
-            // Back solve: L^T x = y
             var x = new double[n];
             for (int i = n - 1; i >= 0; i--)
             {
@@ -166,7 +156,6 @@ namespace used_car_predictor.Backend.Models
             return x;
         }
 
-        // ---------- Optional GD path (kept for completeness) ----------
         private static void FitGradientDescent(
             double[,] X, double[] y, double alpha, double lr, int epochs,
             out double[] w, out double b)
@@ -190,18 +179,16 @@ namespace used_car_predictor.Backend.Models
                 }
 
                 for (int j = 0; j < p; j++)
-                    w[j] -= lr * (gw[j] / n + alpha * w[j]); // bias not penalized
+                    w[j] -= lr * (gw[j] / n + alpha * w[j]);
                 b -= lr * gb / n;
             }
         }
 
-        // ---------- Hyperparameter search (log λ grid, closed-form) ----------
         public static RidgeRegression TrainWithBestParams(
             double[,] tx, double[] ty,
             double[,] vx, double[] vy,
             LabelScaler yScaler)
         {
-            // Log grid for λ; exclude 0 to keep Gram SPD.
             double[] alphas = { 1e-8, 1e-7, 1e-6, 1e-5, 1e-4, 1e-3, 5e-3, 1e-2, 5e-2, 0.1, 0.2, 0.5, 1.0, 2.0 };
 
             double bestRmse = double.PositiveInfinity;

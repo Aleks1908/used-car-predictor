@@ -43,10 +43,6 @@ const algorithmColors = {
     border: "rgb(251, 146, 60)", // orange
     background: "rgba(251, 146, 60, 0.1)",
   },
-  gb: {
-    border: "rgb(168, 85, 247)", // purple
-    background: "rgba(168, 85, 247, 0.1)",
-  },
   ridge_gb: {
     border: "rgb(236, 72, 153)", // pink
     background: "rgba(236, 72, 153, 0.1)",
@@ -57,7 +53,6 @@ const algorithmLabels = {
   linear: "Linear Regression",
   ridge: "Ridge Regression",
   rf: "Random Forest",
-  gb: "Gradient Boosting",
   ridge_gb: "Ridge GB",
 };
 

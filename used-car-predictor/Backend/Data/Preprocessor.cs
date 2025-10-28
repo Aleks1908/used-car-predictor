@@ -6,18 +6,12 @@ namespace used_car_predictor.Backend.Data
 {
     public static class Preprocessor
     {
-        /// <summary>
-        /// Builds X, y for a given targetYear.
-        /// Columns match ServingHelpers.EncodeManualInput exactly:
-        /// [yearOfProduction, mileageKm, ageYears, yearOffset, fuel 1hots..., transmission 1hots...]
-        /// </summary>
-        public static (double[, ] X, double[] y, List<string> fuels, List<string> transmissions)
+        public static (double[,] X, double[] y, List<string> fuels, List<string> transmissions)
             ToMatrix(IReadOnlyList<Vehicle> rows, int targetYear, int? anchorTargetYear = null)
         {
             if (rows == null || rows.Count == 0)
                 return (new double[0, 0], Array.Empty<double>(), new List<string>(), new List<string>());
 
-            // --- vocabularies (stable order) ---
             var fuels = rows
                 .Select(r => NormalizeOrOther(r.Fuel))
                 .Distinct()
@@ -42,11 +36,9 @@ namespace used_car_predictor.Backend.Data
                 var r = rows[i];
 
                 int yop = SafeYear(r);
-                // If your Odometer is in MILES, use the *next* line instead:
-                // int km  = (int)Math.Max(0, Math.Round((r.Odometer ?? 0) * 1.60934));
-                int km  = (int)Math.Max(0, Math.Round(r.Odometer ?? 0)); // Odometer assumed in KM
+                int km = (int)Math.Max(0, Math.Round(r.Odometer ?? 0));
 
-                int ageYears   = Math.Max(0, targetYear - yop);
+                int ageYears = Math.Max(0, targetYear - yop);
                 int yearOffset = anchorTargetYear.HasValue ? targetYear - anchorTargetYear.Value : 0;
 
                 string fuelTok = NormalizeOrOther(r.Fuel);
@@ -58,11 +50,9 @@ namespace used_car_predictor.Backend.Data
                 X[i, c++] = ageYears;
                 X[i, c++] = yearOffset;
 
-                // fuel one-hots
                 for (int f = 0; f < fuels.Count; f++)
                     X[i, c++] = fuels[f] == fuelTok ? 1.0 : 0.0;
 
-                // transmission one-hots
                 for (int t = 0; t < transmissions.Count; t++)
                     X[i, c++] = transmissions[t] == transTok ? 1.0 : 0.0;
 
@@ -79,7 +69,6 @@ namespace used_car_predictor.Backend.Data
         {
             if (r.Year.HasValue && r.Year.Value >= 1950 && r.Year.Value <= DateTime.UtcNow.Year + 10)
                 return r.Year.Value;
-            // fallback: clamp a reasonable default
             return Math.Clamp(DateTime.UtcNow.Year - 5, 1990, DateTime.UtcNow.Year + 5);
         }
     }
