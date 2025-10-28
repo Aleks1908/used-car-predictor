@@ -123,7 +123,7 @@ function RangePrediction({ onBack }: RangePredictionProps) {
                 <h2 className="text-2xl font-bold text-gray-900 text-center">
                   Year {item.targetYear}
                 </h2>
-                <div className="grid grid-cols-4 gap-4">
+                <div className="grid grid-cols-5 gap-4">
                   {item.results?.map((result) => (
                     <div
                       key={result.algorithm}
@@ -134,6 +134,7 @@ function RangePrediction({ onBack }: RangePredictionProps) {
                         {result.algorithm === "ridge" && "Ridge Regression"}
                         {result.algorithm === "rf" && "Random Forest"}
                         {result.algorithm === "gb" && "Gradient Boosting"}
+                        {result.algorithm === "ridge_gb" && "Ridge GB"}
                       </h3>
 
                       <div className="space-y-2">

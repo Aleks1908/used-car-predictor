@@ -1,55 +1,86 @@
-namespace used_car_predictor.Backend.Data;
+using System;
+using System.Collections.Generic;
+using System.Linq;
 
-public static class Preprocessor
+namespace used_car_predictor.Backend.Data
 {
-    public static (double[,] X, double[] y, List<string> fuels, List<string> transmissions)
-        ToMatrix(List<Vehicle> rows, int targetYear = 2030)
+    public static class Preprocessor
     {
-        var fuels = rows.Select(r => (r.Fuel ?? "").Trim().ToLower())
-            .Distinct().Where(s => s != "").OrderBy(s => s).ToList();
-        var transmissions = rows.Select(r => (r.Transmission ?? "").Trim().ToLower())
-            .Distinct().Where(s => s != "").OrderBy(s => s).ToList();
-
-        int n = rows.Count;
-        int p = 9 + fuels.Count + transmissions.Count;
-        var X = new double[n, p];
-        var y = new double[n];
-
-        for (int i = 0; i < n; i++)
+        /// <summary>
+        /// Builds X, y for a given targetYear.
+        /// Columns match ServingHelpers.EncodeManualInput exactly:
+        /// [yearOfProduction, mileageKm, ageYears, yearOffset, fuel 1hots..., transmission 1hots...]
+        /// </summary>
+        public static (double[, ] X, double[] y, List<string> fuels, List<string> transmissions)
+            ToMatrix(IReadOnlyList<Vehicle> rows, int targetYear, int? anchorTargetYear = null)
         {
-            var r = rows[i];
+            if (rows == null || rows.Count == 0)
+                return (new double[0, 0], Array.Empty<double>(), new List<string>(), new List<string>());
 
-            int age = targetYear - (r.Year ?? targetYear);
-            if (age < 0) age = 0;
-            double odo = r.Odometer ?? 0;
+            // --- vocabularies (stable order) ---
+            var fuels = rows
+                .Select(r => NormalizeOrOther(r.Fuel))
+                .Distinct()
+                .OrderBy(s => s)
+                .ToList();
+            if (!fuels.Contains("other")) fuels.Add("other");
 
-            double mileagePerYear = odo / (age + 1.0);
-            double logOdometer = Math.Log(odo + 1.0);
-            double age2 = age * age;
+            var transmissions = rows
+                .Select(r => NormalizeOrOther(r.Transmission))
+                .Distinct()
+                .OrderBy(s => s)
+                .ToList();
+            if (!transmissions.Contains("other")) transmissions.Add("other");
 
-            X[i, 0] = age;
-            X[i, 1] = odo;
-            X[i, 2] = mileagePerYear;
-            X[i, 3] = logOdometer;
-            X[i, 4] = age2;
+            int n = rows.Count;
+            int p = 4 + fuels.Count + transmissions.Count;
+            var X = new double[n, p];
+            var y = new double[n];
 
-            X[i, 5 + fuels.Count + transmissions.Count] = age * logOdometer;
-            X[i, 6 + fuels.Count + transmissions.Count] = Math.Pow(mileagePerYear, 2);
-            X[i, 7 + fuels.Count + transmissions.Count] = Math.Pow(age, 3);
-            X[i, 8 + fuels.Count + transmissions.Count] = Math.Pow(mileagePerYear, 3);
+            for (int i = 0; i < n; i++)
+            {
+                var r = rows[i];
 
-            var f = (r.Fuel ?? "").Trim().ToLower();
-            for (int j = 0; j < fuels.Count; j++)
-                X[i, 5 + j] = f == fuels[j] ? 1.0 : 0.0;
+                int yop = SafeYear(r);
+                // If your Odometer is in MILES, use the *next* line instead:
+                // int km  = (int)Math.Max(0, Math.Round((r.Odometer ?? 0) * 1.60934));
+                int km  = (int)Math.Max(0, Math.Round(r.Odometer ?? 0)); // Odometer assumed in KM
 
-            var t = (r.Transmission ?? "").Trim().ToLower();
-            int baseIdx = 5 + fuels.Count;
-            for (int j = 0; j < transmissions.Count; j++)
-                X[i, baseIdx + j] = t == transmissions[j] ? 1.0 : 0.0;
+                int ageYears   = Math.Max(0, targetYear - yop);
+                int yearOffset = anchorTargetYear.HasValue ? targetYear - anchorTargetYear.Value : 0;
 
-            y[i] = r.Price ?? 0;
+                string fuelTok = NormalizeOrOther(r.Fuel);
+                string transTok = NormalizeOrOther(r.Transmission);
+
+                int c = 0;
+                X[i, c++] = yop;
+                X[i, c++] = km;
+                X[i, c++] = ageYears;
+                X[i, c++] = yearOffset;
+
+                // fuel one-hots
+                for (int f = 0; f < fuels.Count; f++)
+                    X[i, c++] = fuels[f] == fuelTok ? 1.0 : 0.0;
+
+                // transmission one-hots
+                for (int t = 0; t < transmissions.Count; t++)
+                    X[i, c++] = transmissions[t] == transTok ? 1.0 : 0.0;
+
+                y[i] = Math.Max(0.0, r.Price ?? 0.0);
+            }
+
+            return (X, y, fuels, transmissions);
         }
 
-        return (X, y, fuels, transmissions);
+        private static string NormalizeOrOther(string? s)
+            => string.IsNullOrWhiteSpace(s) ? "other" : s.Trim().ToLowerInvariant();
+
+        private static int SafeYear(Vehicle r)
+        {
+            if (r.Year.HasValue && r.Year.Value >= 1950 && r.Year.Value <= DateTime.UtcNow.Year + 10)
+                return r.Year.Value;
+            // fallback: clamp a reasonable default
+            return Math.Clamp(DateTime.UtcNow.Year - 5, 1990, DateTime.UtcNow.Year + 5);
+        }
     }
 }

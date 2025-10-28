@@ -270,5 +270,53 @@ namespace used_car_predictor.Backend.Models
 
             return bestModel;
         }
+
+        // in used_car_predictor.Backend.Models.GradientBoostingRegressor
+        public static GradientBoostingRegressor TrainResidualsWithBestParams(
+            double[,] trainX, double[] trainResidualY,
+            double[,] valX, double[] valResidualY,
+            int maxConfigs = 60,
+            int? searchSeed = null,
+            int? modelSeed = null)
+        {
+            var rng = new Random(searchSeed ?? Random.Shared.Next());
+
+            int[] nEstimatorsList = { 200, 300, 400 };
+            double[] learningRates = { 0.03, 0.05, 0.1 };
+            int[] maxDepths = { 2, 3, 4 };
+            int[] minLeaf = { 1, 3, 5, 10 };
+            int[] minSplit = { 2, 10, 20 };
+            double[] subsamples = { 0.6, 0.8, 1.0 };
+
+            double bestRmse = double.PositiveInfinity;
+            GradientBoostingRegressor? best = null;
+
+            for (int trial = 0; trial < maxConfigs; trial++)
+            {
+                var model = new GradientBoostingRegressor(
+                    nEstimators: nEstimatorsList[rng.Next(nEstimatorsList.Length)],
+                    learningRate: learningRates[rng.Next(learningRates.Length)],
+                    maxDepth: maxDepths[rng.Next(maxDepths.Length)],
+                    minSamplesSplit: minSplit[rng.Next(minSplit.Length)],
+                    minSamplesLeaf: minLeaf[rng.Next(minLeaf.Length)],
+                    subsample: subsamples[rng.Next(subsamples.Length)]
+                );
+
+                // Fit on residuals; pass null labelScaler so early stopping is skipped (full fit).
+                model.Fit(trainX, trainResidualY, valX, valResidualY, labelScaler: null, evalEvery: 5, patience: 20);
+
+                var valPredRes = model.Predict(valX); // residual space
+                var rmse = Metrics.RootMeanSquaredError(valResidualY, valPredRes);
+
+                if (rmse < bestRmse)
+                {
+                    bestRmse = rmse;
+                    best = model;
+                }
+            }
+
+            if (best == null) throw new InvalidOperationException("GB residual search failed.");
+            return best;
+        }
     }
 }

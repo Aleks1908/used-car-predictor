@@ -3,45 +3,29 @@ namespace used_car_predictor.Backend.Api;
 public static class ServingHelpers
 {
     public static double[] EncodeManualInput(
-        int year,
-        int odometer,
-        string fuel,
-        string transmission,
-        IReadOnlyList<string> fuels,
-        IReadOnlyList<string> transmissions,
-        int targetYear = 2030)
+        int yearOfProduction, int mileageKm, string fuel, string transmission,
+        IReadOnlyList<string> fuels, IReadOnlyList<string> transmissions,
+        int targetYear,
+        int? anchorTargetYear = null)
     {
-        var row = new double[9 + fuels.Count + transmissions.Count];
+        var ageYears = Math.Max(0, targetYear - yearOfProduction);
+        var yearOffset = anchorTargetYear.HasValue ? targetYear - anchorTargetYear.Value : 0;
 
-        int age = Math.Max(0, targetYear - year);
-        double odo = Math.Max(0.0, odometer);
-        double mileagePerYear = odo / (age + 1.0);
-        double logOdometer = Math.Log(odo + 1.0);
-        double age2 = age * age;
+        var feat = new List<double>(4 + fuels.Count + transmissions.Count)
+        {
+            yearOfProduction,
+            mileageKm,
+            ageYears,
+            yearOffset
+        };
 
-        row[0] = age;
-        row[1] = odo;
-        row[2] = mileagePerYear;
-        row[3] = logOdometer;
-        row[4] = age2;
+        for (int i = 0; i < fuels.Count; i++)
+            feat.Add(string.Equals(fuel, fuels[i], StringComparison.OrdinalIgnoreCase) ? 1.0 : 0.0);
 
-        var f = (fuel ?? "").Trim().ToLowerInvariant();
-        var t = (transmission ?? "").Trim().ToLowerInvariant();
+        for (int i = 0; i < transmissions.Count; i++)
+            feat.Add(string.Equals(transmission, transmissions[i], StringComparison.OrdinalIgnoreCase) ? 1.0 : 0.0);
 
-        for (int j = 0; j < fuels.Count; j++)
-            row[5 + j] = f == fuels[j] ? 1.0 : 0.0;
-
-        int baseIdx = 5 + fuels.Count;
-        for (int j = 0; j < transmissions.Count; j++)
-            row[baseIdx + j] = t == transmissions[j] ? 1.0 : 0.0;
-
-        int k = baseIdx + transmissions.Count;
-        row[k + 0] = age * logOdometer;
-        row[k + 1] = mileagePerYear * mileagePerYear;
-        row[k + 2] = age * age * age;
-        row[k + 3] = mileagePerYear * mileagePerYear * mileagePerYear;
-
-        return row;
+        return feat.ToArray();
     }
 
     public static double[] ScaleRow(double[] raw, double[] means, double[] stds)

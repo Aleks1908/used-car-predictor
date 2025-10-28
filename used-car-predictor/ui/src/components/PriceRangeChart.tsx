@@ -47,6 +47,10 @@ const algorithmColors = {
     border: "rgb(168, 85, 247)", // purple
     background: "rgba(168, 85, 247, 0.1)",
   },
+  ridge_gb: {
+    border: "rgb(236, 72, 153)", // pink
+    background: "rgba(236, 72, 153, 0.1)",
+  },
 };
 
 const algorithmLabels = {
@@ -54,6 +58,7 @@ const algorithmLabels = {
   ridge: "Ridge Regression",
   rf: "Random Forest",
   gb: "Gradient Boosting",
+  ridge_gb: "Ridge GB",
 };
 
 export function PriceRangeChart({ items }: PriceRangeChartProps) {
