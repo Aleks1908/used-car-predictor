@@ -17,7 +17,7 @@ namespace used_car_predictor.Backend.Data
             var rng = seed is null ? Random.Shared : new Random(seed.Value);
             for (int i = n - 1; i > 0; i--)
             {
-                int j = rng.Next(i + 1); // Fisher–Yates
+                int j = rng.Next(i + 1); 
                 (idx[i], idx[j]) = (idx[j], idx[i]);
             }
 

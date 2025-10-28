@@ -26,7 +26,6 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
-// -------------------- SPA (Vite build in ui/dist) --------------------
 var spaRoot = Path.Combine(builder.Environment.ContentRootPath, "ui", "dist");
 if (!Directory.Exists(spaRoot))
 {
@@ -79,7 +78,6 @@ app.MapGet("/_spa-root", () => new
     indexExists = File.Exists(Path.Combine(spaRoot, "index.html"))
 });
 
-// -------------------- Helpers --------------------
 static string EnsureDir(string path)
 {
     Directory.CreateDirectory(path);
@@ -98,7 +96,6 @@ static int ClampYear(int y)
     return Math.Clamp(y, 1990, max);
 }
 
-// -------------------- CLI Training Mode --------------------
 if (args.Contains("--cli"))
 {
     string datasetsRoot = Path.Combine(builder.Environment.ContentRootPath, "Backend", "datasets");
@@ -112,7 +109,6 @@ if (args.Contains("--cli"))
     var maxRowsArg = ArgValue(args, "--max");
     int maxRows = int.TryParse(maxRowsArg, out var mr) ? mr : 1_000_000;
 
-    // ---- Anchor year for training ----
     var anchorYearArg = ArgValue(args, "--anchor-year");
     int anchorYear = int.TryParse(anchorYearArg, out var ay) ? ClampYear(ay) : 2030;
     Console.WriteLine($"[Train] Anchor target year = {anchorYear}");
@@ -167,15 +163,12 @@ if (args.Contains("--cli"))
     {
         var rows = vehicles.Where(v => ModelNormalizer.Normalize(v.Model) == m.Model).ToList();
 
-        // Min/Max year for UI bounds
         var yearVals = rows.Where(r => r.Year.HasValue).Select(r => r.Year!.Value).ToList();
         int? minYear = yearVals.Count > 0 ? yearVals.Min() : (int?)null;
         int? maxYear = yearVals.Count > 0 ? yearVals.Max() : (int?)null;
 
-        // === Build dataset for the anchor year ===
         var (rawX, rawY, fuels, transmissions) =
             Preprocessor.ToMatrix(rows, targetYear: anchorYear, anchorTargetYear: anchorYear);
-        // Proper split: fit scalers on TRAIN ONLY
         var (trainRawX, trainRawY, testRawX, testRawY) = DataSplitter.Split(rawX, rawY, trainRatio: 0.8);
 
         var fScaler = new FeatureScaler();
@@ -184,13 +177,13 @@ if (args.Contains("--cli"))
         var trainX = fScaler.FitTransform(trainRawX);
         var testX = fScaler.Transform(testRawX);
 
-        var trainY = yScaler.FitTransform(trainRawY); // z space
-        var testY = yScaler.Transform(testRawY); // z space
+        var trainY = yScaler.FitTransform(trainRawY);
+        var testY = yScaler.Transform(testRawY);
 
         MetricsDto EvaluateAndPredict(string name, IRegressor model)
         {
-            var preds = yScaler.InverseTransform(model.Predict(testX)); // to price space
-            var truth = yScaler.InverseTransform(testY); // to price space
+            var preds = yScaler.InverseTransform(model.Predict(testX));
+            var truth = yScaler.InverseTransform(testY);
 
             double mae = Metrics.MeanAbsoluteError(truth, preds);
             double rmse = Metrics.RootMeanSquaredError(truth, preds);
@@ -200,17 +193,15 @@ if (args.Contains("--cli"))
             return new MetricsDto { MAE = mae, RMSE = rmse, R2 = r2 };
         }
 
-        // Inner split for hyperparam tuning
         var (tx, ty, vx, vy) = DataSplitter.Split(trainX, trainY, trainRatio: 0.75);
 
         LinearRegression? linearModel = null;
         RidgeRegression? ridgeModel = null;
         RandomForestRegressor? rfModel = null;
-        GradientBoostingRegressor? gbModel = null; // will be residual learner
+        GradientBoostingRegressor? gbModel = null;
 
         var bundleMetrics = new Dictionary<string, MetricsDto>();
 
-        // ---- Linear (optional) ----
         if (wantLinear)
         {
             linearModel = new LinearRegression();
@@ -218,7 +209,6 @@ if (args.Contains("--cli"))
             bundleMetrics["linear"] = EvaluateAndPredict("Linear", linearModel);
         }
 
-        // ---- Ridge (base trend model) ----
         if (wantRidge)
         {
             ridgeModel = RidgeRegression.TrainWithBestParams(tx, ty, vx, vy, yScaler);
@@ -226,25 +216,21 @@ if (args.Contains("--cli"))
             bundleMetrics["ridge"] = EvaluateAndPredict("Ridge", ridgeModel);
         }
 
-        // ---- Random Forest (direct on z), unchanged ----
         if (wantRF)
         {
             rfModel = RandomForestRegressor.TrainWithBestParams(tx, ty, vx, vy, yScaler);
             bundleMetrics["rf"] = EvaluateAndPredict("RF", rfModel);
         }
 
-        // ---- Gradient Boosting ON RESIDUALS of Ridge ----
         if (wantGB)
         {
             if (ridgeModel == null)
             {
-                // ensure Ridge is available for residuals
                 ridgeModel = RidgeRegression.TrainWithBestParams(tx, ty, vx, vy, yScaler);
                 ridgeModel.Fit(trainX, trainY);
                 bundleMetrics["ridge"] = EvaluateAndPredict("Ridge", ridgeModel);
             }
 
-            // residuals in z-space: z_true - z_ridge
             static double[] Pred(double[,] X, IRegressor m) => m.Predict(X);
 
             var ty_ridge = Pred(tx, ridgeModel);
@@ -255,10 +241,8 @@ if (args.Contains("--cli"))
             for (int i = 0; i < ty.Length; i++) trainRes[i] = ty[i] - ty_ridge[i];
             for (int i = 0; i < vy.Length; i++) valRes[i] = vy[i] - vx_ridge[i];
 
-            // Train GB on residuals (no label scaler needed)
             gbModel = GradientBoostingRegressor.TrainResidualsWithBestParams(tx, trainRes, vx, valRes);
 
-            // Evaluate combined (Ridge + GB_residual) on the test split
             var zTestRidge = Pred(testX, ridgeModel);
             var zTestGbRes = gbModel.Predict(testX);
             var zCombined = new double[zTestRidge.Length];
@@ -275,7 +259,6 @@ if (args.Contains("--cli"))
             Console.WriteLine($"{m.Model,-22} [Ridge+GB] MAE={mae,7:F0} RMSE={rmse,7:F0} R²={r2,5:F3}");
         }
 
-        // ---- Save bundle if we have the main models ----
         if (ridgeModel != null && rfModel != null && gbModel != null)
         {
             var id = ModelNormalizer.Normalize(m.Model);
@@ -311,14 +294,13 @@ if (args.Contains("--cli"))
                 bundle.Preprocess.MinYear = minYear;
                 bundle.Preprocess.MaxYear = maxYear;
 
-                // if your PreprocessDto includes this property:
                 try
                 {
                     bundle.Preprocess.GetType().GetProperty("TotalRows")?.SetValue(bundle.Preprocess, totalRows);
                 }
                 catch
                 {
-                    /* ignore if property not present */
+                    //log
                 }
             }
 
@@ -343,7 +325,6 @@ if (args.Contains("--cli"))
     return;
 }
 
-// -------------------- Normal Server Boot --------------------
 var defaultStartupBundlePath = Path.Combine(
     builder.Environment.ContentRootPath,
     "Backend", "datasets", "processed", "current.bundle.json");

@@ -17,7 +17,6 @@ public class PredictionController : ControllerBase
         _hotLoader = hotLoader;
     }
 
-    // ----------------- Helpers -----------------
     private static int ClampYear(int y)
     {
         int max = DateTime.UtcNow.Year + 5;
@@ -27,7 +26,15 @@ public class PredictionController : ControllerBase
     private static (double mse, double mae, double r2) GetMetricsOrDefault(
         IReadOnlyDictionary<string, (double Mse, double Mae, double R2)> map, string key)
     {
-        return map.TryGetValue(key, out var m) ? (m.Mse, m.Mae, m.R2) : (0, 0, 0);
+        if (map.TryGetValue(key, out var m)) return (m.Mse, m.Mae, m.R2);
+
+        if (key.Equals("ridge_rf", StringComparison.OrdinalIgnoreCase) && map.TryGetValue("rf", out m))
+            return (m.Mse, m.Mae, m.R2);
+
+        if (key.Equals("ridge_gb", StringComparison.OrdinalIgnoreCase) && map.TryGetValue("gb", out m))
+            return (m.Mse, m.Mae, m.R2);
+
+        return (0, 0, 0);
     }
 
     private static string? NormalizeAlgo(string? algo)
@@ -38,37 +45,56 @@ public class PredictionController : ControllerBase
         {
             "linear" => "linear",
             "ridge" => "ridge",
-            "rf" => "rf",
-            "gb" => "ridge_gb", // callers asking for “gb” get the combined residual model
+            "ridge_rf" => "ridge_rf",
             "ridge_gb" => "ridge_gb",
             _ => null
         };
     }
 
-    // Encode -> scale -> predict (all algos), return priced results and metrics
     private List<ModelPredictionDto> PredictAllForTargetYear(PredictRequest req, int targetYear)
     {
         var raw = ServingHelpers.EncodeManualInput(
             req.YearOfProduction, req.MileageKm, req.FuelType, req.Transmission,
-            _active.Fuels, _active.Transmissions, targetYear: targetYear);
+            _active.Fuels, _active.Transmissions, targetYear: targetYear,
+            anchorTargetYear: _active.AnchorTargetYear);
 
-        // Debug to verify year sensitivity
-        var age = targetYear - req.YearOfProduction;
-        var yearOffset = (_active.AnchorTargetYear.HasValue ? targetYear - _active.AnchorTargetYear.Value : 0);
-        Console.WriteLine($"[DEBUG] targetYear={targetYear}, age={age}, yearOffset={yearOffset}");
 
         var x = ServingHelpers.ScaleRow(raw, _active.FeatureMeans, _active.FeatureStds);
-        var zByAlgo = _active.PredictAllScaled(x); // includes linear, ridge, rf, and ridge_gb (not raw gb)
+        var zByAlgo = _active.PredictAllScaled(x);
 
+        var preferredOrder = new[] { "linear", "ridge", "ridge_rf", "ridge_gb" };
         var results = new List<ModelPredictionDto>(zByAlgo.Count);
-        foreach (var (algo, z) in zByAlgo)
+
+        foreach (var key in preferredOrder)
         {
+            if (!zByAlgo.TryGetValue(key, out var z)) continue;
+
             var price = ServingHelpers.InverseLabel(z, _active.LabelMean, _active.LabelStd, _active.LabelUseLog);
-            var (mse, mae, r2) = GetMetricsOrDefault(_active.MetricsByAlgo, algo);
+            var (mse, mae, r2) = GetMetricsOrDefault(_active.MetricsByAlgo, key);
 
             results.Add(new ModelPredictionDto
             {
-                Algorithm = algo,
+                Algorithm = key,
+                PredictedPrice = (decimal)Math.Round(Math.Max(0, price), 0),
+                Metrics = new ModelMetricsDto
+                {
+                    Mse = Math.Round(mse, 2),
+                    Mae = Math.Round(mae, 2),
+                    R2 = Math.Round(r2, 2)
+                }
+            });
+        }
+
+        foreach (var kv in zByAlgo)
+        {
+            if (results.Any(r => r.Algorithm.Equals(kv.Key, StringComparison.OrdinalIgnoreCase))) continue;
+
+            var price = ServingHelpers.InverseLabel(kv.Value, _active.LabelMean, _active.LabelStd, _active.LabelUseLog);
+            var (mse, mae, r2) = GetMetricsOrDefault(_active.MetricsByAlgo, kv.Key);
+
+            results.Add(new ModelPredictionDto
+            {
+                Algorithm = kv.Key,
                 PredictedPrice = (decimal)Math.Round(Math.Max(0, price), 0),
                 Metrics = new ModelMetricsDto
                 {
@@ -90,12 +116,13 @@ public class PredictionController : ControllerBase
         {
             var raw = ServingHelpers.EncodeManualInput(
                 req.YearOfProduction, req.MileageKm, req.FuelType, req.Transmission,
-                _active.Fuels, _active.Transmissions, targetYear: y, _active.AnchorTargetYear // << important
+                _active.Fuels, _active.Transmissions,
+                targetYear: y,
+                anchorTargetYear: _active.AnchorTargetYear
             );
 
             var age = y - req.YearOfProduction;
             var yearOffset = (_active.AnchorTargetYear.HasValue ? y - _active.AnchorTargetYear.Value : 0);
-            Console.WriteLine($"[DEBUG/RANGE] y={y}, age={age}, yearOffset={yearOffset}");
 
             var x = ServingHelpers.ScaleRow(raw, _active.FeatureMeans, _active.FeatureStds);
             var zByAlgo = _active.PredictAllScaled(x);
@@ -120,7 +147,6 @@ public class PredictionController : ControllerBase
         AnchorTargetYear = _active.AnchorTargetYear,
         TotalRows = _active.TotalRows
     };
-
 
     [HttpPost("predict")]
     public async Task<ActionResult<PredictResponse>> Predict([FromBody] PredictRequest req, CancellationToken ct)
@@ -213,15 +239,13 @@ public class PredictionController : ControllerBase
 
         var algoKey = NormalizeAlgo(req.Algorithm);
         if (algoKey is null)
-            return BadRequest(new { error = "algorithm must be one of: linear, ridge, rf, gb, ridge_gb" });
+            return BadRequest(new { error = "algorithm must be one of: linear, ridge, rf, gb, ridge_rf, ridge_gb" });
 
-        // Car A
         await _hotLoader.EnsureLoadedAsync(req.CarA.Manufacturer, req.CarA.Model, ct);
         if (!_active.IsLoaded) return Problem("No active model loaded.", statusCode: 503);
         var infoA = CurrentModelInfo();
         var seriesA = BuildSeriesForCurrentActive(req.CarA, start, end, algoKey);
 
-        // Car B
         await _hotLoader.EnsureLoadedAsync(req.CarB.Manufacturer, req.CarB.Model, ct);
         if (!_active.IsLoaded) return Problem("No active model loaded.", statusCode: 503);
         var infoB = CurrentModelInfo();
@@ -237,7 +261,6 @@ public class PredictionController : ControllerBase
         });
     }
 
-    // ------------ internal helper for predict-two ------------
     private async Task<ActionResult> PredictOneAllAlgosAsync(PredictRequest req, CancellationToken ct)
     {
         await _hotLoader.EnsureLoadedAsync(req.Manufacturer, req.Model, ct);

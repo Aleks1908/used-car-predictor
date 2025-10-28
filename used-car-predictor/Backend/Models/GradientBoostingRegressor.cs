@@ -193,13 +193,15 @@ namespace used_car_predictor.Backend.Models
                 _trees.RemoveRange(keep, _trees.Count - keep);
         }
 
-        public static GradientBoostingRegressor TrainWithBestParams(
-            double[,] trainFeatures, double[] trainLabels,
-            double[,] valFeatures, double[] valLabels,
-            LabelScaler labelScaler,
-            int maxConfigs = 60)
+
+        public static GradientBoostingRegressor TrainResidualsWithBestParams(
+            double[,] trainX, double[] trainResidualY,
+            double[,] valX, double[] valResidualY,
+            int maxConfigs = 60,
+            int? searchSeed = null,
+            int? modelSeed = null)
         {
-            var rng = Random.Shared;
+            var rng = new Random(searchSeed ?? Random.Shared.Next());
 
             int[] nEstimatorsList = { 200, 300, 400 };
             double[] learningRates = { 0.03, 0.05, 0.1 };
@@ -219,8 +221,8 @@ namespace used_car_predictor.Backend.Models
                     ["nEstimators"] = nEstimatorsList[rng.Next(nEstimatorsList.Length)],
                     ["learningRate"] = learningRates[rng.Next(learningRates.Length)],
                     ["maxDepth"] = maxDepths[rng.Next(maxDepths.Length)],
-                    ["minSamplesLeaf"] = minLeaf[rng.Next(minLeaf.Length)],
                     ["minSamplesSplit"] = minSplit[rng.Next(minSplit.Length)],
+                    ["minSamplesLeaf"] = minLeaf[rng.Next(minLeaf.Length)],
                     ["subsample"] = subsamples[rng.Next(subsamples.Length)],
                 };
 
@@ -230,22 +232,19 @@ namespace used_car_predictor.Backend.Models
                     maxDepth: (int)p["maxDepth"],
                     minSamplesSplit: (int)p["minSamplesSplit"],
                     minSamplesLeaf: (int)p["minSamplesLeaf"],
-                    subsample: (double)p["subsample"]
-                );
+                    subsample: (double)p["subsample"]);
 
-                model.Fit(trainFeatures, trainLabels, valFeatures, valLabels, labelScaler,
-                    evalEvery: 5, patience: 20);
+                model.Fit(trainX, trainResidualY, valX, valResidualY,
+                    labelScaler: null, evalEvery: 5, patience: 20);
 
-                var valScaled = model.Predict(valFeatures);
-                var preds = labelScaler.InverseTransform(valScaled);
-                var truth = labelScaler.InverseTransform(valLabels);
+                var valPredRes = model.Predict(valX);
 
-                var rmse = Metrics.RootMeanSquaredError(truth, preds);
-                var mae = Metrics.MeanAbsoluteError(truth, preds);
-                var r2 = Metrics.RSquared(truth, preds);
+                var rmse = Metrics.RootMeanSquaredError(valResidualY, valPredRes);
+                var mae = Metrics.MeanAbsoluteError(valResidualY, valPredRes);
+                var r2 = Metrics.RSquared(valResidualY, valPredRes);
 
                 Console.WriteLine(
-                    $"[GB tune] try={trial + 1}/{maxConfigs} " +
+                    $"[GB(res) tune] try={trial + 1}/{maxConfigs} " +
                     $"nEst={p["nEstimators"]}, lr={p["learningRate"]}, " +
                     $"maxDepth={p["maxDepth"]}, minSplit={p["minSamplesSplit"]}, " +
                     $"minLeaf={p["minSamplesLeaf"]}, subsample={p["subsample"]} -> " +
@@ -260,62 +259,15 @@ namespace used_car_predictor.Backend.Models
             }
 
             if (bestModel == null)
-                throw new InvalidOperationException("GB randomized search failed.");
+                throw new InvalidOperationException("GB residual search failed.");
 
             Console.WriteLine(
-                $"[GB Best] nEst={bestParams!["nEstimators"]}, lr={bestParams!["learningRate"]}, " +
+                $"[GB(res) Best] nEst={bestParams!["nEstimators"]}, lr={bestParams!["learningRate"]}, " +
                 $"maxDepth={bestParams!["maxDepth"]}, minSplit={bestParams!["minSamplesSplit"]}, " +
                 $"minLeaf={bestParams!["minSamplesLeaf"]}, subsample={bestParams!["subsample"]}, " +
                 $"bestIt={bestModel.BestIteration}");
 
             return bestModel;
-        }
-
-
-        public static GradientBoostingRegressor TrainResidualsWithBestParams(
-            double[,] trainX, double[] trainResidualY,
-            double[,] valX, double[] valResidualY,
-            int maxConfigs = 60,
-            int? searchSeed = null,
-            int? modelSeed = null)
-        {
-            var rng = new Random(searchSeed ?? Random.Shared.Next());
-
-            int[] nEstimatorsList = { 200, 300, 400 };
-            double[] learningRates = { 0.03, 0.05, 0.1 };
-            int[] maxDepths = { 2, 3, 4 };
-            int[] minLeaf = { 1, 3, 5, 10 };
-            int[] minSplit = { 2, 10, 20 };
-            double[] subsamples = { 0.6, 0.8, 1.0 };
-
-            double bestRmse = double.PositiveInfinity;
-            GradientBoostingRegressor? best = null;
-
-            for (int trial = 0; trial < maxConfigs; trial++)
-            {
-                var model = new GradientBoostingRegressor(
-                    nEstimators: nEstimatorsList[rng.Next(nEstimatorsList.Length)],
-                    learningRate: learningRates[rng.Next(learningRates.Length)],
-                    maxDepth: maxDepths[rng.Next(maxDepths.Length)],
-                    minSamplesSplit: minSplit[rng.Next(minSplit.Length)],
-                    minSamplesLeaf: minLeaf[rng.Next(minLeaf.Length)],
-                    subsample: subsamples[rng.Next(subsamples.Length)]
-                );
-
-                model.Fit(trainX, trainResidualY, valX, valResidualY, labelScaler: null, evalEvery: 5, patience: 20);
-
-                var valPredRes = model.Predict(valX);
-                var rmse = Metrics.RootMeanSquaredError(valResidualY, valPredRes);
-
-                if (rmse < bestRmse)
-                {
-                    bestRmse = rmse;
-                    best = model;
-                }
-            }
-
-            if (best == null) throw new InvalidOperationException("GB residual search failed.");
-            return best;
         }
     }
 }
