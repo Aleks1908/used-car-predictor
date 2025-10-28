@@ -121,9 +121,6 @@ public class PredictionController : ControllerBase
                 anchorTargetYear: _active.AnchorTargetYear
             );
 
-            var age = y - req.YearOfProduction;
-            var yearOffset = (_active.AnchorTargetYear.HasValue ? y - _active.AnchorTargetYear.Value : 0);
-
             var x = ServingHelpers.ScaleRow(raw, _active.FeatureMeans, _active.FeatureStds);
             var zByAlgo = _active.PredictAllScaled(x);
 
@@ -239,7 +236,7 @@ public class PredictionController : ControllerBase
 
         var algoKey = NormalizeAlgo(req.Algorithm);
         if (algoKey is null)
-            return BadRequest(new { error = "algorithm must be one of: linear, ridge, rf, gb, ridge_rf, ridge_gb" });
+            return BadRequest(new { error = "algorithm must be one of: linear, ridge, ridge_rf, ridge_gb" });
 
         await _hotLoader.EnsureLoadedAsync(req.CarA.Manufacturer, req.CarA.Model, ct);
         if (!_active.IsLoaded) return Problem("No active model loaded.", statusCode: 503);

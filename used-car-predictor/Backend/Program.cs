@@ -169,8 +169,8 @@ if (args.Contains("--cli"))
 
         var (rawX, rawY, fuels, transmissions) =
             Preprocessor.ToMatrix(rows, targetYear: anchorYear, anchorTargetYear: anchorYear);
-        var (trainRawX, trainRawY, testRawX, testRawY) = DataSplitter.Split(rawX, rawY, trainRatio: 0.8);
 
+        var (trainRawX, trainRawY, testRawX, testRawY) = DataSplitter.Split(rawX, rawY, trainRatio: 0.8);
         var fScaler = new FeatureScaler();
         var yScaler = new LabelScaler();
 
@@ -209,41 +209,34 @@ if (args.Contains("--cli"))
             bundleMetrics["linear"] = EvaluateAndPredict("Linear", linearModel);
         }
 
-        if (wantRidge)
+        if (wantRidge || wantGB || wantRF)
         {
             ridgeModel = RidgeRegression.TrainWithBestParams(tx, ty, vx, vy, yScaler);
             ridgeModel.Fit(trainX, trainY);
             bundleMetrics["ridge"] = EvaluateAndPredict("Ridge", ridgeModel);
         }
 
-        if (wantRF)
+        static double[] ZPred(double[,] X, IRegressor m) => m.Predict(X);
+
+        double[]? trainRes = null;
+        double[]? valRes = null;
+
+        if ((wantGB || wantRF) && ridgeModel != null)
         {
-            rfModel = RandomForestRegressor.TrainWithBestParams(tx, ty, vx, vy, yScaler);
-            bundleMetrics["rf"] = EvaluateAndPredict("RF", rfModel);
+            var ty_ridge = ZPred(tx, ridgeModel);
+            var vy_ridge = ZPred(vx, ridgeModel);
+
+            trainRes = new double[ty.Length];
+            valRes = new double[vy.Length];
+            for (int i = 0; i < ty.Length; i++) trainRes[i] = ty[i] - ty_ridge[i];
+            for (int i = 0; i < vy.Length; i++) valRes[i] = vy[i] - vy_ridge[i];
         }
 
-        if (wantGB)
+        if (wantGB && ridgeModel != null && trainRes != null && valRes != null)
         {
-            if (ridgeModel == null)
-            {
-                ridgeModel = RidgeRegression.TrainWithBestParams(tx, ty, vx, vy, yScaler);
-                ridgeModel.Fit(trainX, trainY);
-                bundleMetrics["ridge"] = EvaluateAndPredict("Ridge", ridgeModel);
-            }
-
-            static double[] Pred(double[,] X, IRegressor m) => m.Predict(X);
-
-            var ty_ridge = Pred(tx, ridgeModel);
-            var vx_ridge = Pred(vx, ridgeModel);
-
-            var trainRes = new double[ty.Length];
-            var valRes = new double[vy.Length];
-            for (int i = 0; i < ty.Length; i++) trainRes[i] = ty[i] - ty_ridge[i];
-            for (int i = 0; i < vy.Length; i++) valRes[i] = vy[i] - vx_ridge[i];
-
             gbModel = GradientBoostingRegressor.TrainResidualsWithBestParams(tx, trainRes, vx, valRes);
 
-            var zTestRidge = Pred(testX, ridgeModel);
+            var zTestRidge = ZPred(testX, ridgeModel);
             var zTestGbRes = gbModel.Predict(testX);
             var zCombined = new double[zTestRidge.Length];
             for (int i = 0; i < zCombined.Length; i++) zCombined[i] = zTestRidge[i] + zTestGbRes[i];
@@ -259,23 +252,47 @@ if (args.Contains("--cli"))
             Console.WriteLine($"{m.Model,-22} [Ridge+GB] MAE={mae,7:F0} RMSE={rmse,7:F0} R²={r2,5:F3}");
         }
 
-        if (ridgeModel != null && rfModel != null && gbModel != null)
+        if (wantRF && ridgeModel != null && trainRes != null && valRes != null)
+        {
+            rfModel = RandomForestRegressor.TrainResidualsWithBestParams(
+                tx, trainRes, vx, valRes,
+                maxConfigs: 60,
+                searchSeed: null);
+
+            var zTestRidge = ZPred(testX, ridgeModel);
+            var zTestRfRes = rfModel.Predict(testX);
+            var zCombined = new double[zTestRidge.Length];
+            for (int i = 0; i < zCombined.Length; i++) zCombined[i] = zTestRidge[i] + zTestRfRes[i];
+
+            var predsCombined = yScaler.InverseTransform(zCombined);
+            var truth = yScaler.InverseTransform(testY);
+
+            double mae = Metrics.MeanAbsoluteError(truth, predsCombined);
+            double rmse = Metrics.RootMeanSquaredError(truth, predsCombined);
+            double r2 = Metrics.RSquared(truth, predsCombined);
+
+            bundleMetrics["ridge_rf"] = new MetricsDto { MAE = mae, RMSE = rmse, R2 = r2 };
+            Console.WriteLine($"{m.Model,-22} [Ridge+RF] MAE={mae,7:F0} RMSE={rmse,7:F0} R²={r2,5:F3}");
+        }
+
+        if (ridgeModel != null && (rfModel != null || gbModel != null))
         {
             var id = ModelNormalizer.Normalize(m.Model);
             var outPath = Path.Combine(processedDir, $"{id}.json");
 
             var dominantManufacturer = rows
                 .Where(r => !string.IsNullOrWhiteSpace(r.Manufacturer))
-                .GroupBy(r => r.Manufacturer.Trim(), StringComparer.OrdinalIgnoreCase)
+                .GroupBy(r => r.Manufacturer!.Trim(), StringComparer.OrdinalIgnoreCase)
                 .OrderByDescending(g => g.Count())
                 .FirstOrDefault()?.Key ?? "";
 
             var displayModel = rows.FirstOrDefault()?.Model?.Trim() ?? m.Model;
-
             int totalRows = rows.Count;
 
             var bundle = ModelPersistence.ExportBundle(
-                ridgeModel, rfModel, gbModel,
+                ridgeModel,
+                rfModel,
+                gbModel,
                 fScaler, yScaler, fuels, transmissions,
                 notes: $"model={m.Model}, rows={rows.Count}; anchorTargetYear={anchorYear}, totalRows={totalRows}"
             );
@@ -293,14 +310,13 @@ if (args.Contains("--cli"))
                 bundle.Preprocess.AnchorTargetYear = anchorYear;
                 bundle.Preprocess.MinYear = minYear;
                 bundle.Preprocess.MaxYear = maxYear;
-
                 try
                 {
                     bundle.Preprocess.GetType().GetProperty("TotalRows")?.SetValue(bundle.Preprocess, totalRows);
                 }
                 catch
                 {
-                    //log
+                    /* ignore */
                 }
             }
 
@@ -314,7 +330,7 @@ if (args.Contains("--cli"))
         }
         else
         {
-            Console.WriteLine($"Skipping save for '{m.Model}': not all models were trained.");
+            Console.WriteLine($"Skipping save for '{m.Model}': need ridge + at least one residual learner (RF/GB).");
         }
 
         trained++;
