@@ -262,8 +262,8 @@ function SinglePrediction({ onBack }: SinglePredictionProps) {
                 <h3 className="text-lg font-bold text-gray-900 mb-3 text-center capitalize">
                   {result.algorithm === "linear" && "Linear Regression"}
                   {result.algorithm === "ridge" && "Ridge Regression"}
-                  {result.algorithm === "rf" && "Random Forest"}
-                  {result.algorithm === "gb" && "Gradient Boosting"}
+                  {result.algorithm === "ridge_rf" && "Random Forest"}
+                  {result.algorithm === "ridge_gb" && "Gradient Boosting"}
                 </h3>
 
                 <div className="space-y-2">

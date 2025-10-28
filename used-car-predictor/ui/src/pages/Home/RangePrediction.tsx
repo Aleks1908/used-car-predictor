@@ -132,8 +132,7 @@ function RangePrediction({ onBack }: RangePredictionProps) {
                       <h3 className="text-lg font-bold text-gray-900 mb-3 text-center capitalize">
                         {result.algorithm === "linear" && "Linear Regression"}
                         {result.algorithm === "ridge" && "Ridge Regression"}
-                        {result.algorithm === "rf" && "Random Forest"}
-                        {result.algorithm === "gb" && "Gradient Boosting"}
+                        {result.algorithm === "ridge_rf" && "Random Forest"}
                         {result.algorithm === "ridge_gb" && "Ridge GB"}
                       </h3>
 
