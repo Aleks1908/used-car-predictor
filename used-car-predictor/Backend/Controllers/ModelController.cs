@@ -99,7 +99,7 @@ public sealed class ModelsController(IWebHostEnvironment env) : ControllerBase
 
                 int? minYear = bundle.Car?.MinYear ?? bundle.Preprocess?.MinYear;
                 int? maxYear = bundle.Car?.MaxYear ?? bundle.Preprocess?.MaxYear;
-                int? trainedForYear = bundle.Preprocess?.AnchorTargetYear; // <-- NEW
+                int? trainedForYear = bundle.Preprocess?.AnchorTargetYear; 
 
                 var formatted = new ModelFeatureMetaDto
                 {
