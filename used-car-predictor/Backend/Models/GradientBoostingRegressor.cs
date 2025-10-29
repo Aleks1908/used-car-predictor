@@ -1,6 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using used_car_predictor.Backend.Data;
 using used_car_predictor.Backend.Evaluation;
 
@@ -40,11 +37,11 @@ namespace used_car_predictor.Backend.Models
             _rng = Random.Shared;
         }
 
-        public void Fit(double[,] X, double[] y) => Fit(X, y, null, null, null);
+        public void Fit(double[,] x, double[] y) => Fit(x, y, null, null, null);
 
         public void Fit(
-            double[,] X, double[] y,
-            double[,]? Xval,
+            double[,] x, double[] y,
+            double[,]? xval,
             double[]? yval,
             LabelScaler? labelScaler,
             int evalEvery = 5,
@@ -52,15 +49,15 @@ namespace used_car_predictor.Backend.Models
             double minDelta = 1e-6)
         {
             _trees.Clear();
-            int n = X.GetLength(0);
+            int n = x.GetLength(0);
             _init = Mean(y);
 
             var pred = Enumerable.Repeat(_init, n).ToArray();
 
             double[]? valPred = null;
-            if (Xval is not null)
+            if (xval is not null)
             {
-                int nv = Xval.GetLength(0);
+                int nv = xval.GetLength(0);
                 valPred = Enumerable.Repeat(_init, nv).ToArray();
             }
 
@@ -75,7 +72,7 @@ namespace used_car_predictor.Backend.Models
                     residuals[i] = y[i] - pred[i];
 
                 int[] idx = SampleIndicesNoReplacement(n, _subsample);
-                var Xt = Subset(X, idx);
+                var xt = Subset(x, idx);
                 var rt = Subset(residuals, idx);
 
                 var tree = new DecisionTreeRegressor(
@@ -84,16 +81,16 @@ namespace used_car_predictor.Backend.Models
                     minSamplesLeaf: _minSamplesLeaf,
                     maxSplitsPerFeature: 32
                 );
-                tree.Fit(Xt, rt);
+                tree.Fit(xt, rt);
                 _trees.Add(tree);
 
-                var stepPredTrain = tree.Predict(X);
+                var stepPredTrain = tree.Predict(x);
                 for (int i = 0; i < n; i++)
                     pred[i] += _learningRate * stepPredTrain[i];
 
-                if (Xval is not null && valPred is not null && (t + 1) % evalEvery == 0)
+                if (xval is not null && valPred is not null && (t + 1) % evalEvery == 0)
                 {
-                    var stepPredVal = tree.Predict(Xval);
+                    var stepPredVal = tree.Predict(xval);
                     for (int i = 0; i < valPred.Length; i++)
                         valPred[i] += _learningRate * stepPredVal[i];
 
@@ -122,14 +119,14 @@ namespace used_car_predictor.Backend.Models
                 TruncateTrees(BestIteration);
         }
 
-        public double[] Predict(double[,] X)
+        public double[] Predict(double[,] x)
         {
-            int n = X.GetLength(0);
+            int n = x.GetLength(0);
             var outp = Enumerable.Repeat(_init, n).ToArray();
 
             foreach (var tree in _trees)
             {
-                var step = tree.Predict(X);
+                var step = tree.Predict(x);
                 for (int i = 0; i < n; i++)
                     outp[i] += _learningRate * step[i];
             }
@@ -170,14 +167,14 @@ namespace used_car_predictor.Backend.Models
             return res;
         }
 
-        private static double[,] Subset(double[,] X, int[] idx)
+        private static double[,] Subset(double[,] x, int[] idx)
         {
-            int r = idx.Length, c = X.GetLength(1);
-            var B = new double[r, c];
+            int r = idx.Length, c = x.GetLength(1);
+            var b = new double[r, c];
             for (int i = 0; i < r; i++)
             for (int j = 0; j < c; j++)
-                B[i, j] = X[idx[i], j];
-            return B;
+                b[i, j] = x[idx[i], j];
+            return b;
         }
 
         private static double[] Subset(double[] arr, int[] idx)
@@ -193,13 +190,13 @@ namespace used_car_predictor.Backend.Models
                 _trees.RemoveRange(keep, _trees.Count - keep);
         }
 
-
-        public static GradientBoostingRegressor TrainResidualsWithBestParams(
-            double[,] trainX, double[] trainResidualY,
-            double[,] valX, double[] valResidualY,
-            int maxConfigs = 60,
-            int? searchSeed = null,
-            int? modelSeed = null)
+        public static (GradientBoostingRegressor Model, double MeanTrialMs, int Trials, long TotalMs)
+            TrainResidualsWithBestParams(
+                double[,] trainX, double[] trainResidualY,
+                double[,] valX, double[] valResidualY,
+                int maxConfigs = 60,
+                int? searchSeed = null,
+                int? modelSeed = null)
         {
             var rng = new Random(searchSeed ?? Random.Shared.Next());
 
@@ -214,6 +211,9 @@ namespace used_car_predictor.Backend.Models
             GradientBoostingRegressor? bestModel = null;
             Dictionary<string, object>? bestParams = null;
 
+            long totalMs = 0;
+            int trials = 0;
+
             for (int trial = 0; trial < maxConfigs; trial++)
             {
                 var p = new Dictionary<string, object>
@@ -225,6 +225,8 @@ namespace used_car_predictor.Backend.Models
                     ["minSamplesLeaf"] = minLeaf[rng.Next(minLeaf.Length)],
                     ["subsample"] = subsamples[rng.Next(subsamples.Length)],
                 };
+
+                var sw = System.Diagnostics.Stopwatch.StartNew();
 
                 var model = new GradientBoostingRegressor(
                     nEstimators: (int)p["nEstimators"],
@@ -239,6 +241,10 @@ namespace used_car_predictor.Backend.Models
 
                 var valPredRes = model.Predict(valX);
 
+                sw.Stop();
+                totalMs += sw.ElapsedMilliseconds;
+                trials++;
+
                 var rmse = Metrics.RootMeanSquaredError(valResidualY, valPredRes);
                 var mae = Metrics.MeanAbsoluteError(valResidualY, valPredRes);
                 var r2 = Metrics.RSquared(valResidualY, valPredRes);
@@ -248,7 +254,7 @@ namespace used_car_predictor.Backend.Models
                     $"nEst={p["nEstimators"]}, lr={p["learningRate"]}, " +
                     $"maxDepth={p["maxDepth"]}, minSplit={p["minSamplesSplit"]}, " +
                     $"minLeaf={p["minSamplesLeaf"]}, subsample={p["subsample"]} -> " +
-                    $"RMSE={rmse:F2}, MAE={mae:F2}, R²={r2:F3}, bestIt={model.BestIteration}");
+                    $"RMSE={rmse:F2}, MAE={mae:F2}, R²={r2:F3}, bestIt={model.BestIteration}, time={sw.ElapsedMilliseconds}ms");
 
                 if (rmse < bestRmse)
                 {
@@ -261,13 +267,15 @@ namespace used_car_predictor.Backend.Models
             if (bestModel == null)
                 throw new InvalidOperationException("GB residual search failed.");
 
-            Console.WriteLine(
-                $"[GB(res) Best] nEst={bestParams!["nEstimators"]}, lr={bestParams!["learningRate"]}, " +
-                $"maxDepth={bestParams!["maxDepth"]}, minSplit={bestParams!["minSamplesSplit"]}, " +
-                $"minLeaf={bestParams!["minSamplesLeaf"]}, subsample={bestParams!["subsample"]}, " +
-                $"bestIt={bestModel.BestIteration}");
+            if (bestParams != null)
+                Console.WriteLine(
+                    $"[GB(res) Best] nEst={bestParams["nEstimators"]}, lr={bestParams["learningRate"]}, " +
+                    $"maxDepth={bestParams["maxDepth"]}, minSplit={bestParams["minSamplesSplit"]}, " +
+                    $"minLeaf={bestParams["minSamplesLeaf"]}, subsample={bestParams["subsample"]}, " +
+                    $"bestIt={bestModel.BestIteration}");
 
-            return bestModel;
+            double meanMs = trials > 0 ? (double)totalMs / trials : 0.0;
+            return (bestModel, meanMs, trials, totalMs);
         }
     }
 }

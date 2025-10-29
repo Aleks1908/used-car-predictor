@@ -13,7 +13,9 @@ namespace used_car_predictor.Backend.Models
         private readonly double _sampleRatio;
         private readonly List<DecisionTreeRegressor> _trees = new();
         private readonly Random _rng;
-
+        public double? TuningMeanTrialMs { get; private set; }
+        public double? TuningTotalMs { get; private set; }
+        public int? TuningTrials { get; private set; }
         public string Name => "Random Forest Regressor";
 
         public RandomForestRegressor(
@@ -95,11 +97,12 @@ namespace used_car_predictor.Backend.Models
             return sum / _trees.Count;
         }
 
-        public static RandomForestRegressor TrainResidualsWithBestParams(
-            double[,] trainX, double[] trainResidualY,
-            double[,] valX, double[] valResidualY,
-            int maxConfigs = 60,
-            int? searchSeed = null)
+        public static (RandomForestRegressor Model, double MeanTrialMs, double TotalMs, int Trials)
+            TrainResidualsWithBestParams(
+                double[,] trainX, double[] trainResidualY,
+                double[,] valX, double[] valResidualY,
+                int maxConfigs = 60,
+                int? searchSeed = null)
         {
             var rng = new Random(searchSeed ?? Random.Shared.Next());
 
@@ -114,6 +117,9 @@ namespace used_car_predictor.Backend.Models
             RandomForestRegressor? bestModel = null;
             Dictionary<string, object>? bestParams = null;
 
+            long tuningTotalTicks = 0;
+            int trials = 0;
+
             for (int trial = 0; trial < maxConfigs; trial++)
             {
                 var p = new Dictionary<string, object>
@@ -126,6 +132,8 @@ namespace used_car_predictor.Backend.Models
                     ["bootstrap"] = bootstraps[rng.Next(bootstraps.Length)]
                 };
 
+                var sw = System.Diagnostics.Stopwatch.StartNew();
+
                 var model = new RandomForestRegressor(
                     nEstimators: (int)p["nEstimators"],
                     maxDepth: (int)p["maxDepth"],
@@ -136,8 +144,12 @@ namespace used_car_predictor.Backend.Models
                 );
 
                 model.Fit(trainX, trainResidualY);
-
                 var valPredRes = model.Predict(valX);
+
+                sw.Stop();
+                tuningTotalTicks += sw.ElapsedTicks;
+                trials++;
+
                 var rmse = Metrics.RootMeanSquaredError(valResidualY, valPredRes);
                 var mae = Metrics.MeanAbsoluteError(valResidualY, valPredRes);
                 var r2 = Metrics.RSquared(valResidualY, valPredRes);
@@ -146,7 +158,7 @@ namespace used_car_predictor.Backend.Models
                     $"[RF(res) tune] try={trial + 1}/{maxConfigs} " +
                     $"nEst={p["nEstimators"]}, maxDepth={p["maxDepth"]}, minSplit={p["minSamplesSplit"]}, " +
                     $"minLeaf={p["minSamplesLeaf"]}, sampleRatio={p["sampleRatio"]}, bootstrap={p["bootstrap"]} -> " +
-                    $"RMSE={rmse:F2}, MAE={mae:F2}, R²={r2:F3}");
+                    $"RMSE={rmse:F2}, MAE={mae:F2}, R²={r2:F3}, time={sw.Elapsed.TotalMilliseconds:F3} ms");
 
                 if (rmse < bestRmse)
                 {
@@ -159,12 +171,20 @@ namespace used_car_predictor.Backend.Models
             if (bestModel == null)
                 throw new InvalidOperationException("RF residual search failed.");
 
+            double totalMs = tuningTotalTicks * 1000.0 / System.Diagnostics.Stopwatch.Frequency;
+            double meanMs = trials > 0 ? totalMs / trials : 0.0;
+
+            bestModel.TuningTotalMs = totalMs;
+            bestModel.TuningMeanTrialMs = meanMs;
+            bestModel.TuningTrials = trials;
+
             Console.WriteLine(
                 $"[RF(res) Best] nEst={bestParams!["nEstimators"]}, maxDepth={bestParams!["maxDepth"]}, " +
                 $"minSplit={bestParams!["minSamplesSplit"]}, minLeaf={bestParams!["minSamplesLeaf"]}, " +
-                $"sampleRatio={bestParams!["sampleRatio"]}, bootstrap={bestParams!["bootstrap"]}");
+                $"sampleRatio={bestParams!["sampleRatio"]}, bootstrap={bestParams!["bootstrap"]}, " +
+                $"Trials={trials}, MeanTrialMs={meanMs:F3}, TotalMs={totalMs:F3}");
 
-            return bestModel;
+            return (bestModel, meanMs, totalMs, trials);
         }
 
 

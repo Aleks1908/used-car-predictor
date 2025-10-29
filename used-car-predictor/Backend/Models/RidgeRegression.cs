@@ -21,6 +21,13 @@ namespace used_car_predictor.Backend.Models
         public double Bias => _bias;
         public double Alpha => _alpha;
 
+        public double TotalMs { get; private set; }
+        public double MeanTrialMs { get; private set; }
+
+        public int? TuningTrials { get; private set; }
+        public double? TuningTotalMs { get; private set; }
+        public double? TuningMeanTrialMs { get; private set; }
+
         public RidgeRegression(
             double learningRate = 1e-4,
             int epochs = 10_000,
@@ -35,10 +42,16 @@ namespace used_car_predictor.Backend.Models
 
         public void Fit(double[,] features, double[] labels)
         {
+            var sw = System.Diagnostics.Stopwatch.StartNew();
+
             if (_useClosedForm)
                 FitClosedForm(features, labels, _alpha, out _weights, out _bias);
             else
                 FitGradientDescent(features, labels, _alpha, _learningRate, _epochs, out _weights, out _bias);
+
+            sw.Stop();
+            TotalMs = sw.Elapsed.TotalMilliseconds;
+            MeanTrialMs = TotalMs;
         }
 
         public double Predict(double[] featureRow)
@@ -184,10 +197,11 @@ namespace used_car_predictor.Backend.Models
             }
         }
 
-        public static RidgeRegression TrainWithBestParams(
-            double[,] tx, double[] ty,
-            double[,] vx, double[] vy,
-            LabelScaler yScaler)
+        public static (RidgeRegression Model, double MeanTrialMs, double TotalMs, int Trials)
+            TrainWithBestParams(
+                double[,] tx, double[] ty,
+                double[,] vx, double[] vy,
+                LabelScaler yScaler)
         {
             double[] alphas = { 1e-8, 1e-7, 1e-6, 1e-5, 1e-4, 1e-3, 5e-3, 1e-2, 5e-2, 0.1, 0.2, 0.5, 1.0, 2.0 };
 
@@ -195,8 +209,13 @@ namespace used_car_predictor.Backend.Models
             double bestAlpha = alphas[0];
             RidgeRegression? bestModel = null;
 
+            long tuningTotalTicks = 0;
+            int tuningTrials = 0;
+
             foreach (var a in alphas)
             {
+                var sw = System.Diagnostics.Stopwatch.StartNew();
+
                 var rr = new RidgeRegression(lambda: a, useClosedForm: true);
                 rr.Fit(tx, ty);
 
@@ -205,6 +224,14 @@ namespace used_car_predictor.Backend.Models
                 var truth = yScaler.InverseTransform(vy);
 
                 double rmse = Metrics.RootMeanSquaredError(truth, preds);
+
+                sw.Stop();
+                tuningTotalTicks += sw.ElapsedTicks;
+                tuningTrials++;
+
+                var ms = sw.Elapsed.TotalMilliseconds;
+                Console.WriteLine($"[Ridge tune] α={a:g}, RMSE={rmse:F3}, time={ms:F3} ms");
+
                 if (rmse < bestRmse)
                 {
                     bestRmse = rmse;
@@ -219,7 +246,18 @@ namespace used_car_predictor.Backend.Models
             var (fullX, fullY) = Concat(tx, ty, vx, vy);
             var final = new RidgeRegression(lambda: bestAlpha, useClosedForm: true);
             final.Fit(fullX, fullY);
-            return final;
+
+            double totalMs = tuningTotalTicks * 1000.0 / System.Diagnostics.Stopwatch.Frequency;
+            double meanMs = tuningTrials > 0 ? totalMs / tuningTrials : 0.0;
+
+            final.TuningTrials = tuningTrials;
+            final.TuningTotalMs = totalMs;
+            final.TuningMeanTrialMs = meanMs;
+
+            Console.WriteLine(
+                $"[Ridge Best] α={bestAlpha:g}, Trials={tuningTrials}, MeanTrialMs={meanMs:F3}, TotalMs={totalMs:F3}");
+
+            return (final, meanMs, totalMs, tuningTrials);
         }
 
         private static (double[,], double[]) Concat(double[,] x1, double[] y1, double[,] x2, double[] y2)

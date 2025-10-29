@@ -153,8 +153,7 @@ if (args.Contains("--cli"))
     else
     {
         trainList = modelCounts.Where(x => x.Count >= MinCount)
-            .Select(x => (x.Model, x.Count))
-            .ToList();
+            .Select(x => (x.Model, x.Count)).ToList();
     }
 
     int trained = 0;
@@ -171,6 +170,7 @@ if (args.Contains("--cli"))
             Preprocessor.ToMatrix(rows, targetYear: anchorYear, anchorTargetYear: anchorYear);
 
         var (trainRawX, trainRawY, testRawX, testRawY) = DataSplitter.Split(rawX, rawY, trainRatio: 0.8);
+
         var fScaler = new FeatureScaler();
         var yScaler = new LabelScaler();
 
@@ -197,23 +197,47 @@ if (args.Contains("--cli"))
 
         LinearRegression? linearModel = null;
         RidgeRegression? ridgeModel = null;
-        RandomForestRegressor? rfModel = null;
         GradientBoostingRegressor? gbModel = null;
+        RandomForestRegressor? rfModel = null;
 
         var bundleMetrics = new Dictionary<string, MetricsDto>();
+
+        var trainingTimes = new Dictionary<string, TrainingTimeDto>
+        {
+            ["Linear"] = new TrainingTimeDto { MeanTrialMs = null, Trials = null, TotalMs = null },
+            ["Ridge"] = new TrainingTimeDto { MeanTrialMs = null, Trials = null, TotalMs = null },
+            ["RandomForest"] = new TrainingTimeDto { MeanTrialMs = null, Trials = null, TotalMs = null },
+            ["GradientBoosting"] = new TrainingTimeDto { MeanTrialMs = null, Trials = null, TotalMs = null }
+        };
 
         if (wantLinear)
         {
             linearModel = new LinearRegression();
             linearModel.Fit(trainX, trainY);
             bundleMetrics["linear"] = EvaluateAndPredict("Linear", linearModel);
+
+            trainingTimes["Linear"] = new TrainingTimeDto
+            {
+                TotalMs = linearModel.TotalMs,
+            };
         }
 
         if (wantRidge || wantGB || wantRF)
         {
-            ridgeModel = RidgeRegression.TrainWithBestParams(tx, ty, vx, vy, yScaler);
+            var (ridgeTrainedModel, ridgeMeanMs, ridgeTotalMs, ridgeTrials) =
+                RidgeRegression.TrainWithBestParams(tx, ty, vx, vy, yScaler);
+
+            ridgeModel = ridgeTrainedModel;
+
             ridgeModel.Fit(trainX, trainY);
-            bundleMetrics["ridge"] = EvaluateAndPredict("Ridge", ridgeModel);
+            bundleMetrics["Ridge"] = EvaluateAndPredict("ridge", ridgeModel);
+
+            trainingTimes["Ridge"] = new TrainingTimeDto
+            {
+                MeanTrialMs = ridgeMeanMs,
+                TotalMs = ridgeTotalMs,
+                Trials = ridgeTrials
+            };
         }
 
         static double[] ZPred(double[,] X, IRegressor m) => m.Predict(X);
@@ -234,7 +258,18 @@ if (args.Contains("--cli"))
 
         if (wantGB && ridgeModel != null && trainRes != null && valRes != null)
         {
-            gbModel = GradientBoostingRegressor.TrainResidualsWithBestParams(tx, trainRes, vx, valRes);
+            var (gbTrainedModel, gbMeanTrialMs, gbTrials, gbTotalTime) =
+                GradientBoostingRegressor.TrainResidualsWithBestParams(tx, trainRes, vx, valRes);
+
+            gbModel = gbTrainedModel;
+            Console.WriteLine($"[GB(res) search] avg {gbMeanTrialMs:F1} ms/trial over {gbTrials} trials");
+
+            trainingTimes["GradientBoosting"] = new TrainingTimeDto
+            {
+                MeanTrialMs = gbMeanTrialMs,
+                Trials = gbTrials,
+                TotalMs = gbTotalTime
+            };
 
             var zTestRidge = ZPred(testX, ridgeModel);
             var zTestGbRes = gbModel.Predict(testX);
@@ -254,10 +289,13 @@ if (args.Contains("--cli"))
 
         if (wantRF && ridgeModel != null && trainRes != null && valRes != null)
         {
-            rfModel = RandomForestRegressor.TrainResidualsWithBestParams(
-                tx, trainRes, vx, valRes,
-                maxConfigs: 60,
-                searchSeed: null);
+            var (rfTrainedModel, rfMeanMs, rfTotalMs, rfTrials) =
+                RandomForestRegressor.TrainResidualsWithBestParams(
+                    tx, trainRes, vx, valRes,
+                    maxConfigs: 60,
+                    searchSeed: null);
+
+            rfModel = rfTrainedModel;
 
             var zTestRidge = ZPred(testX, ridgeModel);
             var zTestRfRes = rfModel.Predict(testX);
@@ -271,11 +309,20 @@ if (args.Contains("--cli"))
             double rmse = Metrics.RootMeanSquaredError(truth, predsCombined);
             double r2 = Metrics.RSquared(truth, predsCombined);
 
+            trainingTimes["RandomForest"] = new TrainingTimeDto
+            {
+                MeanTrialMs = rfMeanMs,
+                TotalMs = rfTotalMs,
+                Trials = rfTrials
+            };
+
             bundleMetrics["ridge_rf"] = new MetricsDto { MAE = mae, RMSE = rmse, R2 = r2 };
             Console.WriteLine($"{m.Model,-22} [Ridge+RF] MAE={mae,7:F0} RMSE={rmse,7:F0} R²={r2,5:F3}");
         }
 
-        if (ridgeModel != null && (rfModel != null || gbModel != null))
+        bool saveOk = ridgeModel != null && (gbModel != null || rfModel != null);
+
+        if (saveOk)
         {
             var id = ModelNormalizer.Normalize(m.Model);
             var outPath = Path.Combine(processedDir, $"{id}.json");
@@ -325,8 +372,10 @@ if (args.Contains("--cli"))
 
             bundle.Metrics = bundleMetrics;
 
+            bundle.TrainingTimes = trainingTimes;
+
             ModelPersistence.SaveBundle(bundle, outPath);
-            Console.WriteLine($"✅ Saved model bundle -> {outPath}");
+            Console.WriteLine($"Saved model bundle -> {outPath}");
         }
         else
         {

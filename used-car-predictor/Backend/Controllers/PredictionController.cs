@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using used_car_predictor.Backend.Api;
 using used_car_predictor.Backend.Services;
+using used_car_predictor.Backend.Serialization;
 
 namespace used_car_predictor.Backend.Controllers;
 
@@ -51,13 +52,18 @@ public class PredictionController : ControllerBase
         };
     }
 
+    private Dictionary<string, TrainingTimeDto>? CurrentTrainingTimes()
+    {
+        if (_active.TrainingTimes is null) return null;
+        return new Dictionary<string, TrainingTimeDto>(_active.TrainingTimes, StringComparer.OrdinalIgnoreCase);
+    }
+
     private List<ModelPredictionDto> PredictAllForTargetYear(PredictRequest req, int targetYear)
     {
         var raw = ServingHelpers.EncodeManualInput(
             req.YearOfProduction, req.MileageKm, req.FuelType, req.Transmission,
             _active.Fuels, _active.Transmissions, targetYear: targetYear,
             anchorTargetYear: _active.AnchorTargetYear);
-
 
         var x = ServingHelpers.ScaleRow(raw, _active.FeatureMeans, _active.FeatureStds);
         var zByAlgo = _active.PredictAllScaled(x);
@@ -176,7 +182,8 @@ public class PredictionController : ControllerBase
             YearOfProduction = req.YearOfProduction,
             TargetYear = targetYear,
             Results = results,
-            ModelInfo = CurrentModelInfo()
+            ModelInfo = CurrentModelInfo(),
+            TrainingTimes = CurrentTrainingTimes()
         });
     }
 
@@ -220,7 +227,8 @@ public class PredictionController : ControllerBase
         return Ok(new PredictRangeResponse
         {
             Items = items,
-            ModelInfo = CurrentModelInfo()
+            ModelInfo = CurrentModelInfo(),
+            TrainingTimes = CurrentTrainingTimes()
         });
     }
 
@@ -253,17 +261,17 @@ public class PredictionController : ControllerBase
         if (algoKey is null)
             return BadRequest(new { error = "algorithm must be one of: linear, ridge, ridge_rf, ridge_gb" });
 
-        // Car A (load bundle A, then build series & infoA with metrics for algoKey)
         await _hotLoader.EnsureLoadedAsync(req.CarA.Manufacturer, req.CarA.Model, ct);
         if (!_active.IsLoaded) return Problem("No active model loaded.", statusCode: 503);
         var seriesA = BuildSeriesForCurrentActive(req.CarA, start, end, algoKey);
-        var infoA = CurrentModelInfo(algoKey); // <-- include metrics for A’s active bundle
+        var infoA = CurrentModelInfo(algoKey);
+        var timesA = CurrentTrainingTimes();
 
-        // Car B (load bundle B, then build series & infoB with metrics for algoKey)
         await _hotLoader.EnsureLoadedAsync(req.CarB.Manufacturer, req.CarB.Model, ct);
         if (!_active.IsLoaded) return Problem("No active model loaded.", statusCode: 503);
         var seriesB = BuildSeriesForCurrentActive(req.CarB, start, end, algoKey);
-        var infoB = CurrentModelInfo(algoKey); // <-- include metrics for B’s active bundle
+        var infoB = CurrentModelInfo(algoKey);
+        var timesB = CurrentTrainingTimes();
 
         return Ok(new TwoCarPredictRangeResponse
         {
@@ -271,7 +279,9 @@ public class PredictionController : ControllerBase
             CarA = seriesA,
             CarB = seriesB,
             ModelInfoA = infoA,
-            ModelInfoB = infoB
+            ModelInfoB = infoB,
+            ModelTrainingTimesA = timesA,
+            ModelTrainingTimesB = timesB
         });
     }
 
@@ -290,7 +300,8 @@ public class PredictionController : ControllerBase
             YearOfProduction = req.YearOfProduction,
             TargetYear = targetYear,
             Results = results,
-            ModelInfo = CurrentModelInfo()
+            ModelInfo = CurrentModelInfo(),
+            TrainingTimes = CurrentTrainingTimes()
         };
 
         return Ok(resp);

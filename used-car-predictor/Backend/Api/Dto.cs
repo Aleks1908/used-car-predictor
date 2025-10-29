@@ -1,3 +1,6 @@
+using System.Text.Json.Serialization;
+using used_car_predictor.Backend.Serialization;
+
 namespace used_car_predictor.Backend.Api;
 
 public sealed class PredictRequest
@@ -47,6 +50,8 @@ public sealed class PredictResponse
     public List<ModelPredictionDto> Results { get; set; } = new();
 
     public ModelInfoDto? ModelInfo { get; set; }
+
+    public Dictionary<string, TrainingTimeDto>? TrainingTimes { get; set; }
 }
 
 public sealed class ModelInfoDto
@@ -57,10 +62,13 @@ public sealed class ModelInfoDto
 
     public int? TotalRows { get; set; }
 
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public double? Mse { get; set; }
 
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public double? Mae { get; set; }
 
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public double? R2 { get; set; }
 }
 
@@ -94,6 +102,8 @@ public sealed class PredictRangeResponse
 {
     public List<PredictRangeItem> Items { get; set; } = new();
     public ModelInfoDto ModelInfo { get; set; } = new();
+
+    public Dictionary<string, TrainingTimeDto>? TrainingTimes { get; set; }
 }
 
 public sealed class ManufacturerRequest
@@ -148,6 +158,9 @@ public sealed class TwoCarPredictRangeResponse
     public List<YearlyPrediction> CarB { get; set; } = new();
     public ModelInfoDto ModelInfoA { get; set; } = new();
     public ModelInfoDto ModelInfoB { get; set; } = new();
+
+    public Dictionary<string, TrainingTimeDto>? ModelTrainingTimesA { get; set; }
+    public Dictionary<string, TrainingTimeDto>? ModelTrainingTimesB { get; set; }
 }
 
 public sealed class YearlyPrediction
