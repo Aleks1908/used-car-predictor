@@ -175,6 +175,8 @@ public class PredictionController : ControllerBase
         int targetYear = ClampYear(req.TargetYear ?? DateTime.UtcNow.Year);
         var results = PredictAllForTargetYear(req, targetYear);
 
+        foreach (var r in results) r.Metrics = null;
+
         return Ok(new PredictResponse
         {
             Manufacturer = req.Manufacturer,
@@ -183,7 +185,7 @@ public class PredictionController : ControllerBase
             TargetYear = targetYear,
             Results = results,
             ModelInfo = CurrentModelInfo(),
-            TrainingTimes = CurrentTrainingTimes()
+            Metrics = BuildMetricsSummary()
         });
     }
 
@@ -213,6 +215,7 @@ public class PredictionController : ControllerBase
             };
 
             var results = PredictAllForTargetYear(single, y);
+            foreach (var r in results) r.Metrics = null; 
 
             items.Add(new PredictRangeItem
             {
@@ -228,24 +231,53 @@ public class PredictionController : ControllerBase
         {
             Items = items,
             ModelInfo = CurrentModelInfo(),
-            TrainingTimes = CurrentTrainingTimes()
+            Metrics = BuildMetricsSummary()
         });
     }
+
 
     [HttpPost("predict-two")]
     public async Task<ActionResult<TwoCarPredictResponse>> PredictTwo([FromBody] TwoCarPredictRequest req,
         CancellationToken ct)
     {
-        var a = await PredictOneAllAlgosAsync(req.CarA, ct);
-        if (a is ObjectResult ao && ao.StatusCode is >= 400) return ao;
+        await _hotLoader.EnsureLoadedAsync(req.CarA.Manufacturer, req.CarA.Model, ct);
+        if (!_active.IsLoaded) return Problem("No active model loaded.", statusCode: 503);
 
-        var b = await PredictOneAllAlgosAsync(req.CarB, ct);
-        if (b is ObjectResult bo && bo.StatusCode is >= 400) return bo;
+        int ta = ClampYear(req.CarA.TargetYear ?? DateTime.UtcNow.Year);
+        var resA = PredictAllForTargetYear(req.CarA with { TargetYear = ta }, ta);
+        foreach (var r in resA) r.Metrics = null;
+        var a = new PredictResponse
+        {
+            Manufacturer = req.CarA.Manufacturer,
+            Model = req.CarA.Model,
+            YearOfProduction = req.CarA.YearOfProduction,
+            TargetYear = ta,
+            Results = resA,
+            ModelInfo = CurrentModelInfo(),
+            Metrics = BuildMetricsSummary()
+        };
+
+        await _hotLoader.EnsureLoadedAsync(req.CarB.Manufacturer, req.CarB.Model, ct);
+        if (!_active.IsLoaded) return Problem("No active model loaded.", statusCode: 503);
+
+        int tb = ClampYear(req.CarB.TargetYear ?? DateTime.UtcNow.Year);
+        var resB = PredictAllForTargetYear(req.CarB with { TargetYear = tb }, tb);
+        foreach (var r in resB) r.Metrics = null;
+        var b = new PredictResponse
+        {
+            Manufacturer = req.CarB.Manufacturer,
+            Model = req.CarB.Model,
+            YearOfProduction = req.CarB.YearOfProduction,
+            TargetYear = tb,
+            Results = resB,
+            ModelInfo = CurrentModelInfo(),
+            Metrics = BuildMetricsSummary()
+        };
 
         return Ok(new TwoCarPredictResponse
         {
-            CarA = (PredictResponse)((OkObjectResult)a!).Value!,
-            CarB = (PredictResponse)((OkObjectResult)b!).Value!
+            CarA = a,
+            CarB = b,
         });
     }
 
@@ -265,13 +297,13 @@ public class PredictionController : ControllerBase
         if (!_active.IsLoaded) return Problem("No active model loaded.", statusCode: 503);
         var seriesA = BuildSeriesForCurrentActive(req.CarA, start, end, algoKey);
         var infoA = CurrentModelInfo(algoKey);
-        var timesA = CurrentTrainingTimes();
+        var metricsA = BuildMetricsSummary();
 
         await _hotLoader.EnsureLoadedAsync(req.CarB.Manufacturer, req.CarB.Model, ct);
         if (!_active.IsLoaded) return Problem("No active model loaded.", statusCode: 503);
         var seriesB = BuildSeriesForCurrentActive(req.CarB, start, end, algoKey);
         var infoB = CurrentModelInfo(algoKey);
-        var timesB = CurrentTrainingTimes();
+        var metricsB = BuildMetricsSummary();
 
         return Ok(new TwoCarPredictRangeResponse
         {
@@ -280,8 +312,8 @@ public class PredictionController : ControllerBase
             CarB = seriesB,
             ModelInfoA = infoA,
             ModelInfoB = infoB,
-            ModelTrainingTimesA = timesA,
-            ModelTrainingTimesB = timesB
+            MetricsA = metricsA,
+            MetricsB = metricsB
         });
     }
 
@@ -301,9 +333,53 @@ public class PredictionController : ControllerBase
             TargetYear = targetYear,
             Results = results,
             ModelInfo = CurrentModelInfo(),
-            TrainingTimes = CurrentTrainingTimes()
         };
 
         return Ok(resp);
+    }
+
+
+    private Dictionary<string, AlgorithmMetricsDto>? BuildMetricsSummary()
+    {
+        if (!_active.IsLoaded) return null;
+
+        var result = new Dictionary<string, AlgorithmMetricsDto>(StringComparer.OrdinalIgnoreCase);
+
+        foreach (var (algo, triplet) in _active.MetricsByAlgo)
+        {
+            result[algo] = new AlgorithmMetricsDto
+            {
+                Metrics = new ModelMetricsDto
+                {
+                    Mse = Math.Round(triplet.Mse, 2),
+                    Mae = Math.Round(triplet.Mae, 2),
+                    R2 = Math.Round(triplet.R2, 2)
+                }
+            };
+        }
+
+        if (_active.TrainingTimes is not null)
+        {
+            foreach (var kv in _active.TrainingTimes)
+            {
+                string algo = kv.Key switch
+                {
+                    "Linear" => "linear",
+                    "Ridge" => "ridge",
+                    "RandomForest" => "ridge_rf",
+                    "GradientBoosting" => "ridge_gb",
+                    _ => null
+                } ?? "";
+
+                if (string.IsNullOrEmpty(algo)) continue;
+
+                if (!result.TryGetValue(algo, out var entry))
+                    entry = result[algo] = new AlgorithmMetricsDto();
+
+                entry.Timing = kv.Value;
+            }
+        }
+
+        return result.Count > 0 ? result : null;
     }
 }

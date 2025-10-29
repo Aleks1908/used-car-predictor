@@ -3,16 +3,15 @@ using used_car_predictor.Backend.Serialization;
 
 namespace used_car_predictor.Backend.Api;
 
-public sealed class PredictRequest
+public sealed record PredictRequest
 {
-    public string Manufacturer { get; set; } = default!;
-    public string Model { get; set; } = default!;
-    public int YearOfProduction { get; set; }
-    public string Transmission { get; set; } = default!;
-    public string FuelType { get; set; } = default!;
-    public int MileageKm { get; set; }
-
-    public int? TargetYear { get; set; }
+    public string Manufacturer { get; init; } = default!;
+    public string Model { get; init; } = default!;
+    public int YearOfProduction { get; init; }
+    public string Transmission { get; init; } = default!;
+    public string FuelType { get; init; } = default!;
+    public int MileageKm { get; init; }
+    public int? TargetYear { get; init; }
 }
 
 public sealed class PredictRangeRequest
@@ -27,20 +26,6 @@ public sealed class PredictRangeRequest
     public int EndYear { get; set; }
 }
 
-public sealed class ModelPredictionDto
-{
-    public string Algorithm { get; set; } = default!;
-    public decimal PredictedPrice { get; set; }
-    public ModelMetricsDto Metrics { get; set; } = new();
-}
-
-public sealed class ModelMetricsDto
-{
-    public double Mse { get; set; }
-    public double Mae { get; set; }
-    public double R2 { get; set; }
-}
-
 public sealed class PredictResponse
 {
     public string Manufacturer { get; set; } = default!;
@@ -51,7 +36,8 @@ public sealed class PredictResponse
 
     public ModelInfoDto? ModelInfo { get; set; }
 
-    public Dictionary<string, TrainingTimeDto>? TrainingTimes { get; set; }
+
+    public Dictionary<string, AlgorithmMetricsDto>? Metrics { get; set; }
 }
 
 public sealed class ModelInfoDto
@@ -98,14 +84,6 @@ public sealed class PredictRangeItem
     public List<ModelPredictionDto> Results { get; set; } = new();
 }
 
-public sealed class PredictRangeResponse
-{
-    public List<PredictRangeItem> Items { get; set; } = new();
-    public ModelInfoDto ModelInfo { get; set; } = new();
-
-    public Dictionary<string, TrainingTimeDto>? TrainingTimes { get; set; }
-}
-
 public sealed class ManufacturerRequest
 {
     public string Manufacturer { get; set; } = "";
@@ -135,12 +113,6 @@ public sealed class TwoCarPredictRequest
     public PredictRequest CarB { get; set; } = default!;
 }
 
-public sealed class TwoCarPredictResponse
-{
-    public PredictResponse CarA { get; set; } = default!;
-    public PredictResponse CarB { get; set; } = default!;
-}
-
 public sealed class TwoCarPredictRangeRequest
 {
     public PredictRequest CarA { get; set; } = default!;
@@ -151,6 +123,57 @@ public sealed class TwoCarPredictRangeRequest
     public string Algorithm { get; set; } = "ridge";
 }
 
+public sealed class YearlyPrediction
+{
+    public int Year { get; set; }
+    public decimal PredictedPrice { get; set; }
+}
+
+public sealed class ModelPredictionDto
+{
+    public string Algorithm { get; set; } = default!;
+    public decimal PredictedPrice { get; set; }
+
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public ModelMetricsDto? Metrics { get; set; }
+}
+
+public sealed class ModelMetricsDto
+{
+    public double Mse { get; set; }
+    public double Mae { get; set; }
+    public double R2 { get; set; }
+}
+
+public sealed class AlgorithmMetricsDto
+{
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public ModelMetricsDto? Metrics { get; set; }
+
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public TrainingTimeDto? Timing { get; set; }
+}
+
+public sealed class PredictRangeResponse
+{
+    public List<PredictRangeItem> Items { get; set; } = new();
+    public ModelInfoDto ModelInfo { get; set; } = new();
+
+    public Dictionary<string, AlgorithmMetricsDto>? Metrics { get; set; }
+}
+
+public sealed class TwoCarPredictResponse
+{
+    public PredictResponse CarA { get; set; } = default!;
+    public PredictResponse CarB { get; set; } = default!;
+
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public Dictionary<string, AlgorithmMetricsDto>? MetricsA { get; set; }
+
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public Dictionary<string, AlgorithmMetricsDto>? MetricsB { get; set; }
+}
+
 public sealed class TwoCarPredictRangeResponse
 {
     public string Algorithm { get; set; } = "";
@@ -159,12 +182,9 @@ public sealed class TwoCarPredictRangeResponse
     public ModelInfoDto ModelInfoA { get; set; } = new();
     public ModelInfoDto ModelInfoB { get; set; } = new();
 
-    public Dictionary<string, TrainingTimeDto>? ModelTrainingTimesA { get; set; }
-    public Dictionary<string, TrainingTimeDto>? ModelTrainingTimesB { get; set; }
-}
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public Dictionary<string, AlgorithmMetricsDto>? MetricsA { get; set; }
 
-public sealed class YearlyPrediction
-{
-    public int Year { get; set; }
-    public decimal PredictedPrice { get; set; }
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public Dictionary<string, AlgorithmMetricsDto>? MetricsB { get; set; }
 }
