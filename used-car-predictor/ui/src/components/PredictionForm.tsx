@@ -174,15 +174,17 @@ export function PredictionForm({
           </Field>
 
           {details.anchorTargetYear && (
-            <div className="w-80 bg-blue-50 border-2 border-blue-200 rounded-lg p-4">
-              <p className="text-sm text-blue-900 text-center">
-                <span className="font-semibold">Note:</span> This model is most
-                accurate for predictions around the year
-                <span className="font-bold">{details.anchorTargetYear}</span>.
-                Predictions for years further from this anchor may be less
-                accurate.
-              </p>
-            </div>
+            <Field>
+              <div className="w-80 bg-blue-50 border-2 border-blue-200 rounded-lg p-4">
+                <p className="text-sm text-blue-900 text-center">
+                  <span className="font-semibold">Note:</span> This model is
+                  most accurate for predictions around the year{" "}
+                  <span className="font-bold">{details.anchorTargetYear}</span>.
+                  Predictions for years further from this anchor may be less
+                  accurate.
+                </p>
+              </div>
+            </Field>
           )}
 
           {children}

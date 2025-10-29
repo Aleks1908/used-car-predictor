@@ -116,7 +116,6 @@ function RangePrediction({ onBack }: RangePredictionProps) {
             <PriceRangeChart items={predictionResult.items} />
           </div>
 
-          {/* Detailed Results Grid */}
           <div className="space-y-8">
             {predictionResult.items?.map((item) => (
               <div key={item.targetYear} className="space-y-4">
