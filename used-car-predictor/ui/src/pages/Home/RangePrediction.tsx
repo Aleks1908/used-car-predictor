@@ -6,8 +6,11 @@ import { Label } from "@/components/ui/label";
 import { PredictionForm } from "@/components/PredictionForm";
 import { PriceRangeChart } from "@/components/PriceRangeChart";
 import { AlgorithmResultCard } from "@/components/AlgorithmResultCard";
+import { AlgorithmMetricsCard } from "@/components/AlgorithmMetricsCard";
+import { ModelInfoCard } from "@/components/ModelInfoCard";
 import { usePredictionData } from "@/hooks/usePredictionData";
 import { validateYearRange } from "@/utils/validation";
+import { formatCarName } from "@/utils/formatting";
 import type { RangePredictionResponse } from "@/types/prediction";
 
 interface RangePredictionProps {
@@ -105,6 +108,9 @@ function RangePrediction({ onBack }: RangePredictionProps) {
     yearOfProduction;
 
   if (predictionResult !== null) {
+    const firstItem = predictionResult.items[0];
+    const carName = formatCarName(firstItem.manufacturer, firstItem.model);
+
     return (
       <div className="min-h-screen bg-linear-to-br from-gray-100 to-gray-200 p-8 flex items-center justify-center">
         <div className="w-full max-w-6xl bg-white rounded-3xl shadow-2xl border-2 border-gray-300 p-12">
@@ -112,11 +118,24 @@ function RangePrediction({ onBack }: RangePredictionProps) {
             Range Prediction Results
           </h1>
 
+          <div className="mb-8">
+            <ModelInfoCard
+              carName={carName}
+              modelInfo={predictionResult.modelInfo}
+              carDetails={{
+                yearOfProduction: firstItem.yearOfProduction,
+                transmission: selectedTransmission,
+                fuelType: selectedFuel,
+                mileageKm: parseInt(mileageKm),
+              }}
+            />
+          </div>
+
           <div className="mb-12">
             <PriceRangeChart items={predictionResult.items} />
           </div>
 
-          <div className="space-y-8">
+          <div className="space-y-8 mb-8">
             {predictionResult.items?.map((item) => (
               <div key={item.targetYear} className="space-y-4">
                 <h2 className="text-2xl font-bold text-gray-900 text-center">
@@ -134,14 +153,8 @@ function RangePrediction({ onBack }: RangePredictionProps) {
             ))}
           </div>
 
-          <div className="text-center text-sm text-gray-600 mt-8 mb-8 space-y-1">
-            <p>
-              Model trained at:{" "}
-              {new Date(predictionResult.modelInfo.trainedAt).toLocaleString()}
-            </p>
-            <p>
-              Anchor target year: {predictionResult.modelInfo.anchorTargetYear}
-            </p>
+          <div className="mb-8">
+            <AlgorithmMetricsCard metrics={predictionResult.metrics} />
           </div>
 
           <div className="flex justify-center gap-4">

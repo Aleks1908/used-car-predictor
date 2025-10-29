@@ -144,25 +144,13 @@ public class PredictionController : ControllerBase
         return series;
     }
 
-    private ModelInfoDto CurrentModelInfo(string? algoKey = null)
+    private ModelInfoDto CurrentModelInfo()
     {
-        double? mse = null, mae = null, r2 = null;
-        if (!string.IsNullOrWhiteSpace(algoKey) &&
-            _active.MetricsByAlgo.TryGetValue(algoKey, out var m))
-        {
-            mse = Math.Round(m.Mse, 2);
-            mae = Math.Round(m.Mae, 2);
-            r2 = Math.Round(m.R2, 2);
-        }
-
         return new ModelInfoDto
         {
             TrainedAt = _active.TrainedAt,
             AnchorTargetYear = _active.AnchorTargetYear,
             TotalRows = _active.TotalRows,
-            Mse = mse,
-            Mae = mae,
-            R2 = r2
         };
     }
 
@@ -215,7 +203,7 @@ public class PredictionController : ControllerBase
             };
 
             var results = PredictAllForTargetYear(single, y);
-            foreach (var r in results) r.Metrics = null; 
+            foreach (var r in results) r.Metrics = null;
 
             items.Add(new PredictRangeItem
             {
@@ -296,14 +284,14 @@ public class PredictionController : ControllerBase
         await _hotLoader.EnsureLoadedAsync(req.CarA.Manufacturer, req.CarA.Model, ct);
         if (!_active.IsLoaded) return Problem("No active model loaded.", statusCode: 503);
         var seriesA = BuildSeriesForCurrentActive(req.CarA, start, end, algoKey);
-        var infoA = CurrentModelInfo(algoKey);
-        var metricsA = BuildMetricsSummary();
+        var infoA = CurrentModelInfo(); 
+        var metricsA = BuildMetricsSummary(algoKey); 
 
         await _hotLoader.EnsureLoadedAsync(req.CarB.Manufacturer, req.CarB.Model, ct);
         if (!_active.IsLoaded) return Problem("No active model loaded.", statusCode: 503);
         var seriesB = BuildSeriesForCurrentActive(req.CarB, start, end, algoKey);
-        var infoB = CurrentModelInfo(algoKey);
-        var metricsB = BuildMetricsSummary();
+        var infoB = CurrentModelInfo(); 
+        var metricsB = BuildMetricsSummary(algoKey);
 
         return Ok(new TwoCarPredictRangeResponse
         {
@@ -317,37 +305,22 @@ public class PredictionController : ControllerBase
         });
     }
 
-    private async Task<ActionResult> PredictOneAllAlgosAsync(PredictRequest req, CancellationToken ct)
-    {
-        await _hotLoader.EnsureLoadedAsync(req.Manufacturer, req.Model, ct);
-        if (!_active.IsLoaded) return Problem("No active model loaded.", statusCode: 503);
 
-        int targetYear = ClampYear(req.TargetYear ?? DateTime.UtcNow.Year);
-        var results = PredictAllForTargetYear(req, targetYear);
-
-        var resp = new PredictResponse
-        {
-            Manufacturer = req.Manufacturer,
-            Model = req.Model,
-            YearOfProduction = req.YearOfProduction,
-            TargetYear = targetYear,
-            Results = results,
-            ModelInfo = CurrentModelInfo(),
-        };
-
-        return Ok(resp);
-    }
-
-
-    private Dictionary<string, AlgorithmMetricsDto>? BuildMetricsSummary()
+    private Dictionary<string, AlgorithmMetricsDto>? BuildMetricsSummary(params string[] restrictTo)
     {
         if (!_active.IsLoaded) return null;
 
-        var result = new Dictionary<string, AlgorithmMetricsDto>(StringComparer.OrdinalIgnoreCase);
+        HashSet<string>? allowed = null;
+        if (restrictTo is { Length: > 0 })
+            allowed = new HashSet<string>(restrictTo, StringComparer.OrdinalIgnoreCase);
+
+        var temp = new Dictionary<string, AlgorithmMetricsDto>(StringComparer.OrdinalIgnoreCase);
 
         foreach (var (algo, triplet) in _active.MetricsByAlgo)
         {
-            result[algo] = new AlgorithmMetricsDto
+            if (allowed != null && !allowed.Contains(algo)) continue;
+
+            temp[algo] = new AlgorithmMetricsDto
             {
                 Metrics = new ModelMetricsDto
                 {
@@ -362,23 +335,34 @@ public class PredictionController : ControllerBase
         {
             foreach (var kv in _active.TrainingTimes)
             {
-                string algo = kv.Key switch
+                string? algo = kv.Key switch
                 {
                     "Linear" => "linear",
                     "Ridge" => "ridge",
                     "RandomForest" => "ridge_rf",
                     "GradientBoosting" => "ridge_gb",
                     _ => null
-                } ?? "";
+                };
+                if (algo is null) continue;
+                if (allowed != null && !allowed.Contains(algo)) continue;
 
-                if (string.IsNullOrEmpty(algo)) continue;
-
-                if (!result.TryGetValue(algo, out var entry))
-                    entry = result[algo] = new AlgorithmMetricsDto();
+                if (!temp.TryGetValue(algo, out var entry))
+                    entry = temp[algo] = new AlgorithmMetricsDto();
 
                 entry.Timing = kv.Value;
             }
         }
+
+        var preferred = new[] { "linear", "ridge", "ridge_rf", "ridge_gb" };
+        var result = new Dictionary<string, AlgorithmMetricsDto>(StringComparer.OrdinalIgnoreCase);
+
+        foreach (var key in preferred)
+            if (temp.TryGetValue(key, out var v))
+                result[key] = v;
+
+        foreach (var kv in temp)
+            if (!result.ContainsKey(kv.Key))
+                result[kv.Key] = kv.Value;
 
         return result.Count > 0 ? result : null;
     }

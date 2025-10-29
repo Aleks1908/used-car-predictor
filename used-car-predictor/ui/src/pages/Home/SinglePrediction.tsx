@@ -2,8 +2,11 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { PredictionForm } from "@/components/PredictionForm";
 import { AlgorithmResultCard } from "@/components/AlgorithmResultCard";
+import { AlgorithmMetricsCard } from "@/components/AlgorithmMetricsCard";
+import { ModelInfoCard } from "@/components/ModelInfoCard";
 import { usePredictionData } from "@/hooks/usePredictionData";
 import { validateYears } from "@/utils/validation";
+import { formatCarName } from "@/utils/formatting";
 import type { PredictionResponse } from "@/types/prediction";
 
 interface SinglePredictionProps {
@@ -95,6 +98,11 @@ function SinglePrediction({ onBack }: SinglePredictionProps) {
     yearOfProduction;
 
   if (predictionResult !== null) {
+    const carName = formatCarName(
+      predictionResult.manufacturer,
+      predictionResult.model
+    );
+
     return (
       <div className="min-h-screen bg-linear-to-br from-gray-100 to-gray-200 p-8 flex items-center justify-center">
         <div className="w-full max-w-6xl bg-white rounded-3xl shadow-2xl border-2 border-gray-300 p-12">
@@ -102,20 +110,27 @@ function SinglePrediction({ onBack }: SinglePredictionProps) {
             Prediction Results
           </h1>
 
+          <div className="mb-8">
+            <ModelInfoCard
+              carName={carName}
+              modelInfo={predictionResult.modelInfo}
+              carDetails={{
+                yearOfProduction: predictionResult.yearOfProduction,
+                transmission: selectedTransmission,
+                fuelType: selectedFuel,
+                mileageKm: parseInt(mileageKm),
+              }}
+            />
+          </div>
+
           <div className="grid grid-cols-4 gap-4 mb-8">
             {predictionResult.results.map((result) => (
               <AlgorithmResultCard key={result.algorithm} result={result} />
             ))}
           </div>
 
-          <div className="text-center text-sm text-gray-600 mb-8 space-y-1">
-            <p>
-              Model trained at:{" "}
-              {new Date(predictionResult.modelInfo.trainedAt).toLocaleString()}
-            </p>
-            <p>
-              Anchor target year: {predictionResult.modelInfo.anchorTargetYear}
-            </p>
+          <div className="mb-8">
+            <AlgorithmMetricsCard metrics={predictionResult.metrics} />
           </div>
 
           <div className="flex justify-center gap-4">

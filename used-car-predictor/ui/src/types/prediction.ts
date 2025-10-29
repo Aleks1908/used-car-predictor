@@ -10,6 +10,19 @@ export interface AlgorithmResult {
   metrics?: PredictionMetrics;
 }
 
+export interface AlgorithmMetric {
+  metrics: {
+    mse: number;
+    mae: number;
+    r2: number;
+  };
+  timing: {
+    meanTrialMs: number | null;
+    trials: number | null;
+    totalMs: number;
+  };
+}
+
 export interface PredictionResponse {
   manufacturer: string;
   model: string;
@@ -19,6 +32,13 @@ export interface PredictionResponse {
   modelInfo: {
     trainedAt: string;
     anchorTargetYear: number;
+    totalRows: number;
+  };
+  metrics: {
+    linear: AlgorithmMetric;
+    ridge: AlgorithmMetric;
+    ridge_rf: AlgorithmMetric;
+    ridge_gb: AlgorithmMetric;
   };
 }
 
@@ -34,5 +54,11 @@ export interface RangePredictionResponse {
     trainedAt: string;
     anchorTargetYear: number;
     totalRows: number;
+  };
+  metrics: {
+    linear: AlgorithmMetric;
+    ridge: AlgorithmMetric;
+    ridge_rf: AlgorithmMetric;
+    ridge_gb: AlgorithmMetric;
   };
 }

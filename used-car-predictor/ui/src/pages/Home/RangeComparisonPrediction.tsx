@@ -9,6 +9,7 @@ import { RangeComparisonChart } from "@/components/RangeComparisonChart";
 import { AlgorithmResultCard } from "@/components/AlgorithmResultCard";
 import { ModelInfoCard } from "@/components/ModelInfoCard";
 import { formatCarName } from "@/utils/formatting";
+import type { AlgorithmMetric } from "@/types/prediction";
 
 interface RangeComparisonResponse {
   algorithm: string;
@@ -24,17 +25,17 @@ interface RangeComparisonResponse {
     trainedAt: string;
     anchorTargetYear: number;
     totalRows: number;
-    mse: number;
-    mae: number;
-    r2: number;
   };
   modelInfoB: {
     trainedAt: string;
     anchorTargetYear: number;
     totalRows: number;
-    mse: number;
-    mae: number;
-    r2: number;
+  };
+  metricsA: {
+    [key: string]: AlgorithmMetric;
+  };
+  metricsB: {
+    [key: string]: AlgorithmMetric;
   };
 }
 
@@ -187,6 +188,33 @@ export function RangeComparisonPrediction({
             Range Comparison Results
           </h1>
 
+          <div className="mb-8 flex gap-4">
+            <div className="flex-1">
+              <ModelInfoCard
+                carName={carALabel}
+                modelInfo={result.modelInfoA}
+                carDetails={{
+                  yearOfProduction: parseInt(carAYearOfProduction),
+                  transmission: carA.selectedTransmission,
+                  fuelType: carA.selectedFuel,
+                  mileageKm: parseInt(carAMileageKm),
+                }}
+              />
+            </div>
+            <div className="flex-1">
+              <ModelInfoCard
+                carName={carBLabel}
+                modelInfo={result.modelInfoB}
+                carDetails={{
+                  yearOfProduction: parseInt(carBYearOfProduction),
+                  transmission: carB.selectedTransmission,
+                  fuelType: carB.selectedFuel,
+                  mileageKm: parseInt(carBMileageKm),
+                }}
+              />
+            </div>
+          </div>
+
           <div className="mb-12">
             <RangeComparisonChart
               carAData={result.carA}
@@ -234,9 +262,191 @@ export function RangeComparisonPrediction({
             })}
           </div>
 
-          <div className="grid grid-cols-2 gap-8 mb-8">
-            <ModelInfoCard carName={carALabel} modelInfo={result.modelInfoA} />
-            <ModelInfoCard carName={carBLabel} modelInfo={result.modelInfoB} />
+          <div className="bg-white p-6 rounded-lg border-2 border-gray-300 shadow-sm mb-8">
+            <h3 className="text-2xl font-bold text-center text-gray-900 mb-6">
+              Algorithm Performance Metrics
+            </h3>
+            <div className="grid grid-cols-2 gap-6">
+              {Object.entries(result.metricsA).map(([algorithmKey, data]) => {
+                const algorithmNames: { [key: string]: string } = {
+                  linear: "Linear Regression",
+                  ridge: "Ridge Regression",
+                  ridge_rf: "Random Forest",
+                  ridge_gb: "Ridge GB",
+                };
+                return (
+                  <div
+                    key={`carA-${algorithmKey}`}
+                    className="border border-gray-200 rounded-lg p-4 bg-gray-50"
+                  >
+                    <div className="text-center mb-4">
+                      <h3 className="text-xl font-bold text-gray-900">
+                        {carALabel}
+                      </h3>
+                      <h4 className="text-lg font-semibold text-gray-700 mt-1">
+                        {algorithmNames[algorithmKey] || algorithmKey}
+                      </h4>
+                    </div>
+
+                    <div className="space-y-4">
+                      <div>
+                        <div className="text-sm font-semibold text-gray-700 mb-2">
+                          Metrics:
+                        </div>
+                        <div className="space-y-1 text-sm text-gray-600">
+                          <div className="flex justify-between">
+                            <span>MSE:</span>
+                            <span className="font-semibold text-gray-900">
+                              {data.metrics.mse.toFixed(2)}
+                            </span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span>MAE:</span>
+                            <span className="font-semibold text-gray-900">
+                              {data.metrics.mae.toFixed(2)}
+                            </span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span>R²:</span>
+                            <span className="font-semibold text-gray-900">
+                              {data.metrics.r2.toFixed(3)}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div>
+                        <div className="text-sm font-semibold text-gray-700 mb-2">
+                          Timing:
+                        </div>
+                        <div className="space-y-1 text-sm text-gray-600">
+                          <div className="flex justify-between">
+                            <span>Total Time:</span>
+                            <span className="font-semibold text-gray-900">
+                              {data.timing.totalMs !== null
+                                ? (data.timing.totalMs / 1000).toFixed(3)
+                                : "N/A"}{" "}
+                              s
+                            </span>
+                          </div>
+                          {data.timing.trials !== null && (
+                            <>
+                              <div className="flex justify-between">
+                                <span>Trials:</span>
+                                <span className="font-semibold text-gray-900">
+                                  {data.timing.trials}
+                                </span>
+                              </div>
+                              <div className="flex justify-between">
+                                <span>Mean Trial:</span>
+                                <span className="font-semibold text-gray-900">
+                                  {data.timing.meanTrialMs !== null
+                                    ? (data.timing.meanTrialMs / 1000).toFixed(
+                                        3
+                                      )
+                                    : "N/A"}{" "}
+                                  s
+                                </span>
+                              </div>
+                            </>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+
+              {Object.entries(result.metricsB).map(([algorithmKey, data]) => {
+                const algorithmNames: { [key: string]: string } = {
+                  linear: "Linear Regression",
+                  ridge: "Ridge Regression",
+                  ridge_rf: "Random Forest",
+                  ridge_gb: "Ridge GB",
+                };
+                return (
+                  <div
+                    key={`carB-${algorithmKey}`}
+                    className="border border-gray-200 rounded-lg p-4 bg-gray-50"
+                  >
+                    <div className="text-center mb-4">
+                      <h3 className="text-xl font-bold text-gray-900">
+                        {carBLabel}
+                      </h3>
+                      <h4 className="text-lg font-semibold text-gray-700 mt-1">
+                        {algorithmNames[algorithmKey] || algorithmKey}
+                      </h4>
+                    </div>
+
+                    <div className="space-y-4">
+                      <div>
+                        <div className="text-sm font-semibold text-gray-700 mb-2">
+                          Metrics:
+                        </div>
+                        <div className="space-y-1 text-sm text-gray-600">
+                          <div className="flex justify-between">
+                            <span>MSE:</span>
+                            <span className="font-semibold text-gray-900">
+                              {data.metrics.mse.toFixed(2)}
+                            </span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span>MAE:</span>
+                            <span className="font-semibold text-gray-900">
+                              {data.metrics.mae.toFixed(2)}
+                            </span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span>R²:</span>
+                            <span className="font-semibold text-gray-900">
+                              {data.metrics.r2.toFixed(3)}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div>
+                        <div className="text-sm font-semibold text-gray-700 mb-2">
+                          Timing:
+                        </div>
+                        <div className="space-y-1 text-sm text-gray-600">
+                          <div className="flex justify-between">
+                            <span>Total Time:</span>
+                            <span className="font-semibold text-gray-900">
+                              {data.timing.totalMs !== null
+                                ? (data.timing.totalMs / 1000).toFixed(3)
+                                : "N/A"}{" "}
+                              s
+                            </span>
+                          </div>
+                          {data.timing.trials !== null && (
+                            <>
+                              <div className="flex justify-between">
+                                <span>Trials:</span>
+                                <span className="font-semibold text-gray-900">
+                                  {data.timing.trials}
+                                </span>
+                              </div>
+                              <div className="flex justify-between">
+                                <span>Mean Trial:</span>
+                                <span className="font-semibold text-gray-900">
+                                  {data.timing.meanTrialMs !== null
+                                    ? (data.timing.meanTrialMs / 1000).toFixed(
+                                        3
+                                      )
+                                    : "N/A"}{" "}
+                                  s
+                                </span>
+                              </div>
+                            </>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
           </div>
 
           <div className="flex justify-center gap-4">

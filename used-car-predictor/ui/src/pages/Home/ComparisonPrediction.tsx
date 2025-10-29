@@ -3,6 +3,8 @@ import { Button } from "@/components/ui/button";
 import { PredictionForm } from "@/components/PredictionForm";
 import { ComparisonChart } from "@/components/ComparisonChart";
 import { AlgorithmResultCard } from "@/components/AlgorithmResultCard";
+import { AlgorithmMetricsCard } from "@/components/AlgorithmMetricsCard";
+import { ModelInfoCard } from "@/components/ModelInfoCard";
 import { usePredictionData } from "@/hooks/usePredictionData";
 import { validateYears } from "@/utils/validation";
 import { formatCarName } from "@/utils/formatting";
@@ -131,14 +133,16 @@ function ComparisonPrediction({ onBack }: ComparisonPredictionProps) {
   };
 
   if (predictionResult !== null) {
-    const carALabel = `${formatCarName(
+    const carAName = formatCarName(
       predictionResult.carA.manufacturer,
       predictionResult.carA.model
-    )} (${predictionResult.carA.yearOfProduction})`;
-    const carBLabel = `${formatCarName(
+    );
+    const carBName = formatCarName(
       predictionResult.carB.manufacturer,
       predictionResult.carB.model
-    )} (${predictionResult.carB.yearOfProduction})`;
+    );
+    const carALabel = `${carAName} (${predictionResult.carA.yearOfProduction})`;
+    const carBLabel = `${carBName} (${predictionResult.carB.yearOfProduction})`;
 
     return (
       <div className="min-h-screen bg-linear-to-br from-gray-100 to-gray-200 p-8 flex items-center justify-center">
@@ -146,6 +150,33 @@ function ComparisonPrediction({ onBack }: ComparisonPredictionProps) {
           <h1 className="text-4xl font-bold text-center text-gray-900 mb-12">
             Comparison Results
           </h1>
+
+          <div className="mb-8 flex gap-4">
+            <div className="flex-1">
+              <ModelInfoCard
+                carName={carAName}
+                modelInfo={predictionResult.carA.modelInfo}
+                carDetails={{
+                  yearOfProduction: predictionResult.carA.yearOfProduction,
+                  transmission: carA.selectedTransmission,
+                  fuelType: carA.selectedFuel,
+                  mileageKm: parseInt(carAMileageKm),
+                }}
+              />
+            </div>
+            <div className="flex-1">
+              <ModelInfoCard
+                carName={carBName}
+                modelInfo={predictionResult.carB.modelInfo}
+                carDetails={{
+                  yearOfProduction: predictionResult.carB.yearOfProduction,
+                  transmission: carB.selectedTransmission,
+                  fuelType: carB.selectedFuel,
+                  mileageKm: parseInt(carBMileageKm),
+                }}
+              />
+            </div>
+          </div>
 
           <div className="mb-12">
             <ComparisonChart
@@ -176,6 +207,20 @@ function ComparisonPrediction({ onBack }: ComparisonPredictionProps) {
                 <AlgorithmResultCard key={result.algorithm} result={result} />
               ))}
             </div>
+          </div>
+
+          <div className="mb-8">
+            <h3 className="text-2xl font-bold text-gray-900 mb-4 text-center">
+              {carAName}
+            </h3>
+            <AlgorithmMetricsCard metrics={predictionResult.carA.metrics} />
+          </div>
+
+          <div className="mb-8">
+            <h3 className="text-2xl font-bold text-gray-900 mb-4 text-center">
+              {carBName}
+            </h3>
+            <AlgorithmMetricsCard metrics={predictionResult.carB.metrics} />
           </div>
 
           <div className="flex justify-center gap-4">
@@ -292,7 +337,7 @@ function ComparisonPrediction({ onBack }: ComparisonPredictionProps) {
                 variant="outline"
                 className="border-gray-400 text-gray-900 hover:bg-gray-50"
               >
-                ⾕ Back to First Car
+                ← Back to First Car
               </Button>
               <Button
                 onClick={handleSubmit}

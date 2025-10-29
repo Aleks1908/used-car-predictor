@@ -25,29 +25,6 @@ export function AlgorithmResultCard({ result }: AlgorithmResultCardProps) {
             ${result.predictedPrice.toLocaleString()}
           </p>
         </div>
-
-        {result.metrics && (
-          <div className="pt-5 space-y-1 border-t border-gray-200">
-            <div className="flex justify-between">
-              <span className="text-xs text-gray-600">MSE:</span>
-              <span className="text-xs font-semibold text-gray-900">
-                {result.metrics.mse.toFixed(2)}
-              </span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-xs text-gray-600">MAE:</span>
-              <span className="text-xs font-semibold text-gray-900">
-                {result.metrics.mae.toFixed(2)}
-              </span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-xs text-gray-600">R²:</span>
-              <span className="text-xs font-semibold text-gray-900">
-                {result.metrics.r2.toFixed(3)}
-              </span>
-            </div>
-          </div>
-        )}
       </div>
     </div>
   );
