@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { PredictionForm } from "@/components/PredictionForm";
 import { PriceRangeChart } from "@/components/PriceRangeChart";
+import { AlgorithmResultCard } from "@/components/AlgorithmResultCard";
 import { usePredictionData } from "@/hooks/usePredictionData";
 import { validateYearRange } from "@/utils/validation";
 import type { RangePredictionResponse } from "@/types/prediction";
@@ -111,7 +112,6 @@ function RangePrediction({ onBack }: RangePredictionProps) {
             Range Prediction Results
           </h1>
 
-          {/* Chart Section */}
           <div className="mb-12">
             <PriceRangeChart items={predictionResult.items} />
           </div>
@@ -125,49 +125,10 @@ function RangePrediction({ onBack }: RangePredictionProps) {
                 </h2>
                 <div className="grid grid-cols-4 gap-4">
                   {item.results?.map((result) => (
-                    <div
+                    <AlgorithmResultCard
                       key={result.algorithm}
-                      className="bg-white p-4 rounded-lg border-2 border-gray-300 shadow-sm"
-                    >
-                      <h3 className="text-lg font-bold text-gray-900 mb-3 text-center capitalize">
-                        {result.algorithm === "linear" && "Linear Regression"}
-                        {result.algorithm === "ridge" && "Ridge Regression"}
-                        {result.algorithm === "ridge_rf" && "Random Forest"}
-                        {result.algorithm === "ridge_gb" && "Ridge GB"}
-                      </h3>
-
-                      <div className="space-y-2">
-                        <div className="text-center pb-3 border-b border-gray-200">
-                          <p className="text-sm text-gray-600 mb-1">
-                            Predicted Price
-                          </p>
-                          <p className="text-2xl font-bold text-gray-900">
-                            ${result.predictedPrice.toLocaleString()}
-                          </p>
-                        </div>
-
-                        <div className="pt-2 space-y-1">
-                          <div className="flex justify-between">
-                            <span className="text-xs text-gray-600">MSE:</span>
-                            <span className="text-xs font-semibold text-gray-900">
-                              {result.metrics.mse.toFixed(2)}
-                            </span>
-                          </div>
-                          <div className="flex justify-between">
-                            <span className="text-xs text-gray-600">MAE:</span>
-                            <span className="text-xs font-semibold text-gray-900">
-                              {result.metrics.mae.toFixed(2)}
-                            </span>
-                          </div>
-                          <div className="flex justify-between">
-                            <span className="text-xs text-gray-600">R²:</span>
-                            <span className="text-xs font-semibold text-gray-900">
-                              {result.metrics.r2.toFixed(3)}
-                            </span>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
+                      result={result}
+                    />
                   ))}
                 </div>
               </div>

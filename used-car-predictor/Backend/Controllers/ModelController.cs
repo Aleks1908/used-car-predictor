@@ -97,9 +97,9 @@ public sealed class ModelsController(IWebHostEnvironment env) : ControllerBase
                 var fuelsFiltered = FilterValues(fuelsRaw, req.AllowedFuels);
                 var transFiltered = FilterValues(transRaw, req.AllowedTransmissions);
 
-
                 int? minYear = bundle.Car?.MinYear ?? bundle.Preprocess?.MinYear;
                 int? maxYear = bundle.Car?.MaxYear ?? bundle.Preprocess?.MaxYear;
+                int? trainedForYear = bundle.Preprocess?.AnchorTargetYear; // <-- NEW
 
                 var formatted = new ModelFeatureMetaDto
                 {
@@ -116,7 +116,8 @@ public sealed class ModelsController(IWebHostEnvironment env) : ControllerBase
                     }).ToArray(),
 
                     MinYear = minYear,
-                    MaxYear = maxYear
+                    MaxYear = maxYear,
+                    AnchorTargetYear = trainedForYear
                 };
 
                 return Ok(formatted);
@@ -132,9 +133,7 @@ public sealed class ModelsController(IWebHostEnvironment env) : ControllerBase
 
     private static IEnumerable<string> FilterValues(IEnumerable<string> values, string[]? allowOnly)
     {
-        var v = values;
-
-        v = v.Where(s => !s.Equals("other", StringComparison.OrdinalIgnoreCase));
+        var v = values.Where(s => !s.Equals("other", StringComparison.OrdinalIgnoreCase));
 
         if (allowOnly is { Length: > 0 })
         {
@@ -145,7 +144,6 @@ public sealed class ModelsController(IWebHostEnvironment env) : ControllerBase
 
         return v;
     }
-
 
     private static string ToTitleCase(string value)
     {

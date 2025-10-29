@@ -57,13 +57,10 @@ const algorithmLabels = {
 };
 
 export function PriceRangeChart({ items }: PriceRangeChartProps) {
-  // Extract years (sorted)
   const years = items.map((item) => item.targetYear).sort((a, b) => a - b);
 
-  // Get all unique algorithms
   const algorithms = items[0]?.results.map((r) => r.algorithm) || [];
 
-  // Create datasets for each algorithm
   const datasets = algorithms.map((algorithm) => {
     const data = items
       .sort((a, b) => a.targetYear - b.targetYear)

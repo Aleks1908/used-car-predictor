@@ -6,6 +6,7 @@ interface Details {
   transmissions?: ComboboxOption[];
   minYear?: number;
   maxYear?: number;
+  anchorTargetYear?: number;
 }
 
 export function usePredictionData() {
@@ -120,6 +121,7 @@ export function usePredictionData() {
             transmissions: data.transmissions || [],
             minYear: data.minYear,
             maxYear: data.maxYear,
+            anchorTargetYear: data.anchorTargetYear,
           });
         } catch (err) {
           console.error("Model details fetch failed:", err);

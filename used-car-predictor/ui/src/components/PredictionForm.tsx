@@ -12,6 +12,7 @@ interface PredictionFormProps {
     transmissions?: ComboboxOption[];
     minYear?: number;
     maxYear?: number;
+    anchorTargetYear?: number;
   } | null;
   selectedManufacturer: string;
   selectedModel: string;
@@ -171,6 +172,18 @@ export function PredictionForm({
               className="w-80 h-10 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
             />
           </Field>
+
+          {details.anchorTargetYear && (
+            <div className="w-80 bg-blue-50 border-2 border-blue-200 rounded-lg p-4">
+              <p className="text-sm text-blue-900 text-center">
+                <span className="font-semibold">Note:</span> This model is most
+                accurate for predictions around the year
+                <span className="font-bold">{details.anchorTargetYear}</span>.
+                Predictions for years further from this anchor may be less
+                accurate.
+              </p>
+            </div>
+          )}
 
           {children}
         </div>

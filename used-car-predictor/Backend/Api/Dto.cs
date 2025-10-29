@@ -109,6 +109,8 @@ public sealed class ModelFeatureMetaDto
     public int? MinYear { get; set; }
 
     public int? MaxYear { get; set; }
+
+    public int? AnchorTargetYear { get; set; }
 }
 
 public sealed class TwoCarPredictRequest
