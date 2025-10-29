@@ -19,33 +19,35 @@ export function AlgorithmResultCard({ result }: AlgorithmResultCardProps) {
       </h3>
 
       <div className="space-y-2">
-        <div className="text-center pb-3 border-b border-gray-200">
+        <div className="text-center  ">
           <p className="text-sm text-gray-600 mb-1">Predicted Price</p>
           <p className="text-2xl font-bold text-gray-900">
             ${result.predictedPrice.toLocaleString()}
           </p>
         </div>
 
-        <div className="pt-2 space-y-1">
-          <div className="flex justify-between">
-            <span className="text-xs text-gray-600">MSE:</span>
-            <span className="text-xs font-semibold text-gray-900">
-              {result.metrics.mse.toFixed(2)}
-            </span>
+        {result.metrics && (
+          <div className="pt-5 space-y-1 border-t border-gray-200">
+            <div className="flex justify-between">
+              <span className="text-xs text-gray-600">MSE:</span>
+              <span className="text-xs font-semibold text-gray-900">
+                {result.metrics.mse.toFixed(2)}
+              </span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-xs text-gray-600">MAE:</span>
+              <span className="text-xs font-semibold text-gray-900">
+                {result.metrics.mae.toFixed(2)}
+              </span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-xs text-gray-600">R²:</span>
+              <span className="text-xs font-semibold text-gray-900">
+                {result.metrics.r2.toFixed(3)}
+              </span>
+            </div>
           </div>
-          <div className="flex justify-between">
-            <span className="text-xs text-gray-600">MAE:</span>
-            <span className="text-xs font-semibold text-gray-900">
-              {result.metrics.mae.toFixed(2)}
-            </span>
-          </div>
-          <div className="flex justify-between">
-            <span className="text-xs text-gray-600">R²:</span>
-            <span className="text-xs font-semibold text-gray-900">
-              {result.metrics.r2.toFixed(3)}
-            </span>
-          </div>
-        </div>
+        )}
       </div>
     </div>
   );

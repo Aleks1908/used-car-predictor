@@ -118,13 +118,20 @@ function SinglePrediction({ onBack }: SinglePredictionProps) {
             </p>
           </div>
 
-          <div className="flex justify-center">
+          <div className="flex justify-center gap-4">
             <Button
               onClick={() => setPredictionResult(null)}
               variant="outline"
               className="border-gray-400 text-gray-900 hover:bg-gray-50"
             >
               ← Back to Form
+            </Button>
+            <Button
+              onClick={onBack}
+              variant="outline"
+              className="border-gray-400 text-gray-900 hover:bg-gray-50"
+            >
+              ← Back to Home
             </Button>
           </div>
         </div>

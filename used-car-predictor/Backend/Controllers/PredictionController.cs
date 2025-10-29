@@ -138,12 +138,27 @@ public class PredictionController : ControllerBase
         return series;
     }
 
-    private ModelInfoDto CurrentModelInfo() => new()
+    private ModelInfoDto CurrentModelInfo(string? algoKey = null)
     {
-        TrainedAt = _active.TrainedAt,
-        AnchorTargetYear = _active.AnchorTargetYear,
-        TotalRows = _active.TotalRows
-    };
+        double? mse = null, mae = null, r2 = null;
+        if (!string.IsNullOrWhiteSpace(algoKey) &&
+            _active.MetricsByAlgo.TryGetValue(algoKey, out var m))
+        {
+            mse = Math.Round(m.Mse, 2);
+            mae = Math.Round(m.Mae, 2);
+            r2 = Math.Round(m.R2, 2);
+        }
+
+        return new ModelInfoDto
+        {
+            TrainedAt = _active.TrainedAt,
+            AnchorTargetYear = _active.AnchorTargetYear,
+            TotalRows = _active.TotalRows,
+            Mse = mse,
+            Mae = mae,
+            R2 = r2
+        };
+    }
 
     [HttpPost("predict")]
     public async Task<ActionResult<PredictResponse>> Predict([FromBody] PredictRequest req, CancellationToken ct)
@@ -238,15 +253,17 @@ public class PredictionController : ControllerBase
         if (algoKey is null)
             return BadRequest(new { error = "algorithm must be one of: linear, ridge, ridge_rf, ridge_gb" });
 
+        // Car A (load bundle A, then build series & infoA with metrics for algoKey)
         await _hotLoader.EnsureLoadedAsync(req.CarA.Manufacturer, req.CarA.Model, ct);
         if (!_active.IsLoaded) return Problem("No active model loaded.", statusCode: 503);
-        var infoA = CurrentModelInfo();
         var seriesA = BuildSeriesForCurrentActive(req.CarA, start, end, algoKey);
+        var infoA = CurrentModelInfo(algoKey); // <-- include metrics for A’s active bundle
 
+        // Car B (load bundle B, then build series & infoB with metrics for algoKey)
         await _hotLoader.EnsureLoadedAsync(req.CarB.Manufacturer, req.CarB.Model, ct);
         if (!_active.IsLoaded) return Problem("No active model loaded.", statusCode: 503);
-        var infoB = CurrentModelInfo();
         var seriesB = BuildSeriesForCurrentActive(req.CarB, start, end, algoKey);
+        var infoB = CurrentModelInfo(algoKey); // <-- include metrics for B’s active bundle
 
         return Ok(new TwoCarPredictRangeResponse
         {

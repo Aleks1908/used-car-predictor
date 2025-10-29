@@ -2,6 +2,7 @@ import { useState } from "react";
 import SinglePrediction from "./SinglePrediction";
 import RangePrediction from "./RangePrediction";
 import ComparisonPrediction from "./ComparisonPrediction";
+import { RangeComparisonPrediction } from "./RangeComparisonPrediction";
 
 function Home() {
   const [activeView, setActiveView] = useState<string | null>(null);
@@ -27,6 +28,10 @@ function Home() {
 
   if (activeView === "comparison") {
     return <ComparisonPrediction onBack={() => setActiveView(null)} />;
+  }
+
+  if (activeView === "range-comparison") {
+    return <RangeComparisonPrediction onBack={() => setActiveView(null)} />;
   }
 
   return (

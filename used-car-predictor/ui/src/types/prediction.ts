@@ -7,7 +7,7 @@ export interface PredictionMetrics {
 export interface AlgorithmResult {
   algorithm: string;
   predictedPrice: number;
-  metrics: PredictionMetrics;
+  metrics?: PredictionMetrics;
 }
 
 export interface PredictionResponse {

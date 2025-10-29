@@ -56,6 +56,12 @@ public sealed class ModelInfoDto
     public int? AnchorTargetYear { get; set; }
 
     public int? TotalRows { get; set; }
+
+    public double? Mse { get; set; }
+
+    public double? Mae { get; set; }
+
+    public double? R2 { get; set; }
 }
 
 public sealed class CatalogItemDto

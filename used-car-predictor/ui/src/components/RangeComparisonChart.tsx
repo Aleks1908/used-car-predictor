@@ -2,33 +2,36 @@ import {
   Chart as ChartJS,
   CategoryScale,
   LinearScale,
-  BarElement,
+  PointElement,
+  LineElement,
   Title,
   Tooltip,
   Legend,
 } from "chart.js";
-import { Bar } from "react-chartjs-2";
+import { Line } from "react-chartjs-2";
 
 ChartJS.register(
   CategoryScale,
   LinearScale,
-  BarElement,
+  PointElement,
+  LineElement,
   Title,
   Tooltip,
   Legend
 );
 
-interface ComparisonChartProps {
-  carAResults: {
-    algorithm: string;
+interface RangeComparisonChartProps {
+  carAData: {
+    year: number;
     predictedPrice: number;
   }[];
-  carBResults: {
-    algorithm: string;
+  carBData: {
+    year: number;
     predictedPrice: number;
   }[];
   carALabel: string;
   carBLabel: string;
+  algorithm: string;
 }
 
 const algorithmLabels: Record<string, string> = {
@@ -38,35 +41,40 @@ const algorithmLabels: Record<string, string> = {
   ridge_gb: "Ridge GB",
 };
 
-export function ComparisonChart({
-  carAResults,
-  carBResults,
+export function RangeComparisonChart({
+  carAData,
+  carBData,
   carALabel,
   carBLabel,
-}: ComparisonChartProps) {
-  const algorithms = carAResults.map(
-    (r) => algorithmLabels[r.algorithm] || r.algorithm
-  );
+  algorithm,
+}: RangeComparisonChartProps) {
+  const years = carAData.map((item) => item.year).sort((a, b) => a - b);
 
   const datasets = [
     {
       label: carALabel,
-      data: carAResults.map((r) => r.predictedPrice),
-      backgroundColor: "rgba(59, 130, 246, 0.8)", // blue
-      borderColor: "rgb(59, 130, 246)",
-      borderWidth: 1,
+      data: carAData.map((item) => item.predictedPrice),
+      borderColor: "rgb(59, 130, 246)", // blue
+      backgroundColor: "rgba(59, 130, 246, 0.1)",
+      borderWidth: 2,
+      tension: 0.3,
+      pointRadius: 5,
+      pointHoverRadius: 7,
     },
     {
       label: carBLabel,
-      data: carBResults.map((r) => r.predictedPrice),
-      backgroundColor: "rgba(239, 68, 68, 0.8)", // red
-      borderColor: "rgb(239, 68, 68)",
-      borderWidth: 1,
+      data: carBData.map((item) => item.predictedPrice),
+      borderColor: "rgb(239, 68, 68)", // red
+      backgroundColor: "rgba(239, 68, 68, 0.1)",
+      borderWidth: 2,
+      tension: 0.3,
+      pointRadius: 5,
+      pointHoverRadius: 7,
     },
   ];
 
   const chartData = {
-    labels: algorithms,
+    labels: years,
     datasets,
   };
 
@@ -86,7 +94,9 @@ export function ComparisonChart({
       },
       title: {
         display: true,
-        text: "Price Comparison by Algorithm",
+        text: `Price Comparison Over Years (${
+          algorithmLabels[algorithm] || algorithm
+        })`,
         font: {
           size: 16,
         },
@@ -131,7 +141,7 @@ export function ComparisonChart({
       x: {
         title: {
           display: true,
-          text: "Algorithm",
+          text: "Year",
           font: {
             size: 14,
           },
@@ -142,7 +152,7 @@ export function ComparisonChart({
 
   return (
     <div className="w-full h-[500px]">
-      <Bar data={chartData} options={options} />
+      <Line data={chartData} options={options} />
     </div>
   );
 }

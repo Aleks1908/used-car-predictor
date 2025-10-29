@@ -5,6 +5,7 @@ import { ComparisonChart } from "@/components/ComparisonChart";
 import { AlgorithmResultCard } from "@/components/AlgorithmResultCard";
 import { usePredictionData } from "@/hooks/usePredictionData";
 import { validateYears } from "@/utils/validation";
+import { formatCarName } from "@/utils/formatting";
 import type { PredictionResponse } from "@/types/prediction";
 
 interface ComparisonPredictionProps {
@@ -19,13 +20,11 @@ interface ComparisonResponse {
 function ComparisonPrediction({ onBack }: ComparisonPredictionProps) {
   const [step, setStep] = useState<"carA" | "carB">("carA");
 
-  // Car A state
   const carA = usePredictionData();
   const [carAMileageKm, setCarAMileageKm] = useState("");
   const [carATargetYear, setCarATargetYear] = useState("");
   const [carAYearOfProduction, setCarAYearOfProduction] = useState("");
 
-  // Car B state
   const carB = usePredictionData();
   const [carBMileageKm, setCarBMileageKm] = useState("");
   const [carBTargetYear, setCarBTargetYear] = useState("");
@@ -132,20 +131,14 @@ function ComparisonPrediction({ onBack }: ComparisonPredictionProps) {
   };
 
   if (predictionResult !== null) {
-    const carALabel = `${
-      predictionResult.carA.manufacturer.charAt(0).toUpperCase() +
-      predictionResult.carA.manufacturer.slice(1)
-    } ${
-      predictionResult.carA.model.charAt(0).toUpperCase() +
-      predictionResult.carA.model.slice(1)
-    } (${predictionResult.carA.yearOfProduction})`;
-    const carBLabel = `${
-      predictionResult.carB.manufacturer.charAt(0).toUpperCase() +
-      predictionResult.carB.manufacturer.slice(1)
-    } ${
-      predictionResult.carB.model.charAt(0).toUpperCase() +
-      predictionResult.carB.model.slice(1)
-    } (${predictionResult.carB.yearOfProduction})`;
+    const carALabel = `${formatCarName(
+      predictionResult.carA.manufacturer,
+      predictionResult.carA.model
+    )} (${predictionResult.carA.yearOfProduction})`;
+    const carBLabel = `${formatCarName(
+      predictionResult.carB.manufacturer,
+      predictionResult.carB.model
+    )} (${predictionResult.carB.yearOfProduction})`;
 
     return (
       <div className="min-h-screen bg-linear-to-br from-gray-100 to-gray-200 p-8 flex items-center justify-center">
@@ -185,13 +178,20 @@ function ComparisonPrediction({ onBack }: ComparisonPredictionProps) {
             </div>
           </div>
 
-          <div className="flex justify-center">
+          <div className="flex justify-center gap-4">
             <Button
               onClick={() => setPredictionResult(null)}
               variant="outline"
               className="border-gray-400 text-gray-900 hover:bg-gray-50"
             >
               ← Back to Form
+            </Button>
+            <Button
+              onClick={onBack}
+              variant="outline"
+              className="border-gray-400 text-gray-900 hover:bg-gray-50"
+            >
+              ← Back to Home
             </Button>
           </div>
         </div>

@@ -173,6 +173,8 @@ export function PredictionForm({
             />
           </Field>
 
+          {children}
+
           {details.anchorTargetYear && (
             <Field>
               <div className="w-80 bg-blue-50 border-2 border-blue-200 rounded-lg p-4">
@@ -186,8 +188,6 @@ export function PredictionForm({
               </div>
             </Field>
           )}
-
-          {children}
         </div>
       )}
     </div>
