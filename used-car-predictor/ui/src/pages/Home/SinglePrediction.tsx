@@ -131,7 +131,7 @@ function SinglePrediction({ onBack }: SinglePredictionProps) {
               variant="outline"
               className="border-gray-400 text-gray-900 hover:bg-gray-50"
             >
-              ← Back to Home
+              ⾕ Back to Home
             </Button>
           </div>
         </div>
@@ -179,17 +179,15 @@ function SinglePrediction({ onBack }: SinglePredictionProps) {
             variant="outline"
             className="border-gray-400 text-gray-900 hover:bg-gray-50"
           >
-            ← Back to Home
+            ⾕ Back to Home
           </Button>
-          {isFormComplete && (
-            <Button
-              onClick={handleSubmit}
-              disabled={isSubmitting}
-              className="bg-gray-900 text-white hover:bg-gray-700"
-            >
-              {isSubmitting ? "Predicting..." : "Get Prediction"}
-            </Button>
-          )}
+          <Button
+            onClick={handleSubmit}
+            disabled={!isFormComplete || isSubmitting}
+            className="bg-gray-900 text-white hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {isSubmitting ? "Predicting..." : "Get Prediction"}
+          </Button>
         </div>
       </div>
     </div>

@@ -191,7 +191,7 @@ function ComparisonPrediction({ onBack }: ComparisonPredictionProps) {
               variant="outline"
               className="border-gray-400 text-gray-900 hover:bg-gray-50"
             >
-              ← Back to Home
+              ⾕ Back to Home
             </Button>
           </div>
         </div>
@@ -244,16 +244,15 @@ function ComparisonPrediction({ onBack }: ComparisonPredictionProps) {
                 variant="outline"
                 className="border-gray-400 text-gray-900 hover:bg-gray-50"
               >
-                ← Back to Home
+                ⾕ Back to Home
               </Button>
-              {isCarAComplete && (
-                <Button
-                  onClick={handleNextToCarB}
-                  className="bg-gray-900 text-white hover:bg-gray-700"
-                >
-                  Next: Car B →
-                </Button>
-              )}
+              <Button
+                onClick={handleNextToCarB}
+                disabled={!isCarAComplete}
+                className="bg-gray-900 text-white hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Next: Configure Second Car →
+              </Button>
             </div>
           </>
         )}
@@ -293,17 +292,15 @@ function ComparisonPrediction({ onBack }: ComparisonPredictionProps) {
                 variant="outline"
                 className="border-gray-400 text-gray-900 hover:bg-gray-50"
               >
-                ← Back to Car A
+                ⾕ Back to First Car
               </Button>
-              {isCarBComplete && (
-                <Button
-                  onClick={handleSubmit}
-                  disabled={isSubmitting}
-                  className="bg-gray-900 text-white hover:bg-gray-700"
-                >
-                  {isSubmitting ? "Comparing..." : "Compare Cars"}
-                </Button>
-              )}
+              <Button
+                onClick={handleSubmit}
+                disabled={!isCarBComplete || isSubmitting}
+                className="bg-gray-900 text-white hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {isSubmitting ? "Predicting..." : "Compare Cars →"}
+              </Button>
             </div>
           </>
         )}

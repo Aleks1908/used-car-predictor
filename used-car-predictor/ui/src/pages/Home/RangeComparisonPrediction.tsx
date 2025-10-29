@@ -252,7 +252,7 @@ export function RangeComparisonPrediction({
               variant="outline"
               className="border-gray-400 text-gray-900 hover:bg-gray-50"
             >
-              ← Back to Home
+              ⾕ Back to Home
             </Button>
           </div>
         </div>
@@ -395,36 +395,39 @@ export function RangeComparisonPrediction({
             variant="outline"
             className="border-gray-400 text-gray-900 hover:bg-gray-50"
           >
-            ←{" "}
             {step === 1
-              ? "Back to Home"
+              ? "⾕ Back to Home"
               : step === 2
-              ? "Back to First Car"
-              : "Back to Second Car"}
+              ? "← Back to First Car"
+              : "← Back to Second Car"}
           </Button>
-          {step === 1 &&
-            isCarComplete(carA, carAMileageKm, carAYearOfProduction) && (
-              <Button
-                onClick={handleCarANext}
-                className="bg-gray-900 text-white hover:bg-gray-700"
-              >
-                Next: Configure Second Car
-              </Button>
-            )}
-          {step === 2 &&
-            isCarComplete(carB, carBMileageKm, carBYearOfProduction) && (
-              <Button
-                onClick={handleCarBNext}
-                className="bg-gray-900 text-white hover:bg-gray-700"
-              >
-                Next: Select Algorithm
-              </Button>
-            )}
-          {step === 3 && startYear && endYear && algorithm && (
+          {step === 1 && (
+            <Button
+              onClick={handleCarANext}
+              disabled={
+                !isCarComplete(carA, carAMileageKm, carAYearOfProduction)
+              }
+              className="bg-gray-900 text-white hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              Next: Configure Second Car →
+            </Button>
+          )}
+          {step === 2 && (
+            <Button
+              onClick={handleCarBNext}
+              disabled={
+                !isCarComplete(carB, carBMileageKm, carBYearOfProduction)
+              }
+              className="bg-gray-900 text-white hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              Next: Select Algorithm →
+            </Button>
+          )}
+          {step === 3 && (
             <Button
               onClick={handlePredict}
-              disabled={isLoading}
-              className="bg-gray-900 text-white hover:bg-gray-700"
+              disabled={!startYear || !endYear || !algorithm || isLoading}
+              className="bg-gray-900 text-white hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isLoading ? "Predicting..." : "Get Predictions"}
             </Button>
