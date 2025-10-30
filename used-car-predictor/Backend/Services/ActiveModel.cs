@@ -27,8 +27,6 @@ public sealed class ActiveModel
     public bool LabelUseLog { get; private set; }
     public int? AnchorTargetYear { get; private set; }
     public int? TotalRows { get; private set; }
-
-    // NEW: per-algorithm training time info (e.g., Linear/Ridge/RandomForest/GradientBoosting)
     public Dictionary<string, TrainingTimeDto>? TrainingTimes { get; private set; }
 
     public bool IsLoaded => _models.Count > 0;
@@ -48,17 +46,14 @@ public sealed class ActiveModel
         var input = x.ToArray();
         var output = new Dictionary<string, double>(StringComparer.OrdinalIgnoreCase);
 
-        // Direct models
         foreach (var (algo, model) in models)
         {
-            // Skip residual learners in direct passthrough
             if (algo.Equals("gb", StringComparison.OrdinalIgnoreCase)) continue;
             if (algo.Equals("rf", StringComparison.OrdinalIgnoreCase)) continue;
 
             output[algo] = model.Predict(input);
         }
 
-        // Ridge + GB residual
         if (models.TryGetValue("ridge", out var ridge) &&
             models.TryGetValue("gb", out var gbResidual))
         {
@@ -67,7 +62,6 @@ public sealed class ActiveModel
             output["ridge_gb"] = zr + zg;
         }
 
-        // Ridge + RF residual
         if (models.TryGetValue("ridge", out var ridge2) &&
             models.TryGetValue("rf", out var rfResidual))
         {
@@ -113,14 +107,12 @@ public sealed class ActiveModel
             }
         }
 
-        // Normalize & carry over training-time map (case-insensitive keys)
         Dictionary<string, TrainingTimeDto>? newTimes = null;
         if (bundle.TrainingTimes is not null)
         {
             newTimes = new Dictionary<string, TrainingTimeDto>(StringComparer.OrdinalIgnoreCase);
             foreach (var kv in bundle.TrainingTimes)
             {
-                // Keep original keys as-is but store in case-insensitive map
                 newTimes[kv.Key] = kv.Value ?? new TrainingTimeDto();
             }
         }

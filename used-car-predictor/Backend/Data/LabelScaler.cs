@@ -2,22 +2,16 @@ using System.Linq;
 
 namespace used_car_predictor.Backend.Data
 {
-    public class LabelScaler
+    public class LabelScaler(bool useLog = true)
     {
         private double _mean;
         private double _std;
         private bool _fitted;
-        private readonly bool _useLog;
 
-
-        public LabelScaler(bool useLog = true)
-        {
-            _useLog = useLog;
-        }
 
         public double[] FitTransform(double[] y)
         {
-            var z = _useLog ? y.Select(v => Math.Log(v + 1.0)).ToArray() : (double[])y.Clone();
+            var z = useLog ? y.Select(v => Math.Log(v + 1.0)).ToArray() : (double[])y.Clone();
 
             _mean = z.Average();
             _std = Math.Sqrt(z.Select(v => Math.Pow(v - _mean, 2)).Average());
@@ -30,7 +24,7 @@ namespace used_car_predictor.Backend.Data
         public double[] Transform(double[] y)
         {
             EnsureFitted();
-            var z = _useLog ? y.Select(v => Math.Log(v + 1.0)).ToArray() : (double[])y.Clone();
+            var z = useLog ? y.Select(v => Math.Log(v + 1.0)).ToArray() : (double[])y.Clone();
             return z.Select(v => (v - _mean) / _std).ToArray();
         }
 
@@ -38,7 +32,7 @@ namespace used_car_predictor.Backend.Data
         {
             EnsureFitted();
             var unscaled = y.Select(v => v * _std + _mean).ToArray();
-            if (_useLog)
+            if (useLog)
                 unscaled = unscaled.Select(v => Math.Exp(v) - 1.0).ToArray();
             return unscaled;
         }

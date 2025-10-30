@@ -20,7 +20,7 @@ namespace used_car_predictor.Backend.Evaluation
 
         public double[] Predict(double[,] features)
         {
-            int n = features.GetLength(0);
+            var n = features.GetLength(0);
             var preds = new double[n];
 
             for (int i = 0; i < n; i++)

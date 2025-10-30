@@ -51,7 +51,7 @@ namespace used_car_predictor.Backend.Models
 
             sw.Stop();
             TotalMs = sw.Elapsed.TotalMilliseconds;
-            MeanTrialMs = TotalMs;
+            MeanTrialMs = TotalMs; 
         }
 
         public double Predict(double[] featureRow)
@@ -196,68 +196,105 @@ namespace used_car_predictor.Backend.Models
                 b -= lr * gb / n;
             }
         }
+        
+        private static double[] LogSpace(double startExp, double endExp, int steps)
+        {
+            var arr = new double[Math.Max(1, steps)];
+            if (steps <= 1)
+            {
+                arr[0] = Math.Pow(10, startExp);
+                return arr;
+            }
+
+            double step = (endExp - startExp) / (steps - 1);
+            for (int i = 0; i < steps; i++)
+                arr[i] = Math.Pow(10, startExp + i * step);
+            return arr;
+        }
 
         public static (RidgeRegression Model, double MeanTrialMs, double TotalMs, int Trials)
-            TrainWithBestParams(
-                double[,] tx, double[] ty,
-                double[,] vx, double[] vy,
-                LabelScaler yScaler)
+            TrainWithBestParamsKFold(
+                double[,] X, double[] y,
+                LabelScaler yScaler,
+                int kFolds = 5,
+                double minExp = -9, double maxExp = +3, int alphaSteps = 40,
+                int? seed = null)
         {
-            double[] alphas = { 1e-8, 1e-7, 1e-6, 1e-5, 1e-4, 1e-3, 5e-3, 1e-2, 5e-2, 0.1, 0.2, 0.5, 1.0, 2.0 };
+            var alphas = LogSpace(minExp, maxExp, alphaSteps);
 
+            int n = X.GetLength(0);
+            var idx = new int[n];
+            for (int i = 0; i < n; i++) idx[i] = i;
+
+            var rng = new Random(seed ?? 123);
+            for (int i = n - 1; i > 0; i--)
+            {
+                int j = rng.Next(i + 1);
+                (idx[i], idx[j]) = (idx[j], idx[i]);
+            }
+
+            int foldSize = Math.Max(1, n / kFolds);
             double bestRmse = double.PositiveInfinity;
             double bestAlpha = alphas[0];
-            RidgeRegression? bestModel = null;
 
             long tuningTotalTicks = 0;
-            int tuningTrials = 0;
+            int trials = 0;
 
             foreach (var a in alphas)
             {
-                var sw = System.Diagnostics.Stopwatch.StartNew();
+                double rmseSum = 0;
+                int foldsUsed = 0;
 
-                var rr = new RidgeRegression(lambda: a, useClosedForm: true);
-                rr.Fit(tx, ty);
-
-                var predScaled = rr.Predict(vx);
-                var preds = yScaler.InverseTransform(predScaled);
-                var truth = yScaler.InverseTransform(vy);
-
-                double rmse = Metrics.RootMeanSquaredError(truth, preds);
-
-                sw.Stop();
-                tuningTotalTicks += sw.ElapsedTicks;
-                tuningTrials++;
-
-                var ms = sw.Elapsed.TotalMilliseconds;
-                Console.WriteLine($"[Ridge tune] α={a:g}, RMSE={rmse:F3}, time={ms:F3} ms");
-
-                if (rmse < bestRmse)
+                for (int f = 0; f < kFolds; f++)
                 {
-                    bestRmse = rmse;
+                    int start = f * foldSize;
+                    int end = (f == kFolds - 1) ? n : Math.Min(n, start + foldSize);
+
+                    if (start >= end) break;
+
+                    var sw = System.Diagnostics.Stopwatch.StartNew();
+
+                    var (tx, ty, vx, vy) = SplitByIndex(X, y, idx, start, end);
+
+                    var rr = new RidgeRegression(lambda: a, useClosedForm: true);
+                    rr.Fit(tx, ty);
+
+                    var predScaled = rr.Predict(vx);
+                    var preds = yScaler.InverseTransform(predScaled);
+                    var truth = yScaler.InverseTransform(vy);
+
+                    double rmse = Metrics.RootMeanSquaredError(truth, preds);
+                    rmseSum += rmse;
+                    foldsUsed++;
+
+                    sw.Stop();
+                    tuningTotalTicks += sw.ElapsedTicks;
+                    trials++;
+                }
+
+                double meanRmse = rmseSum / Math.Max(1, foldsUsed);
+                Console.WriteLine($"[Ridge kCV] α={a:g}, k={foldsUsed}, meanRMSE={meanRmse:F3}");
+
+                if (meanRmse < bestRmse)
+                {
+                    bestRmse = meanRmse;
                     bestAlpha = a;
-                    bestModel = rr;
                 }
             }
 
-            if (bestModel == null)
-                throw new InvalidOperationException("Ridge tuning failed.");
-
-            var (fullX, fullY) = Concat(tx, ty, vx, vy);
             var final = new RidgeRegression(lambda: bestAlpha, useClosedForm: true);
-            final.Fit(fullX, fullY);
+            final.Fit(X, y);
 
             double totalMs = tuningTotalTicks * 1000.0 / System.Diagnostics.Stopwatch.Frequency;
-            double meanMs = tuningTrials > 0 ? totalMs / tuningTrials : 0.0;
+            double meanMs = trials > 0 ? totalMs / trials : 0.0;
 
-            final.TuningTrials = tuningTrials;
+            final.TuningTrials = trials;
             final.TuningTotalMs = totalMs;
             final.TuningMeanTrialMs = meanMs;
 
             Console.WriteLine(
-                $"[Ridge Best] α={bestAlpha:g}, Trials={tuningTrials}, MeanTrialMs={meanMs:F3}, TotalMs={totalMs:F3}");
-
-            return (final, meanMs, totalMs, tuningTrials);
+                $"[Ridge Best kCV] α={bestAlpha:g}, Trials={trials}, MeanTrialMs={meanMs:F3}, TotalMs={totalMs:F3}");
+            return (final, meanMs, totalMs, trials);
         }
 
         private static (double[,], double[]) Concat(double[,] x1, double[] y1, double[,] x2, double[] y2)
@@ -280,6 +317,39 @@ namespace used_car_predictor.Backend.Models
             }
 
             return (X, y);
+        }
+
+        private static (double[,], double[], double[,], double[]) SplitByIndex(
+            double[,] X, double[] y, int[] shuffledIdx, int valStart, int valEnd)
+        {
+            int n = X.GetLength(0);
+            int p = X.GetLength(1);
+            int valN = valEnd - valStart;
+            int trainN = n - valN;
+
+            var tx = new double[trainN, p];
+            var ty = new double[trainN];
+            var vx = new double[valN, p];
+            var vy = new double[valN];
+
+            for (int ii = 0; ii < valN; ii++)
+            {
+                int src = shuffledIdx[valStart + ii];
+                for (int j = 0; j < p; j++) vx[ii, j] = X[src, j];
+                vy[ii] = y[src];
+            }
+
+            int t = 0;
+            for (int ii = 0; ii < n; ii++)
+            {
+                if (ii >= valStart && ii < valEnd) continue;
+                int src = shuffledIdx[ii];
+                for (int j = 0; j < p; j++) tx[t, j] = X[src, j];
+                ty[t] = y[src];
+                t++;
+            }
+
+            return (tx, ty, vx, vy);
         }
     }
 }

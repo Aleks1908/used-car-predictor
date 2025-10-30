@@ -6,35 +6,28 @@ using used_car_predictor.Backend.Evaluation;
 
 namespace used_car_predictor.Backend.Models
 {
-    public class RandomForestRegressor : IRegressor
+    public class RandomForestRegressor(
+        int nEstimators = 50,
+        int maxDepth = 8,
+        int minSamplesSplit = 10,
+        int minSamplesLeaf = 5,
+        bool bootstrap = true,
+        double sampleRatio = 1.0)
+        : IRegressor
     {
-        private readonly int _nEstimators, _maxDepth, _minSamplesSplit, _minSamplesLeaf;
-        private readonly bool _bootstrap;
-        private readonly double _sampleRatio;
+        private readonly int _nEstimators = Math.Max(1, nEstimators),
+            _maxDepth = Math.Max(1, maxDepth),
+            _minSamplesSplit = Math.Max(2, minSamplesSplit),
+            _minSamplesLeaf = Math.Max(1, minSamplesLeaf);
+
+        private readonly bool _bootstrap = bootstrap;
+        private readonly double _sampleRatio = Math.Clamp(sampleRatio, 0.1, 1.0);
         private readonly List<DecisionTreeRegressor> _trees = new();
-        private readonly Random _rng;
+        private readonly Random _rng = Random.Shared;
         public double? TuningMeanTrialMs { get; private set; }
         public double? TuningTotalMs { get; private set; }
         public int? TuningTrials { get; private set; }
         public string Name => "Random Forest Regressor";
-
-        public RandomForestRegressor(
-            int nEstimators = 50,
-            int maxDepth = 8,
-            int minSamplesSplit = 10,
-            int minSamplesLeaf = 5,
-            bool bootstrap = true,
-            double sampleRatio = 1.0)
-        {
-            _nEstimators = Math.Max(1, nEstimators);
-            _maxDepth = Math.Max(1, maxDepth);
-            _minSamplesSplit = Math.Max(2, minSamplesSplit);
-            _minSamplesLeaf = Math.Max(1, minSamplesLeaf);
-            _bootstrap = bootstrap;
-            _sampleRatio = Math.Clamp(sampleRatio, 0.1, 1.0);
-
-            _rng = Random.Shared;
-        }
 
 
         public void Fit(double[,] features, double[] labels)

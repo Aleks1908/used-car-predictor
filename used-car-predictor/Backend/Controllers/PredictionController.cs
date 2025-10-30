@@ -20,7 +20,7 @@ public class PredictionController : ControllerBase
 
     private static int ClampYear(int y)
     {
-        int max = DateTime.UtcNow.Year + 5;
+        int max = DateTime.UtcNow.Year + 10;
         return Math.Clamp(y, 1990, max);
     }
 
@@ -50,12 +50,6 @@ public class PredictionController : ControllerBase
             "ridge_gb" => "ridge_gb",
             _ => null
         };
-    }
-
-    private Dictionary<string, TrainingTimeDto>? CurrentTrainingTimes()
-    {
-        if (_active.TrainingTimes is null) return null;
-        return new Dictionary<string, TrainingTimeDto>(_active.TrainingTimes, StringComparer.OrdinalIgnoreCase);
     }
 
     private List<ModelPredictionDto> PredictAllForTargetYear(PredictRequest req, int targetYear)
@@ -284,13 +278,13 @@ public class PredictionController : ControllerBase
         await _hotLoader.EnsureLoadedAsync(req.CarA.Manufacturer, req.CarA.Model, ct);
         if (!_active.IsLoaded) return Problem("No active model loaded.", statusCode: 503);
         var seriesA = BuildSeriesForCurrentActive(req.CarA, start, end, algoKey);
-        var infoA = CurrentModelInfo(); 
-        var metricsA = BuildMetricsSummary(algoKey); 
+        var infoA = CurrentModelInfo();
+        var metricsA = BuildMetricsSummary(algoKey);
 
         await _hotLoader.EnsureLoadedAsync(req.CarB.Manufacturer, req.CarB.Model, ct);
         if (!_active.IsLoaded) return Problem("No active model loaded.", statusCode: 503);
         var seriesB = BuildSeriesForCurrentActive(req.CarB, start, end, algoKey);
-        var infoB = CurrentModelInfo(); 
+        var infoB = CurrentModelInfo();
         var metricsB = BuildMetricsSummary(algoKey);
 
         return Ok(new TwoCarPredictRangeResponse
