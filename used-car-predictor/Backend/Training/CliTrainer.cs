@@ -61,7 +61,7 @@ namespace used_car_predictor.Backend.Training
                 var (trainRawX, trainRawY, testRawX, testRawY) = DataSplitter.Split(rawX, rawY, trainRatio: 0.8);
 
                 var fScaler = new FeatureScaler();
-                var lScaler = new LabelScaler();
+                var lScaler = new LabelScaler(useLog: false);
 
                 var trainX = fScaler.FitTransform(trainRawX);
                 var testX = fScaler.Transform(testRawX);
@@ -97,7 +97,7 @@ namespace used_car_predictor.Backend.Training
                     ["RandomForest"] = new TrainingTimeDto(),
                     ["GradientBoosting"] = new TrainingTimeDto()
                 };
-                
+
                 var linearModel = new LinearRegression();
                 linearModel.Fit(trainX, trainY);
                 bundleMetrics["linear"] = EvaluateAndTest(m.Model, "Linear", linearModel, testX, testY, lScaler);
@@ -207,8 +207,8 @@ namespace used_car_predictor.Backend.Training
 
                 var bundle = ModelPersistence.ExportBundle(
                     ridgeModel,
-                    rfModel, 
-                    gbModel, 
+                    rfModel,
+                    gbModel,
                     fScaler, lScaler, fuels, transmissions,
                     notes:
                     $"model={m.Model}, rows={rows.Count}; anchorTargetYear={opts.AnchorYear}, totalRows={totalRows}"
