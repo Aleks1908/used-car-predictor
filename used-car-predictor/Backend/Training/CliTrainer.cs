@@ -61,7 +61,7 @@ namespace used_car_predictor.Backend.Training
                 var (trainRawX, trainRawY, testRawX, testRawY) = DataSplitter.Split(rawX, rawY, trainRatio: 0.8);
 
                 var fScaler = new FeatureScaler();
-                var lScaler = new LabelScaler(useLog: false);
+                var lScaler = new LabelScaler();
 
                 var trainX = fScaler.FitTransform(trainRawX);
                 var testX = fScaler.Transform(testRawX);

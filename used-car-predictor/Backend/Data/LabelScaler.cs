@@ -2,7 +2,7 @@ using System.Linq;
 
 namespace used_car_predictor.Backend.Data
 {
-    public class LabelScaler(bool useLog = true)
+    public class LabelScaler()
     {
         private double _mean;
         private double _std;
@@ -11,7 +11,7 @@ namespace used_car_predictor.Backend.Data
 
         public double[] FitTransform(double[] y)
         {
-            var z = useLog ? y.Select(v => Math.Log(v + 1.0)).ToArray() : (double[])y.Clone();
+            var z = (double[])y.Clone();
 
             _mean = z.Average();
             _std = Math.Sqrt(z.Select(v => Math.Pow(v - _mean, 2)).Average());
@@ -24,17 +24,14 @@ namespace used_car_predictor.Backend.Data
         public double[] Transform(double[] y)
         {
             EnsureFitted();
-            var z = useLog ? y.Select(v => Math.Log(v + 1.0)).ToArray() : (double[])y.Clone();
+            var z = (double[])y.Clone();
             return z.Select(v => (v - _mean) / _std).ToArray();
         }
 
         public double[] InverseTransform(double[] y)
         {
             EnsureFitted();
-            var unscaled = y.Select(v => v * _std + _mean).ToArray();
-            if (useLog)
-                unscaled = unscaled.Select(v => Math.Exp(v) - 1.0).ToArray();
-            return unscaled;
+            return y.Select(v => v * _std + _mean).ToArray();
         }
 
         private void EnsureFitted()
