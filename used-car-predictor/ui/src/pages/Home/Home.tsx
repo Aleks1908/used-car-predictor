@@ -38,7 +38,7 @@ function Home() {
     <div className="min-h-screen bg-linear-to-br from-gray-100 to-gray-200 p-8 flex items-center justify-center">
       <div className="w-full max-w-5xl bg-white rounded-3xl shadow-2xl border-2 border-gray-300 p-12">
         <h1 className="text-4xl font-bold text-center text-gray-900 mb-12">
-          Welcome to used-cars-pricePredictor
+          Welcome to Used Car Price Prediction System
         </h1>
 
         <div className="grid grid-cols-2 gap-6 ">
