@@ -272,7 +272,7 @@ export function RangeComparisonPrediction({
                   linear: "Linear Regression",
                   ridge: "Ridge Regression",
                   ridge_rf: "Random Forest",
-                  ridge_gb: "Ridge GB",
+                  ridge_gb: "Gradient Boosting",
                 };
                 return (
                   <div
@@ -362,7 +362,7 @@ export function RangeComparisonPrediction({
                   linear: "Linear Regression",
                   ridge: "Ridge Regression",
                   ridge_rf: "Random Forest",
-                  ridge_gb: "Ridge GB",
+                  ridge_gb: "Gradient Boosting",
                 };
                 return (
                   <div
@@ -545,7 +545,7 @@ export function RangeComparisonPrediction({
                 <option value="linear">Linear Regression</option>
                 <option value="ridge">Ridge Regression</option>
                 <option value="ridge_rf">Random Forest</option>
-                <option value="ridge_gb">Ridge GB</option>
+                <option value="ridge_gb">Gradient Boosting</option>
               </select>
             </Field>
 

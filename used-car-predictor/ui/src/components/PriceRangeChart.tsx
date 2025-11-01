@@ -53,7 +53,7 @@ const algorithmLabels = {
   linear: "Linear Regression",
   ridge: "Ridge Regression",
   ridge_rf: "Random Forest",
-  ridge_gb: "Ridge GB",
+  ridge_gb: "Gradient Boosting",
 };
 
 export function PriceRangeChart({ items }: PriceRangeChartProps) {
