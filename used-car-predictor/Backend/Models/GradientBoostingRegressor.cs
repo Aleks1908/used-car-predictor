@@ -250,7 +250,7 @@ namespace used_car_predictor.Backend.Models
                 var r2 = Metrics.RSquared(valResidualY, valPredRes);
 
                 Console.WriteLine(
-                    $"[GB(res) tune] try={trial + 1}/{maxConfigs} " +
+                    $"[GB tune] try={trial + 1}/{maxConfigs} " +
                     $"nEst={p["nEstimators"]}, lr={p["learningRate"]}, " +
                     $"maxDepth={p["maxDepth"]}, minSplit={p["minSamplesSplit"]}, " +
                     $"minLeaf={p["minSamplesLeaf"]}, subsample={p["subsample"]} -> " +
@@ -269,7 +269,7 @@ namespace used_car_predictor.Backend.Models
 
             if (bestParams != null)
                 Console.WriteLine(
-                    $"[GB(res) Best] nEst={bestParams["nEstimators"]}, lr={bestParams["learningRate"]}, " +
+                    $"[GB Best] nEst={bestParams["nEstimators"]}, lr={bestParams["learningRate"]}, " +
                     $"maxDepth={bestParams["maxDepth"]}, minSplit={bestParams["minSamplesSplit"]}, " +
                     $"minLeaf={bestParams["minSamplesLeaf"]}, subsample={bestParams["subsample"]}, " +
                     $"bestIt={bestModel.BestIteration}");

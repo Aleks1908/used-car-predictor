@@ -148,7 +148,7 @@ namespace used_car_predictor.Backend.Models
                 var r2 = Metrics.RSquared(valResidualY, valPredRes);
 
                 Console.WriteLine(
-                    $"[RF(res) tune] try={trial + 1}/{maxConfigs} " +
+                    $"[RF tune] try={trial + 1}/{maxConfigs} " +
                     $"nEst={p["nEstimators"]}, maxDepth={p["maxDepth"]}, minSplit={p["minSamplesSplit"]}, " +
                     $"minLeaf={p["minSamplesLeaf"]}, sampleRatio={p["sampleRatio"]}, bootstrap={p["bootstrap"]} -> " +
                     $"RMSE={rmse:F2}, MAE={mae:F2}, R²={r2:F3}, time={sw.Elapsed.TotalMilliseconds:F3} ms");
@@ -172,7 +172,7 @@ namespace used_car_predictor.Backend.Models
             bestModel.TuningTrials = trials;
 
             Console.WriteLine(
-                $"[RF(res) Best] nEst={bestParams!["nEstimators"]}, maxDepth={bestParams!["maxDepth"]}, " +
+                $"[RF Best] nEst={bestParams!["nEstimators"]}, maxDepth={bestParams!["maxDepth"]}, " +
                 $"minSplit={bestParams!["minSamplesSplit"]}, minLeaf={bestParams!["minSamplesLeaf"]}, " +
                 $"sampleRatio={bestParams!["sampleRatio"]}, bootstrap={bestParams!["bootstrap"]}, " +
                 $"Trials={trials}, MeanTrialMs={meanMs:F3}, TotalMs={totalMs:F3}");

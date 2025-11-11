@@ -51,7 +51,7 @@ namespace used_car_predictor.Backend.Models
 
             sw.Stop();
             TotalMs = sw.Elapsed.TotalMilliseconds;
-            MeanTrialMs = TotalMs; 
+            MeanTrialMs = TotalMs;
         }
 
         public double Predict(double[] featureRow)
@@ -196,7 +196,7 @@ namespace used_car_predictor.Backend.Models
                 b -= lr * gb / n;
             }
         }
-        
+
         private static double[] LogSpace(double startExp, double endExp, int steps)
         {
             var arr = new double[Math.Max(1, steps)];
@@ -293,7 +293,7 @@ namespace used_car_predictor.Backend.Models
             final.TuningMeanTrialMs = meanMs;
 
             Console.WriteLine(
-                $"[Ridge Best kCV] α={bestAlpha:g}, Trials={trials}, MeanTrialMs={meanMs:F3}, TotalMs={totalMs:F3}");
+                $"[Ridge] α={bestAlpha:g}, Trials={trials}, MeanTrialMs={meanMs:F3}, TotalMs={totalMs:F3}");
             return (final, meanMs, totalMs, trials);
         }
 
