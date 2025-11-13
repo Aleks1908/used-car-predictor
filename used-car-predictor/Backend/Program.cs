@@ -99,3 +99,5 @@ catch (Exception ex)
 }
 
 app.Run();
+
+public abstract partial class Program { }
