@@ -14,7 +14,6 @@ public class MetricsTests
     {
         var y  = new[] { 10.0, 12.0, 14.0, 16.0 };
         var yhat = new[] { 11.0, 13.0, 13.0, 15.0 };
-        // abs errors: 1,1,1,1 => MAE = 1
         var mae = Metrics.MeanAbsoluteError(y, yhat);
         Assert.Equal(1.0, mae, precision: 10);
     }
