@@ -7,7 +7,7 @@ using used_car_predictor.Backend.Serialization;
 
 namespace used_car_predictor.Backend.Services;
 
-public sealed class ActiveModel
+public class ActiveModel
 {
     private Dictionary<string, IRegressor> _models = new(StringComparer.OrdinalIgnoreCase);
 
