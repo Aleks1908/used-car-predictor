@@ -1,9 +1,11 @@
+using System.Diagnostics.CodeAnalysis;
 using FluentAssertions;
 using used_car_predictor.Backend.Data;
 using used_car_predictor.Backend.Evaluation;
 using used_car_predictor.Backend.Models;
 using Xunit;
 
+[ExcludeFromCodeCoverage]
 public class ResidualLearningImprovementTests
 {
     [Fact]

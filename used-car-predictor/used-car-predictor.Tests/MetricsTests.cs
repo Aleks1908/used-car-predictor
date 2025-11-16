@@ -1,10 +1,12 @@
 using System;
+using System.Diagnostics.CodeAnalysis;
 using Xunit;
 using used_car_predictor.Backend.Evaluation;
 using Assert = Xunit.Assert;
 
 namespace used_car_predictor.Tests;
 
+[ExcludeFromCodeCoverage]
 public class MetricsTests
 {
     [Fact]

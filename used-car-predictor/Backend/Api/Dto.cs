@@ -1,8 +1,11 @@
+using System.Diagnostics.CodeAnalysis;
 using System.Text.Json.Serialization;
 using used_car_predictor.Backend.Serialization;
 
+
 namespace used_car_predictor.Backend.Api;
 
+[ExcludeFromCodeCoverage]
 public sealed record PredictRequest
 {
     public string Manufacturer { get; init; } = default!;
@@ -14,6 +17,7 @@ public sealed record PredictRequest
     public int? TargetYear { get; init; }
 }
 
+[ExcludeFromCodeCoverage]
 public sealed class PredictRangeRequest
 {
     public string Manufacturer { get; set; } = default!;
@@ -26,6 +30,7 @@ public sealed class PredictRangeRequest
     public int EndYear { get; set; }
 }
 
+[ExcludeFromCodeCoverage]
 public sealed class PredictResponse
 {
     public string Manufacturer { get; set; } = default!;
@@ -40,6 +45,7 @@ public sealed class PredictResponse
     public Dictionary<string, AlgorithmMetricsDto>? Metrics { get; set; }
 }
 
+[ExcludeFromCodeCoverage]
 public sealed class ModelInfoDto
 {
     public DateTimeOffset TrainedAt { get; set; }
@@ -58,23 +64,7 @@ public sealed class ModelInfoDto
     public double? R2 { get; set; }
 }
 
-public sealed class CatalogItemDto
-{
-    public string ModelId { get; set; } = default!;
-
-    public string Manufacturer { get; set; } = "";
-
-    public string DisplayModel { get; set; } = default!;
-    public string FileName { get; set; } = default!;
-    public DateTimeOffset TrainedAt { get; set; }
-    public string[] Algorithms { get; set; } = Array.Empty<string>();
-}
-
-public sealed class CatalogResponse
-{
-    public List<CatalogItemDto> Items { get; set; } = new();
-}
-
+[ExcludeFromCodeCoverage]
 public sealed class PredictRangeItem
 {
     public string Manufacturer { get; set; } = default!;
@@ -84,17 +74,20 @@ public sealed class PredictRangeItem
     public List<ModelPredictionDto> Results { get; set; } = new();
 }
 
+[ExcludeFromCodeCoverage]
 public sealed class ManufacturerRequest
 {
     public string Manufacturer { get; set; } = "";
 }
 
+[ExcludeFromCodeCoverage]
 public sealed class LabeledValueDto
 {
     public string Value { get; set; } = "";
     public string Label { get; set; } = "";
 }
 
+[ExcludeFromCodeCoverage]
 public sealed class ModelFeatureMetaDto
 {
     public LabeledValueDto[] Fuels { get; set; } = Array.Empty<LabeledValueDto>();
@@ -107,12 +100,14 @@ public sealed class ModelFeatureMetaDto
     public int? AnchorTargetYear { get; set; }
 }
 
+[ExcludeFromCodeCoverage]
 public sealed class TwoCarPredictRequest
 {
     public PredictRequest CarA { get; set; } = default!;
     public PredictRequest CarB { get; set; } = default!;
 }
 
+[ExcludeFromCodeCoverage]
 public sealed class TwoCarPredictRangeRequest
 {
     public PredictRequest CarA { get; set; } = default!;
@@ -123,12 +118,14 @@ public sealed class TwoCarPredictRangeRequest
     public string Algorithm { get; set; } = "ridge";
 }
 
+[ExcludeFromCodeCoverage]
 public sealed class YearlyPrediction
 {
     public int Year { get; set; }
     public decimal PredictedPrice { get; set; }
 }
 
+[ExcludeFromCodeCoverage]
 public sealed class ModelPredictionDto
 {
     public string Algorithm { get; set; } = default!;
@@ -138,6 +135,7 @@ public sealed class ModelPredictionDto
     public ModelMetricsDto? Metrics { get; set; }
 }
 
+[ExcludeFromCodeCoverage]
 public sealed class ModelMetricsDto
 {
     public double Mse { get; set; }
@@ -145,6 +143,7 @@ public sealed class ModelMetricsDto
     public double R2 { get; set; }
 }
 
+[ExcludeFromCodeCoverage]
 public sealed class AlgorithmMetricsDto
 {
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
@@ -154,6 +153,7 @@ public sealed class AlgorithmMetricsDto
     public TrainingTimeDto? Timing { get; set; }
 }
 
+[ExcludeFromCodeCoverage]
 public sealed class PredictRangeResponse
 {
     public List<PredictRangeItem> Items { get; set; } = new();
@@ -162,6 +162,7 @@ public sealed class PredictRangeResponse
     public Dictionary<string, AlgorithmMetricsDto>? Metrics { get; set; }
 }
 
+[ExcludeFromCodeCoverage]
 public sealed class TwoCarPredictResponse
 {
     public PredictResponse CarA { get; set; } = default!;
@@ -174,6 +175,7 @@ public sealed class TwoCarPredictResponse
     public Dictionary<string, AlgorithmMetricsDto>? MetricsB { get; set; }
 }
 
+[ExcludeFromCodeCoverage]
 public sealed class TwoCarPredictRangeResponse
 {
     public string Algorithm { get; set; } = "";

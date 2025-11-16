@@ -1,7 +1,9 @@
+using System.Diagnostics.CodeAnalysis;
 using FluentAssertions;
 using used_car_predictor.Backend.Data;
 using Xunit;
 
+[ExcludeFromCodeCoverage]
 public class LabelScalerEdgeTests
 {
     [Fact]

@@ -1,8 +1,10 @@
+using System.Diagnostics.CodeAnalysis;
 using Xunit;
 using used_car_predictor.Backend.Data;
 
 namespace used_car_predictor.Tests;
 
+[ExcludeFromCodeCoverage]
 public class FeatureScalerTests
 {
     [Fact]

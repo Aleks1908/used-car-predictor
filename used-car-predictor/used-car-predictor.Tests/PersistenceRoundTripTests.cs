@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using System.Security.Cryptography;
 using FluentAssertions;
 using used_car_predictor.Backend.Data;
@@ -5,6 +6,7 @@ using used_car_predictor.Backend.Models;
 using used_car_predictor.Backend.Serialization;
 using Xunit;
 
+[ExcludeFromCodeCoverage]
 public class PersistenceRoundTripTests
 {
     [Fact]
