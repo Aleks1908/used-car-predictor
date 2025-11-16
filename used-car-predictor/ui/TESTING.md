@@ -24,9 +24,26 @@ src/
   components/
     __tests__/
       AlgorithmMetricsCard.test.tsx
+      AlgorithmResultCard.test.tsx
+      ComparisonChart.test.tsx
+      ModelInfoCard.test.tsx
+      PredictionForm.test.tsx
+      PriceRangeChart.test.tsx
+      RangeComparisonChart.test.tsx
   utils/
     __tests__/
       formatting.test.ts
+      validation.test.ts
+  hooks/
+    __tests__/
+      usePredictionData.test.ts
+  pages/
+    __tests__/
+      Home.test.tsx
+      ComparisonPrediction.test.tsx
+      RangeComparisonPrediction.test.tsx
+      RangePrediction.test.tsx
+      SinglePrediction.test.tsx
 ```
 
 ## Writing Tests

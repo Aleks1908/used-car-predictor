@@ -3,6 +3,9 @@ import type { Config } from "jest";
 const config: Config = {
   preset: "ts-jest",
   testEnvironment: "jsdom",
+  testEnvironmentOptions: {
+    customExportConditions: [""],
+  },
   roots: ["<rootDir>/src"],
   testMatch: [
     "**/__tests__/**/*.+(ts|tsx|js)",
@@ -12,6 +15,7 @@ const config: Config = {
     "^@/(.*)$": "<rootDir>/src/$1",
     "\\.(css|less|scss|sass)$": "identity-obj-proxy",
   },
+  setupFiles: ["<rootDir>/jest.polyfills.js"],
   setupFilesAfterEnv: ["<rootDir>/jest.setup.ts"],
   transform: {
     "^.+\\.tsx?$": [
@@ -29,7 +33,9 @@ const config: Config = {
     "!src/**/*.d.ts",
     "!src/main.tsx",
     "!src/vite-env.d.ts",
+    "!src/components/ui/**",
   ],
+  coverageReporters: ["text", "lcov", "html"],
   moduleFileExtensions: ["ts", "tsx", "js", "jsx", "json"],
 };
 

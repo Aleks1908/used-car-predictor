@@ -39,7 +39,7 @@ describe("AlgorithmMetricsCard", () => {
 
   it("displays metrics correctly", () => {
     render(<AlgorithmMetricsCard metrics={mockMetrics} />);
-    expect(screen.getByText("100.50")).toBeInTheDocument(); // Linear MSE
-    expect(screen.getByText("0.850")).toBeInTheDocument(); // Linear R2 (3 decimal places)
+    expect(screen.getByText("100.50")).toBeInTheDocument();
+    expect(screen.getByText("0.850")).toBeInTheDocument();
   });
 });
