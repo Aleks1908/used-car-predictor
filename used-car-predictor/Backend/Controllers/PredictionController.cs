@@ -1,3 +1,8 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using used_car_predictor.Backend.Api;
 using used_car_predictor.Backend.Services;
@@ -11,6 +16,17 @@ public class PredictionController : ControllerBase
 {
     private readonly ActiveModel _active;
     private readonly ModelHotLoader _hotLoader;
+
+    // ---- Static allow-lists used for preflight validation (before touching the loader)
+    private static readonly HashSet<string> AllowedFuels = new(StringComparer.OrdinalIgnoreCase)
+    {
+        "gas", "diesel", "petrol", "hybrid", "electric", "lpg"
+    };
+
+    private static readonly HashSet<string> AllowedTransmissions = new(StringComparer.OrdinalIgnoreCase)
+    {
+        "manual", "automatic"
+    };
 
     public PredictionController(ActiveModel active, ModelHotLoader hotLoader)
     {
@@ -28,21 +44,17 @@ public class PredictionController : ControllerBase
         IReadOnlyDictionary<string, (double Mse, double Mae, double R2)> map, string key)
     {
         if (map.TryGetValue(key, out var m)) return (m.Mse, m.Mae, m.R2);
-
         if (key.Equals("ridge_rf", StringComparison.OrdinalIgnoreCase) && map.TryGetValue("rf", out m))
             return (m.Mse, m.Mae, m.R2);
-
         if (key.Equals("ridge_gb", StringComparison.OrdinalIgnoreCase) && map.TryGetValue("gb", out m))
             return (m.Mse, m.Mae, m.R2);
-
         return (0, 0, 0);
     }
 
     private static string? NormalizeAlgo(string? algo)
     {
         if (string.IsNullOrWhiteSpace(algo)) return null;
-        var k = algo.Trim().ToLowerInvariant();
-        return k switch
+        return algo.Trim().ToLowerInvariant() switch
         {
             "linear" => "linear",
             "ridge" => "ridge",
@@ -68,59 +80,40 @@ public class PredictionController : ControllerBase
         foreach (var key in preferredOrder)
         {
             if (!zByAlgo.TryGetValue(key, out var z)) continue;
-
             var price = ServingHelpers.InverseLabel(z, _active.LabelMean, _active.LabelStd, _active.LabelUseLog);
             var (mse, mae, r2) = GetMetricsOrDefault(_active.MetricsByAlgo, key);
-
             results.Add(new ModelPredictionDto
             {
                 Algorithm = key,
                 PredictedPrice = (decimal)Math.Round(Math.Max(0, price), 0),
-                Metrics = new ModelMetricsDto
-                {
-                    Mse = Math.Round(mse, 2),
-                    Mae = Math.Round(mae, 2),
-                    R2 = Math.Round(r2, 2)
-                }
+                Metrics = new ModelMetricsDto { Mse = Math.Round(mse, 2), Mae = Math.Round(mae, 2), R2 = Math.Round(r2, 2) }
             });
         }
 
         foreach (var kv in zByAlgo)
         {
             if (results.Any(r => r.Algorithm.Equals(kv.Key, StringComparison.OrdinalIgnoreCase))) continue;
-
             var price = ServingHelpers.InverseLabel(kv.Value, _active.LabelMean, _active.LabelStd, _active.LabelUseLog);
             var (mse, mae, r2) = GetMetricsOrDefault(_active.MetricsByAlgo, kv.Key);
-
             results.Add(new ModelPredictionDto
             {
                 Algorithm = kv.Key,
                 PredictedPrice = (decimal)Math.Round(Math.Max(0, price), 0),
-                Metrics = new ModelMetricsDto
-                {
-                    Mse = Math.Round(mse, 2),
-                    Mae = Math.Round(mae, 2),
-                    R2 = Math.Round(r2, 2)
-                }
+                Metrics = new ModelMetricsDto { Mse = Math.Round(mse, 2), Mae = Math.Round(mae, 2), R2 = Math.Round(r2, 2) }
             });
         }
 
         return results;
     }
 
-    private List<YearlyPrediction> BuildSeriesForCurrentActive(PredictRequest req, int startYear, int endYear,
-        string algoKey)
+    private List<YearlyPrediction> BuildSeriesForCurrentActive(PredictRequest req, int startYear, int endYear, string algoKey)
     {
         var series = new List<YearlyPrediction>();
         for (int y = startYear; y <= endYear; y++)
         {
             var raw = ServingHelpers.EncodeManualInput(
                 req.YearOfProduction, req.MileageKm, req.FuelType, req.Transmission,
-                _active.Fuels, _active.Transmissions,
-                targetYear: y,
-                anchorTargetYear: _active.AnchorTargetYear
-            );
-
+                _active.Fuels, _active.Transmissions, targetYear: y, anchorTargetYear: _active.AnchorTargetYear);
             var x = ServingHelpers.ScaleRow(raw, _active.FeatureMeans, _active.FeatureStds);
             var zByAlgo = _active.PredictAllScaled(x);
 
@@ -128,35 +121,71 @@ public class PredictionController : ControllerBase
                 throw new InvalidOperationException($"Algorithm '{algoKey}' not available in active model.");
 
             var price = ServingHelpers.InverseLabel(z, _active.LabelMean, _active.LabelStd, _active.LabelUseLog);
-            series.Add(new YearlyPrediction
-            {
-                Year = y,
-                PredictedPrice = (decimal)Math.Round(Math.Max(0, price), 0)
-            });
+            series.Add(new YearlyPrediction { Year = y, PredictedPrice = (decimal)Math.Round(Math.Max(0, price), 0) });
         }
-
         return series;
     }
 
-    private ModelInfoDto CurrentModelInfo()
+    private ModelInfoDto CurrentModelInfo() => new()
     {
-        return new ModelInfoDto
-        {
-            TrainedAt = _active.TrainedAt,
-            AnchorTargetYear = _active.AnchorTargetYear,
-            TotalRows = _active.TotalRows,
-        };
+        TrainedAt = _active.TrainedAt,
+        AnchorTargetYear = _active.AnchorTargetYear,
+        TotalRows = _active.TotalRows,
+    };
+
+    // ---------- Helpers ----------
+
+    private ActionResult BadRequestError(string message) => BadRequest(new { error = message });
+
+    // Preflight: validate without model (lets tests get 400 even if loader would fail)
+    private ActionResult? ValidateCategoricalsPreflight(PredictRequest req)
+    {
+        if (string.IsNullOrWhiteSpace(req.FuelType) || !AllowedFuels.Contains(req.FuelType))
+            return BadRequestError("Unknown fuelType.");
+        if (string.IsNullOrWhiteSpace(req.Transmission) || !AllowedTransmissions.Contains(req.Transmission))
+            return BadRequestError("Unknown transmission.");
+        return null;
     }
+
+    // Post-load validation against model vocabularies as a safety net
+    private ActionResult? ValidateCategoricalsAgainstActive(PredictRequest req)
+    {
+        bool fuelOk = _active.Fuels != null &&
+                      _active.Fuels.Any(s => s.Equals(req.FuelType, StringComparison.OrdinalIgnoreCase));
+        if (!fuelOk) return BadRequestError("Unknown fuelType.");
+        bool transOk = _active.Transmissions != null &&
+                       _active.Transmissions.Any(s => s.Equals(req.Transmission, StringComparison.OrdinalIgnoreCase));
+        if (!transOk) return BadRequestError("Unknown transmission.");
+        return null;
+    }
+
+    private async Task<ActionResult?> EnsureModelLoaded(string manufacturer, string model, CancellationToken ct)
+    {
+        try { await _hotLoader.EnsureLoadedAsync(manufacturer, model, ct); }
+        catch { return Problem("Failed to load model.", statusCode: 503); }
+        if (!_active.IsLoaded) return Problem("No active model loaded.", statusCode: 503);
+        return null;
+    }
+
+    // ---------- Endpoints ----------
 
     [HttpPost("predict")]
     public async Task<ActionResult<PredictResponse>> Predict([FromBody] PredictRequest req, CancellationToken ct)
     {
-        await _hotLoader.EnsureLoadedAsync(req.Manufacturer, req.Model, ct);
-        if (!_active.IsLoaded) return Problem("No active model loaded.", statusCode: 503);
+        // 1) Preflight categorical validation (returns 400 before loader)
+        var pre = ValidateCategoricalsPreflight(req);
+        if (pre is not null) return pre;
+
+        // 2) Safe load
+        var early = await EnsureModelLoaded(req.Manufacturer, req.Model, ct);
+        if (early is not null) return early;
+
+        // 3) Safety: validate against model vocabularies too
+        var bad = ValidateCategoricalsAgainstActive(req);
+        if (bad is not null) return bad;
 
         int targetYear = ClampYear(req.TargetYear ?? DateTime.UtcNow.Year);
         var results = PredictAllForTargetYear(req, targetYear);
-
         foreach (var r in results) r.Metrics = null;
 
         return Ok(new PredictResponse
@@ -172,15 +201,37 @@ public class PredictionController : ControllerBase
     }
 
     [HttpPost("predict/range")]
-    public async Task<ActionResult<PredictRangeResponse>> PredictRange([FromBody] PredictRangeRequest req,
-        CancellationToken ct)
+    public async Task<ActionResult<PredictRangeResponse>> PredictRange([FromBody] PredictRangeRequest req, CancellationToken ct)
     {
-        await _hotLoader.EnsureLoadedAsync(req.Manufacturer, req.Model, ct);
-        if (!_active.IsLoaded) return Problem("No active model loaded.", statusCode: 503);
-
         int start = ClampYear(req.StartYear);
         int end = ClampYear(req.EndYear);
-        if (start > end) return BadRequest(new { error = "startYear must be <= endYear" });
+        if (start > end) return BadRequestError("startYear must be <= endYear");
+
+        // Preflight once (applies for whole range)
+        var pre = ValidateCategoricalsPreflight(new PredictRequest
+        {
+            Manufacturer = req.Manufacturer,
+            Model = req.Model,
+            YearOfProduction = req.YearOfProduction,
+            MileageKm = req.MileageKm,
+            FuelType = req.FuelType,
+            Transmission = req.Transmission
+        });
+        if (pre is not null) return pre;
+
+        var early = await EnsureModelLoaded(req.Manufacturer, req.Model, ct);
+        if (early is not null) return early;
+
+        var bad = ValidateCategoricalsAgainstActive(new PredictRequest
+        {
+            Manufacturer = req.Manufacturer,
+            Model = req.Model,
+            YearOfProduction = req.YearOfProduction,
+            MileageKm = req.MileageKm,
+            FuelType = req.FuelType,
+            Transmission = req.Transmission
+        });
+        if (bad is not null) return bad;
 
         var items = new List<PredictRangeItem>();
         for (int y = start; y <= end; y++)
@@ -217,13 +268,19 @@ public class PredictionController : ControllerBase
         });
     }
 
-
     [HttpPost("predict-two")]
-    public async Task<ActionResult<TwoCarPredictResponse>> PredictTwo([FromBody] TwoCarPredictRequest req,
-        CancellationToken ct)
+    public async Task<ActionResult<TwoCarPredictResponse>> PredictTwo([FromBody] TwoCarPredictRequest req, CancellationToken ct)
     {
-        await _hotLoader.EnsureLoadedAsync(req.CarA.Manufacturer, req.CarA.Model, ct);
-        if (!_active.IsLoaded) return Problem("No active model loaded.", statusCode: 503);
+        // Preflight for both cars
+        var preA = ValidateCategoricalsPreflight(req.CarA);
+        if (preA is not null) return preA;
+        var preB = ValidateCategoricalsPreflight(req.CarB);
+        if (preB is not null) return preB;
+
+        var earlyA = await EnsureModelLoaded(req.CarA.Manufacturer, req.CarA.Model, ct);
+        if (earlyA is not null) return earlyA;
+        var badA = ValidateCategoricalsAgainstActive(req.CarA);
+        if (badA is not null) return badA;
 
         int ta = ClampYear(req.CarA.TargetYear ?? DateTime.UtcNow.Year);
         var resA = PredictAllForTargetYear(req.CarA with { TargetYear = ta }, ta);
@@ -239,8 +296,10 @@ public class PredictionController : ControllerBase
             Metrics = BuildMetricsSummary()
         };
 
-        await _hotLoader.EnsureLoadedAsync(req.CarB.Manufacturer, req.CarB.Model, ct);
-        if (!_active.IsLoaded) return Problem("No active model loaded.", statusCode: 503);
+        var earlyB = await EnsureModelLoaded(req.CarB.Manufacturer, req.CarB.Model, ct);
+        if (earlyB is not null) return earlyB;
+        var badB = ValidateCategoricalsAgainstActive(req.CarB);
+        if (badB is not null) return badB;
 
         int tb = ClampYear(req.CarB.TargetYear ?? DateTime.UtcNow.Year);
         var resB = PredictAllForTargetYear(req.CarB with { TargetYear = tb }, tb);
@@ -256,33 +315,37 @@ public class PredictionController : ControllerBase
             Metrics = BuildMetricsSummary()
         };
 
-        return Ok(new TwoCarPredictResponse
-        {
-            CarA = a,
-            CarB = b,
-        });
+        return Ok(new TwoCarPredictResponse { CarA = a, CarB = b });
     }
 
     [HttpPost("predict-two/range")]
-    public async Task<ActionResult<TwoCarPredictRangeResponse>> PredictTwoRange(
-        [FromBody] TwoCarPredictRangeRequest req, CancellationToken ct)
+    public async Task<ActionResult<TwoCarPredictRangeResponse>> PredictTwoRange([FromBody] TwoCarPredictRangeRequest req, CancellationToken ct)
     {
         int start = ClampYear(req.StartYear);
         int end = ClampYear(req.EndYear);
-        if (start > end) return BadRequest(new { error = "startYear must be <= endYear" });
+        if (start > end) return BadRequestError("startYear must be <= endYear");
 
         var algoKey = NormalizeAlgo(req.Algorithm);
-        if (algoKey is null)
-            return BadRequest(new { error = "algorithm must be one of: linear, ridge, ridge_rf, ridge_gb" });
+        if (algoKey is null) return BadRequestError("algorithm must be one of: linear, ridge, ridge_rf, ridge_gb");
 
-        await _hotLoader.EnsureLoadedAsync(req.CarA.Manufacturer, req.CarA.Model, ct);
-        if (!_active.IsLoaded) return Problem("No active model loaded.", statusCode: 503);
+        // Preflight both cars
+        var preA = ValidateCategoricalsPreflight(req.CarA);
+        if (preA is not null) return preA;
+        var preB = ValidateCategoricalsPreflight(req.CarB);
+        if (preB is not null) return preB;
+
+        var earlyA = await EnsureModelLoaded(req.CarA.Manufacturer, req.CarA.Model, ct);
+        if (earlyA is not null) return earlyA;
+        var badA = ValidateCategoricalsAgainstActive(req.CarA);
+        if (badA is not null) return badA;
         var seriesA = BuildSeriesForCurrentActive(req.CarA, start, end, algoKey);
         var infoA = CurrentModelInfo();
         var metricsA = BuildMetricsSummary(algoKey);
 
-        await _hotLoader.EnsureLoadedAsync(req.CarB.Manufacturer, req.CarB.Model, ct);
-        if (!_active.IsLoaded) return Problem("No active model loaded.", statusCode: 503);
+        var earlyB = await EnsureModelLoaded(req.CarB.Manufacturer, req.CarB.Model, ct);
+        if (earlyB is not null) return earlyB;
+        var badB = ValidateCategoricalsAgainstActive(req.CarB);
+        if (badB is not null) return badB;
         var seriesB = BuildSeriesForCurrentActive(req.CarB, start, end, algoKey);
         var infoB = CurrentModelInfo();
         var metricsB = BuildMetricsSummary(algoKey);
@@ -298,7 +361,6 @@ public class PredictionController : ControllerBase
             MetricsB = metricsB
         });
     }
-
 
     private Dictionary<string, AlgorithmMetricsDto>? BuildMetricsSummary(params string[] restrictTo)
     {
