@@ -16,24 +16,29 @@ public sealed class ModelHotLoader
         _resolver = resolver;
     }
 
+    private static string Norm(string s) => ModelNormalizer.Normalize(s ?? string.Empty);
+
     public async Task EnsureLoadedAsync(string manufacturer, string model, CancellationToken ct = default)
     {
-        var key = ModelNormalizer.Normalize(model);
+        var key = $"{Norm(manufacturer)}_{Norm(model)}";
 
-        if (_active.IsLoaded && _currentKey == key) return;
+        if (_active.IsLoaded && string.Equals(_currentKey, key, StringComparison.OrdinalIgnoreCase))
+            return;
 
         await _gate.WaitAsync(ct);
         try
         {
-            if (_active.IsLoaded && _currentKey == key) return;
+            if (_active.IsLoaded && string.Equals(_currentKey, key, StringComparison.OrdinalIgnoreCase))
+                return;
+            
+            var (path, algorithm) = _resolver.Resolve(manufacturer, key);
 
-            var (path, algorithm) = _resolver.Resolve(manufacturer, model);
             if (!File.Exists(path))
                 throw new FileNotFoundException($"Bundle not found: {path}");
 
             _active.LoadFromBundle(path, algorithm);
             _currentKey = key;
-            Console.WriteLine($"[Model] Hot-swapped: '{key}' via {algorithm} ");
+            Console.WriteLine($"[Model] Hot-swapped: '{key}' via {algorithm}");
         }
         finally
         {
