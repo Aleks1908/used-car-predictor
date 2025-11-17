@@ -10,7 +10,6 @@ public class TreeEnsemblesSmokeTests
     [Fact]
     public void RandomForest_Smoke_FitsAndPredictsFinite()
     {
-        // simple linear-ish data
         var X = new double[,]
         {
             {0}, {1}, {2}, {3}, {4}, {5}

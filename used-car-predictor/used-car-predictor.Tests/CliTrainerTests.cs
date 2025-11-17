@@ -1,8 +1,4 @@
-using System;
 using System.Diagnostics.CodeAnalysis;
-using System.IO;
-using System.Linq;
-using System.Text;
 using Microsoft.Extensions.FileProviders;
 using Microsoft.Extensions.Hosting;
 using used_car_predictor.Backend.Training;
@@ -54,7 +50,6 @@ namespace used_car_predictor.Tests
             for (int i = 0; i < rows; i++)
             {
                 var id = 7000000000 + i;
-                // Fill the key fields; leave the rest empty
                 var price = 10000 + i * 10;
                 var year  = 2015 + (i % 5);
                 var fuel  = "gas";

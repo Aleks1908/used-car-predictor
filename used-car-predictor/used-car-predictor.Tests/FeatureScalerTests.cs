@@ -44,7 +44,7 @@ public class FeatureScalerTests
         };
         var test = new double[,]
         {
-            { 5, 5 } // midpoint
+            { 5, 5 }
         };
 
         var scaler = new FeatureScaler();

@@ -22,7 +22,6 @@ public class RidgeRegressionTests
         var pred = rr.Predict(new double[] {5});
         Assert.InRange(pred, 10.999, 11.001);
 
-        // Check learned params roughly (w ~ 2, b ~ 1)
         Assert.InRange(rr.Bias, 0.999, 1.001);
         Assert.InRange(rr.Weights[0], 1.999, 2.001);
     }

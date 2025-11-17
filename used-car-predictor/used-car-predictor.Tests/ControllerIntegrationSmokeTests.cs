@@ -28,7 +28,6 @@ public class ControllerIntegrationSmokeTests : IClassFixture<WebApplicationFacto
             targetYear      = 2030
         };
 
-        // Act
         var resp = await client.PostAsJsonAsync("/api/v1/prediction/predict", req);
         resp.IsSuccessStatusCode.Should().BeTrue();
 
@@ -51,7 +50,6 @@ public class ControllerIntegrationSmokeTests : IClassFixture<WebApplicationFacto
         price.ValueKind.Should().Be(JsonValueKind.Number);
         price.GetDecimal().Should().BeGreaterThan(0);
 
-        // Optional quick checks (existence only)
         root.TryGetProperty("modelInfo", out _).Should().BeTrue();
         root.TryGetProperty("metrics", out _).Should().BeTrue();
     }

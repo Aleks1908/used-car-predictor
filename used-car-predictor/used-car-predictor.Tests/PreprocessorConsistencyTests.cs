@@ -22,8 +22,8 @@ public class PreprocessorConsistencyTests
         fuels1.Should().BeEquivalentTo(fuels2, o => o.WithStrictOrdering());
         trans1.Should().BeEquivalentTo(trans2, o => o.WithStrictOrdering());
 
-        x1.GetLength(0).Should().Be(x2.GetLength(0)); // rows
-        x1.GetLength(1).Should().Be(x2.GetLength(1)); // columns
+        x1.GetLength(0).Should().Be(x2.GetLength(0)); 
+        x1.GetLength(1).Should().Be(x2.GetLength(1)); 
         for (int i = 0; i < x1.GetLength(0); i++)
             for (int j = 0; j < x1.GetLength(1); j++)
                 x1[i,j].Should().BeApproximately(x2[i,j], 1e-12);

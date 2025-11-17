@@ -37,7 +37,6 @@ public class LabelScalerEdgeTests
         var back = scaler.InverseTransform(yt);
         back.Should().OnlyContain(v => double.IsFinite(v));
 
-        // Monotonicity sanity check after round-trip
         back[0].Should().BeLessThanOrEqualTo(back[1]);
         back[1].Should().BeLessThanOrEqualTo(back[2]);
     }
