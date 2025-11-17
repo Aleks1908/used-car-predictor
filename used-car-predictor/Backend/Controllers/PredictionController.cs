@@ -17,7 +17,6 @@ public class PredictionController : ControllerBase
     private readonly ActiveModel _active;
     private readonly ModelHotLoader _hotLoader;
 
-    // ---- Static allow-lists used for preflight validation (before touching the loader)
     private static readonly HashSet<string> AllowedFuels = new(StringComparer.OrdinalIgnoreCase)
     {
         "gas", "diesel", "petrol", "hybrid", "electric", "lpg"
@@ -133,11 +132,9 @@ public class PredictionController : ControllerBase
         TotalRows = _active.TotalRows,
     };
 
-    // ---------- Helpers ----------
 
     private ActionResult BadRequestError(string message) => BadRequest(new { error = message });
 
-    // Preflight: validate without model (lets tests get 400 even if loader would fail)
     private ActionResult? ValidateCategoricalsPreflight(PredictRequest req)
     {
         if (string.IsNullOrWhiteSpace(req.FuelType) || !AllowedFuels.Contains(req.FuelType))
@@ -146,8 +143,7 @@ public class PredictionController : ControllerBase
             return BadRequestError("Unknown transmission.");
         return null;
     }
-
-    // Post-load validation against model vocabularies as a safety net
+    
     private ActionResult? ValidateCategoricalsAgainstActive(PredictRequest req)
     {
         bool fuelOk = _active.Fuels != null &&
@@ -162,25 +158,24 @@ public class PredictionController : ControllerBase
     private async Task<ActionResult?> EnsureModelLoaded(string manufacturer, string model, CancellationToken ct)
     {
         try { await _hotLoader.EnsureLoadedAsync(manufacturer, model, ct); }
-        catch { return Problem("Failed to load model.", statusCode: 503); }
-        if (!_active.IsLoaded) return Problem("No active model loaded.", statusCode: 503);
+        catch { return Problem(
+            detail: "Model not found for the given manufacturer and model.",
+            statusCode: 400,
+            title: "Bad Request");}
+        if (!_active.IsLoaded) return Problem("No active model loaded.", statusCode: 400);
         return null;
     }
 
-    // ---------- Endpoints ----------
 
     [HttpPost("predict")]
     public async Task<ActionResult<PredictResponse>> Predict([FromBody] PredictRequest req, CancellationToken ct)
     {
-        // 1) Preflight categorical validation (returns 400 before loader)
         var pre = ValidateCategoricalsPreflight(req);
         if (pre is not null) return pre;
-
-        // 2) Safe load
+        
         var early = await EnsureModelLoaded(req.Manufacturer, req.Model, ct);
         if (early is not null) return early;
-
-        // 3) Safety: validate against model vocabularies too
+        
         var bad = ValidateCategoricalsAgainstActive(req);
         if (bad is not null) return bad;
 
@@ -207,7 +202,6 @@ public class PredictionController : ControllerBase
         int end = ClampYear(req.EndYear);
         if (start > end) return BadRequestError("startYear must be <= endYear");
 
-        // Preflight once (applies for whole range)
         var pre = ValidateCategoricalsPreflight(new PredictRequest
         {
             Manufacturer = req.Manufacturer,
@@ -271,7 +265,6 @@ public class PredictionController : ControllerBase
     [HttpPost("predict-two")]
     public async Task<ActionResult<TwoCarPredictResponse>> PredictTwo([FromBody] TwoCarPredictRequest req, CancellationToken ct)
     {
-        // Preflight for both cars
         var preA = ValidateCategoricalsPreflight(req.CarA);
         if (preA is not null) return preA;
         var preB = ValidateCategoricalsPreflight(req.CarB);
@@ -328,7 +321,6 @@ public class PredictionController : ControllerBase
         var algoKey = NormalizeAlgo(req.Algorithm);
         if (algoKey is null) return BadRequestError("algorithm must be one of: linear, ridge, ridge_rf, ridge_gb");
 
-        // Preflight both cars
         var preA = ValidateCategoricalsPreflight(req.CarA);
         if (preA is not null) return preA;
         var preB = ValidateCategoricalsPreflight(req.CarB);

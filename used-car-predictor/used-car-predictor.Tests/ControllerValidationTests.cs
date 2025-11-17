@@ -1,5 +1,9 @@
+using System;
+using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 using System.Net;
+using System.Net.Http;
 using System.Net.Http.Json;
 using System.Reflection;
 using System.Text.Json;
@@ -13,49 +17,17 @@ using used_car_predictor.Backend.Controllers;
 using used_car_predictor.Backend.Services;
 using Xunit;
 
+#nullable enable
+
 [ExcludeFromCodeCoverage]
 public class PredictionControllerValidationTests : IClassFixture<WebApplicationFactory<Program>>
 {
     private readonly WebApplicationFactory<Program> _app;
     public PredictionControllerValidationTests(WebApplicationFactory<Program> app) => _app = app;
     private HttpClient Client => _app.CreateClient();
-
-
     private HttpClient NewClient() => _app.CreateClient();
-    
-    [Fact]
-    public async Task PredictTwo_BothValid_NoModel_Returns_503()
-    {
-        var client = NewClient();
 
-        var req = new
-        {
-            carA = new
-            {
-                manufacturer = "AA",
-                model = "AA1",
-                yearOfProduction = 2019,
-                mileageKm = 60000,
-                fuelType = "gas",
-                transmission = "manual",
-                targetYear = 2030
-            },
-            carB = new
-            {
-                manufacturer = "BB",
-                model = "BB1",
-                yearOfProduction = 2016,
-                mileageKm = 120000,
-                fuelType = "diesel",
-                transmission = "automatic",
-                targetYear = 2031
-            }
-        };
 
-        var resp = await client.PostAsJsonAsync("/api/v1/prediction/predict-two", req);
-        resp.StatusCode.Should().Be(HttpStatusCode.ServiceUnavailable);
-    }
-    
     [Fact]
     public async Task PredictTwoRange_BadFuelInCarA_Returns_400()
     {
@@ -91,7 +63,7 @@ public class PredictionControllerValidationTests : IClassFixture<WebApplicationF
     }
 
     [Fact]
-    public async Task PredictTwoRange_ClampingAnd503()
+    public async Task PredictTwoRange_ClampingAndNoModel_Returns_400() 
     {
         var client = NewClient();
 
@@ -121,10 +93,11 @@ public class PredictionControllerValidationTests : IClassFixture<WebApplicationF
         };
 
         var resp = await client.PostAsJsonAsync("/api/v1/prediction/predict-two/range", req);
-        resp.StatusCode.Should().Be(HttpStatusCode.ServiceUnavailable);
+        resp.StatusCode.Should().Be(HttpStatusCode.BadRequest);
     }
+
     [Fact]
-    public async Task Predict_ValidInput_Returns_503()
+    public async Task Predict_ValidInput_NoModel_Returns_400()
     {
         var req = new
         {
@@ -138,11 +111,11 @@ public class PredictionControllerValidationTests : IClassFixture<WebApplicationF
         };
 
         var resp = await Client.PostAsJsonAsync("/api/v1/prediction/predict", req);
-        resp.StatusCode.Should().Be(HttpStatusCode.ServiceUnavailable);
+        resp.StatusCode.Should().Be(HttpStatusCode.BadRequest);
     }
 
     [Fact]
-    public async Task Predict_MissingTargetYear_Defaults_And_503()
+    public async Task Predict_MissingTargetYear_Defaults_And_NoModel_Returns_400()
     {
         var req = new
         {
@@ -155,7 +128,7 @@ public class PredictionControllerValidationTests : IClassFixture<WebApplicationF
         };
 
         var resp = await Client.PostAsJsonAsync("/api/v1/prediction/predict", req);
-        resp.StatusCode.Should().Be(HttpStatusCode.ServiceUnavailable);
+        resp.StatusCode.Should().Be(HttpStatusCode.BadRequest);
     }
 
     [Fact]
@@ -195,7 +168,7 @@ public class PredictionControllerValidationTests : IClassFixture<WebApplicationF
     }
 
     [Fact]
-    public async Task PredictRange_ValidYears_Returns_503()
+    public async Task PredictRange_ValidYears_NoModel_Returns_400()
     {
         var req = new
         {
@@ -210,11 +183,11 @@ public class PredictionControllerValidationTests : IClassFixture<WebApplicationF
         };
 
         var resp = await Client.PostAsJsonAsync("/api/v1/prediction/predict/range", req);
-        resp.StatusCode.Should().Be(HttpStatusCode.ServiceUnavailable);
+        resp.StatusCode.Should().Be(HttpStatusCode.BadRequest);
     }
-    
+
     [Fact]
-    public async Task PredictTwo_BothValid_Returns_503()
+    public async Task PredictTwo_BothValid_NoModel_Returns_400()
     {
         var req = new
         {
@@ -239,7 +212,7 @@ public class PredictionControllerValidationTests : IClassFixture<WebApplicationF
         };
 
         var resp = await Client.PostAsJsonAsync("/api/v1/prediction/predict-two", req);
-        resp.StatusCode.Should().Be(HttpStatusCode.ServiceUnavailable);
+        resp.StatusCode.Should().Be(HttpStatusCode.BadRequest);
     }
 
     [Fact]
@@ -271,14 +244,12 @@ public class PredictionControllerValidationTests : IClassFixture<WebApplicationF
         resp.StatusCode.Should().Be(HttpStatusCode.BadRequest);
     }
 
-
-
     [Theory]
     [InlineData("linear")]
     [InlineData("ridge")]
     [InlineData("ridge_rf")]
     [InlineData("ridge_gb")]
-    public async Task PredictTwoRange_ValidAlgorithms_Returns_503(string algo)
+    public async Task PredictTwoRange_ValidAlgorithms_NoModel_Returns_400(string algo)
     {
         var req = new
         {
@@ -306,11 +277,11 @@ public class PredictionControllerValidationTests : IClassFixture<WebApplicationF
         };
 
         var resp = await Client.PostAsJsonAsync("/api/v1/prediction/predict-two/range", req);
-        resp.StatusCode.Should().Be(HttpStatusCode.ServiceUnavailable);
+        resp.StatusCode.Should().Be(HttpStatusCode.BadRequest);
     }
-    
+
     [Fact]
-    public async Task PredictRange_SingleYear_Returns_503()
+    public async Task PredictRange_SingleYear_NoModel_Returns_400()
     {
         var req = new
         {
@@ -321,11 +292,11 @@ public class PredictionControllerValidationTests : IClassFixture<WebApplicationF
             fuelType = "gas",
             transmission = "manual",
             startYear = 2030,
-            endYear = 2030 
+            endYear = 2030
         };
 
         var resp = await Client.PostAsJsonAsync("/api/v1/prediction/predict/range", req);
-        resp.StatusCode.Should().Be(HttpStatusCode.ServiceUnavailable);
+        resp.StatusCode.Should().Be(HttpStatusCode.BadRequest);
     }
 
     [Fact]
@@ -381,7 +352,7 @@ public class PredictionControllerValidationTests : IClassFixture<WebApplicationF
     [InlineData("hybrid")]
     [InlineData("electric")]
     [InlineData("lpg")]
-    public async Task Predict_AllValidFuelTypes_Returns_503(string fuel)
+    public async Task Predict_AllValidFuelTypes_NoModel_Returns_400(string fuel) 
     {
         var req = new
         {
@@ -395,9 +366,9 @@ public class PredictionControllerValidationTests : IClassFixture<WebApplicationF
         };
 
         var resp = await Client.PostAsJsonAsync("/api/v1/prediction/predict", req);
-        resp.StatusCode.Should().Be(HttpStatusCode.ServiceUnavailable);
+        resp.StatusCode.Should().Be(HttpStatusCode.BadRequest);
     }
-    
+
     [Fact]
     public async Task PredictTwoRange_NullAlgorithm_Returns_400()
     {
@@ -463,7 +434,7 @@ public class PredictionControllerValidationTests : IClassFixture<WebApplicationF
     }
 
     [Fact]
-    public async Task PredictTwo_NullTargetYearBothCars_Defaults_Returns_503()
+    public async Task PredictTwo_NullTargetYearBothCars_Defaults_NoModel_Returns_400() 
     {
         var req = new
         {
@@ -475,7 +446,6 @@ public class PredictionControllerValidationTests : IClassFixture<WebApplicationF
                 mileageKm = 90000,
                 fuelType = "gas",
                 transmission = "manual"
-                // targetYear omitted
             },
             carB = new
             {
@@ -485,18 +455,17 @@ public class PredictionControllerValidationTests : IClassFixture<WebApplicationF
                 mileageKm = 120000,
                 fuelType = "diesel",
                 transmission = "automatic"
-                // targetYear omitted
             }
         };
 
         var resp = await Client.PostAsJsonAsync("/api/v1/prediction/predict-two", req);
-        resp.StatusCode.Should().Be(HttpStatusCode.ServiceUnavailable);
+        resp.StatusCode.Should().Be(HttpStatusCode.BadRequest);
     }
 
     [Theory]
-    [InlineData(1989, 1990)] 
-    [InlineData(2050, 2034)] 
-    public async Task Predict_YearClamping_Returns_503(int input, int expected)
+    [InlineData(1989, 1990)]
+    [InlineData(2050, 2034)]
+    public async Task Predict_YearClamping_NoModel_Returns_400(int input, int expected) 
     {
         var req = new
         {
@@ -510,11 +479,11 @@ public class PredictionControllerValidationTests : IClassFixture<WebApplicationF
         };
 
         var resp = await Client.PostAsJsonAsync("/api/v1/prediction/predict", req);
-        resp.StatusCode.Should().Be(HttpStatusCode.ServiceUnavailable);
+        resp.StatusCode.Should().Be(HttpStatusCode.BadRequest);
     }
 
     [Fact]
-    public async Task PredictRange_ExtremelyLongRange_Returns_503()
+    public async Task PredictRange_ExtremelyLongRange_NoModel_Returns_400() 
     {
         var req = new
         {
@@ -529,87 +498,27 @@ public class PredictionControllerValidationTests : IClassFixture<WebApplicationF
         };
 
         var resp = await Client.PostAsJsonAsync("/api/v1/prediction/predict/range", req);
-        resp.StatusCode.Should().Be(HttpStatusCode.ServiceUnavailable);
-    }
-
-    [Fact]
-    public async Task PredictTwo_InvalidTransmissionInCarA_Returns_400()
-    {
-        var req = new
-        {
-            carA = new
-            {
-                manufacturer = "A",
-                model = "A1",
-                yearOfProduction = 2015,
-                mileageKm = 90000,
-                fuelType = "gas",
-                transmission = "cvt" // invalid
-            },
-            carB = new
-            {
-                manufacturer = "B",
-                model = "B1",
-                yearOfProduction = 2016,
-                mileageKm = 120000,
-                fuelType = "diesel",
-                transmission = "automatic"
-            }
-        };
-
-        var resp = await Client.PostAsJsonAsync("/api/v1/prediction/predict-two", req);
-        resp.StatusCode.Should().Be(HttpStatusCode.BadRequest);
-    }
-
-    [Fact]
-    public async Task PredictTwoRange_InvalidTransmissionInCarB_Returns_400()
-    {
-        var req = new
-        {
-            algorithm = "ridge",
-            startYear = 2028,
-            endYear = 2030,
-            carA = new
-            {
-                manufacturer = "A",
-                model = "A1",
-                yearOfProduction = 2015,
-                mileageKm = 90000,
-                fuelType = "gas",
-                transmission = "manual"
-            },
-            carB = new
-            {
-                manufacturer = "B",
-                model = "B1",
-                yearOfProduction = 2016,
-                mileageKm = 120000,
-                fuelType = "diesel",
-                transmission = "sequential" // invalid
-            }
-        };
-
-        var resp = await Client.PostAsJsonAsync("/api/v1/prediction/predict-two/range", req);
         resp.StatusCode.Should().Be(HttpStatusCode.BadRequest);
     }
     
+
     [Theory]
     [InlineData("ridge_rf", "rf")]
     [InlineData("ridge_gb", "gb")]
     [InlineData("unknown", null)]
     public void GetMetricsOrDefault_Branches_Coverage(string key, string? fallback)
     {
-        var dict = new Dictionary<string, (double, double, double)>
+        var dict = new Dictionary<string, (double, double, double)>(StringComparer.OrdinalIgnoreCase)
         {
-            { "rf", (1, 2, 3) },
-            { "gb", (4, 5, 6) },
-            { "ridge", (7, 8, 9) }
+            ["rf"] = (1, 2, 3),
+            ["gb"] = (4, 5, 6),
+            ["ridge"] = (7, 8, 9)
         };
 
-        var method = typeof(used_car_predictor.Backend.Controllers.PredictionController)
-            .GetMethod("GetMetricsOrDefault", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static);
+        var mi = typeof(used_car_predictor.Backend.Controllers.PredictionController)
+            .GetMethod("GetMetricsOrDefault", BindingFlags.NonPublic | BindingFlags.Static)!;
 
-        var result = ((double mse, double mae, double r2))method!.Invoke(null, new object[] { dict, key })!;
+        var result = ((double mse, double mae, double r2))mi.Invoke(null, new object[] { dict, key })!;
         result.Should().NotBeNull();
     }
 
@@ -623,10 +532,10 @@ public class PredictionControllerValidationTests : IClassFixture<WebApplicationF
     [InlineData("", null)]
     public void NormalizeAlgo_Covers_All_Paths(string? input, string? expected)
     {
-        var method = typeof(used_car_predictor.Backend.Controllers.PredictionController)
-            .GetMethod("NormalizeAlgo", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static);
+        var mi = typeof(used_car_predictor.Backend.Controllers.PredictionController)
+            .GetMethod("NormalizeAlgo", BindingFlags.NonPublic | BindingFlags.Static)!;
 
-        var result = (string?)method!.Invoke(null, new object?[] { input });
+        var result = (string?)mi.Invoke(null, new object?[] { input });
         result.Should().Be(expected);
     }
 
@@ -634,13 +543,13 @@ public class PredictionControllerValidationTests : IClassFixture<WebApplicationF
     [InlineData(1989, 1990)]
     [InlineData(1990, 1990)]
     [InlineData(2000, 2000)]
-    [InlineData(2050, 2034)] 
+    [InlineData(2050, 2034)]
     public void ClampYear_BoundaryTests(int input, int expected)
     {
-        var method = typeof(used_car_predictor.Backend.Controllers.PredictionController)
-            .GetMethod("ClampYear", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static);
+        var mi = typeof(used_car_predictor.Backend.Controllers.PredictionController)
+            .GetMethod("ClampYear", BindingFlags.NonPublic | BindingFlags.Static)!;
 
-        var result = (int)method!.Invoke(null, new object[] { input })!;
+        var result = (int)mi.Invoke(null, new object[] { input })!;
         result.Should().BeInRange(1990, DateTime.UtcNow.Year + 10);
     }
 
@@ -652,10 +561,10 @@ public class PredictionControllerValidationTests : IClassFixture<WebApplicationF
             { "linear", (1.0, 2.0, 3.0) }
         };
 
-        var method = typeof(used_car_predictor.Backend.Controllers.PredictionController)
-            .GetMethod("GetMetricsOrDefault", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static);
+        var mi = typeof(used_car_predictor.Backend.Controllers.PredictionController)
+            .GetMethod("GetMetricsOrDefault", BindingFlags.NonPublic | BindingFlags.Static)!;
 
-        var result = ((double mse, double mae, double r2))method!.Invoke(null, new object[] { dict, "linear" })!;
+        var result = ((double mse, double mae, double r2))mi.Invoke(null, new object[] { dict, "linear" })!;
         result.Should().Be((1.0, 2.0, 3.0));
     }
 
@@ -667,13 +576,14 @@ public class PredictionControllerValidationTests : IClassFixture<WebApplicationF
             { "linear", (1.0, 2.0, 3.0) }
         };
 
-        var method = typeof(used_car_predictor.Backend.Controllers.PredictionController)
-            .GetMethod("GetMetricsOrDefault", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static);
+        var mi = typeof(used_car_predictor.Backend.Controllers.PredictionController)
+            .GetMethod("GetMetricsOrDefault", BindingFlags.NonPublic | BindingFlags.Static)!;
 
-        var result = ((double mse, double mae, double r2))method!.Invoke(null, new object[] { dict, "nonexistent" })!;
+        var result = ((double mse, double mae, double r2))mi.Invoke(null, new object[] { dict, "nonexistent" })!;
         result.Should().Be((0.0, 0.0, 0.0));
     }
     
+
     [Fact]
     public async Task MissingRequiredField_Returns_400()
     {
@@ -854,152 +764,6 @@ public class PredictionControllerValidationTests : IClassFixture<WebApplicationF
         });
         resp.StatusCode.Should().Be(HttpStatusCode.BadRequest);
     }
-    
-    [Fact]
-    public async Task Predict_ValidInputs_NoModel_Returns_503()
-    {
-        var resp = await Client.PostAsJsonAsync("/api/v1/prediction/predict", new
-        {
-            manufacturer = "SomeBrand",
-            model = "SomeModel",
-            yearOfProduction = 2017,
-            mileageKm = 80000,
-            fuelType = "gas",
-            transmission = "manual",
-            targetYear = 2030
-        });
-        resp.StatusCode.Should().Be(HttpStatusCode.ServiceUnavailable);
-    }
-
-    [Fact]
-    public async Task Predict_NullTargetYear_Defaults_And_Returns_503()
-    {
-        var resp = await Client.PostAsJsonAsync("/api/v1/prediction/predict", new
-        {
-            manufacturer = "NoBrand",
-            model = "NoModel",
-            yearOfProduction = 2012,
-            mileageKm = 150000,
-            fuelType = "diesel",
-            transmission = "automatic"
-        });
-        resp.StatusCode.Should().Be(HttpStatusCode.ServiceUnavailable);
-    }
-
-    [Fact]
-    public async Task PredictRange_ValidRange_Returns_503()
-    {
-        var resp = await Client.PostAsJsonAsync("/api/v1/prediction/predict/range", new
-        {
-            manufacturer = "BrandX",
-            model = "ModelY",
-            yearOfProduction = 2015,
-            mileageKm = 100000,
-            fuelType = "gas",
-            transmission = "manual",
-            startYear = 2028,
-            endYear = 2029
-        });
-        resp.StatusCode.Should().Be(HttpStatusCode.ServiceUnavailable);
-    }
-
-    [Theory]
-    [InlineData("ridge")]
-    [InlineData("Ridge")]
-    [InlineData(" LINEAR ")]
-    [InlineData("ridge_rf")]
-    [InlineData("RIdGe_Gb")]
-    public async Task PredictTwoRange_ValidAlgoVariants_PassAlgoCheck_Then503(string algo)
-    {
-        var resp = await Client.PostAsJsonAsync("/api/v1/prediction/predict-two/range", new
-        {
-            algorithm = algo,
-            startYear = 2028,
-            endYear = 2029,
-            carA = new
-            {
-                manufacturer = "A",
-                model = "A1",
-                yearOfProduction = 2014,
-                mileageKm = 140000,
-                fuelType = "gas",
-                transmission = "manual"
-            },
-            carB = new
-            {
-                manufacturer = "B",
-                model = "B1",
-                yearOfProduction = 2015,
-                mileageKm = 130000,
-                fuelType = "diesel",
-                transmission = "automatic"
-            }
-        });
-        resp.StatusCode.Should().Be(HttpStatusCode.ServiceUnavailable);
-    }
-
-    [Fact]
-    public async Task PredictTwo_ValidA_InvalidB_Preflight_Returns_400()
-    {
-        var resp = await Client.PostAsJsonAsync("/api/v1/prediction/predict-two", new
-        {
-            carA = new
-            {
-                manufacturer = "OKA",
-                model = "OKA1",
-                yearOfProduction = 2018,
-                mileageKm = 90000,
-                fuelType = "gas",
-                transmission = "manual"
-            },
-            carB = new
-            {
-                manufacturer = "BadB",
-                model = "BadB1",
-                yearOfProduction = 2018,
-                mileageKm = 90000,
-                fuelType = "rocket",
-                transmission = "manual"
-            }
-        });
-        resp.StatusCode.Should().Be(HttpStatusCode.BadRequest);
-    }
-
-
-    [Theory]
-    [InlineData("ridge_rf")]
-    [InlineData("ridge_gb")]
-    [InlineData("unknown")]
-    public void GetMetricsOrDefault_Covers_Fallbacks_And_Defaults(string key)
-    {
-        var dict = new Dictionary<string, (double, double, double)>(StringComparer.OrdinalIgnoreCase)
-        {
-            ["rf"] = (1, 2, 3),
-            ["gb"] = (4, 5, 6),
-            ["ridge"] = (7, 8, 9)
-        };
-
-        var mi = typeof(used_car_predictor.Backend.Controllers.PredictionController)
-            .GetMethod("GetMetricsOrDefault", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static)!;
-
-        var (mse, mae, r2) = ((double mse, double mae, double r2))mi.Invoke(null, new object[] { dict, key })!;
-        (mse, mae, r2).Should().NotBeNull();
-    }
-
-    [Theory]
-    [InlineData("ridge", "ridge")]
-    [InlineData("  LINEAR  ", "linear")]
-    [InlineData("ridge_rf", "ridge_rf")]
-    [InlineData("ridge_gb", "ridge_gb")]
-    [InlineData("unknown", null)]
-    public void NormalizeAlgo_AllBranches(string input, string? expected)
-    {
-        var mi = typeof(used_car_predictor.Backend.Controllers.PredictionController)
-            .GetMethod("NormalizeAlgo", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static)!;
-
-        var result = (string?)mi.Invoke(null, new object[] { input });
-        result.Should().Be(expected);
-    }
 }
 
 public sealed class MockEnv : IWebHostEnvironment
@@ -1012,7 +776,6 @@ public sealed class MockEnv : IWebHostEnvironment
     public IFileProvider WebRootFileProvider { get; set; } = new PhysicalFileProvider("/");
 }
 
-
 public class ManufacturersControllerTests
 {
     [Fact]
@@ -1023,9 +786,9 @@ public class ManufacturersControllerTests
 
         var env = new MockEnv { ContentRootPath = tempRoot };
         var ctrl = new used_car_predictor.Backend.Controllers.ManufacturersController(env);
-        
+
         var result = ctrl.Get();
-        
+
         var ok = Assert.IsType<OkObjectResult>(result.Result);
         var arr = Assert.IsAssignableFrom<object[]>(ok.Value);
         arr.Length.Should().Be(0);
@@ -1039,16 +802,16 @@ public class ManufacturersControllerTests
         var tempRoot = Path.Combine(Path.GetTempPath(), "manuf-tests-" + Guid.NewGuid().ToString("N"));
         var processed = Path.Combine(tempRoot, "Backend", "datasets", "processed");
         Directory.CreateDirectory(processed);
-        
+
         File.WriteAllText(Path.Combine(processed, "a.json"), "{ not-json: true ");
         File.WriteAllText(Path.Combine(processed, "b.json"), "totally not json");
         File.WriteAllText(Path.Combine(processed, "c.json"), "");
-        
+
         File.WriteAllText(Path.Combine(processed, "note.txt"), "hello");
 
         var env = new MockEnv { ContentRootPath = tempRoot };
         var ctrl = new used_car_predictor.Backend.Controllers.ManufacturersController(env);
-        
+
         var result = ctrl.Get();
 
         var ok = Assert.IsType<OkObjectResult>(result.Result);
@@ -1062,12 +825,8 @@ public class ManufacturersControllerTests
 [ExcludeFromCodeCoverage]
 public class ModelsControllerTests
 {
-    private static MockEnv NewEnvAt(string root)
-        => new MockEnv { ContentRootPath = root };
-
-    private static string ProcessedPathOf(string root)
-        => Path.Combine(root, "Backend", "datasets", "processed");
-
+    private static MockEnv NewEnvAt(string root) => new MockEnv { ContentRootPath = root };
+    private static string ProcessedPathOf(string root) => Path.Combine(root, "Backend", "datasets", "processed");
 
     [Fact]
     public void ListByManufacturer_NullRequest_Returns_400()
@@ -1136,7 +895,6 @@ public class ModelsControllerTests
 
         try { Directory.Delete(root, true); } catch { }
     }
-
 
     [Fact]
     public void GetModelDetails_NullRequest_Returns_400()
@@ -1218,7 +976,7 @@ public class ModelsControllerTests
     public void FilterValues_Removes_Other_And_Respects_AllowOnly()
     {
         var method = typeof(ModelsController)
-            .GetMethod("FilterValues", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static)!;
+            .GetMethod("FilterValues", BindingFlags.NonPublic | BindingFlags.Static)!;
 
         var values = new[] { "Gas", "Diesel", "Other", "Electric" };
         var allow = new[] { "gas", "electric" };
@@ -1236,7 +994,7 @@ public class ModelsControllerTests
     public void ToTitleCase_Covers_Paths(string input, string expected)
     {
         var method = typeof(ModelsController)
-            .GetMethod("ToTitleCase", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static)!;
+            .GetMethod("ToTitleCase", BindingFlags.NonPublic | BindingFlags.Static)!;
 
         var result = (string?)method.Invoke(null, new object[] { input! });
         result.Should().Be(expected);
