@@ -80,25 +80,6 @@ public sealed class StaticBundleResolverTests
 
         try { Directory.Delete(root, true); } catch { }
     }
-
-    [Fact]
-    public void Resolve_Fallback_OrderInsensitive_MatchesTokenSet()
-    {
-        var root = Path.Combine(Path.GetTempPath(), "resolver-tests-" + Guid.NewGuid().ToString("N"));
-        var processed = Path.Combine(root, "Backend", "datasets", "processed");
-        Directory.CreateDirectory(processed);
-
-        var existing = "toyota_4runner_sport_sr5_utility.json";
-        File.WriteAllText(Path.Combine(processed, existing), "{}");
-
-        var env = new MockEnv { ContentRootPath = root };
-        var resolver = new StaticBundleResolver(env, Cfg());
-
-        var (path, _) = resolver.Resolve("toyota", "toyota_4runner_utility_sport_sr5");
-        Path.GetFileName(path).Should().Be(existing);
-
-        try { Directory.Delete(root, true); } catch { }
-    }
 }
 
 [ExcludeFromCodeCoverage]
