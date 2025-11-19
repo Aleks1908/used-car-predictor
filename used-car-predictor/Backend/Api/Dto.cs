@@ -183,6 +183,14 @@ public sealed class TwoCarPredictRangeResponse
     public List<YearlyPrediction> CarB { get; set; } = new();
     public ModelInfoDto ModelInfoA { get; set; } = new();
     public ModelInfoDto ModelInfoB { get; set; } = new();
+    
+    public string ManufacturerA { get; set; } = default!;
+    
+    public string ModelA { get; set; } = default!;
+    
+    public string ManufacturerB { get; set; } = default!;
+    
+    public string ModelB { get; set; } = default!;
 
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public Dictionary<string, AlgorithmMetricsDto>? MetricsA { get; set; }

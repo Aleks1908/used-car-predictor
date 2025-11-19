@@ -31,6 +31,10 @@ interface RangeComparisonResponse {
     anchorTargetYear: number;
     totalRows: number;
   };
+  manufacturerA: string;
+  manufacturerB: string;
+  modelA: string;
+  modelB: string;
   metricsA: {
     [key: string]: AlgorithmMetric;
   };
@@ -172,14 +176,8 @@ export function RangeComparisonPrediction({
   };
 
   if (result !== null) {
-    const carALabel = formatCarName(
-      carA.selectedManufacturer,
-      carA.selectedModel
-    );
-    const carBLabel = formatCarName(
-      carB.selectedManufacturer,
-      carB.selectedModel
-    );
+    const carALabel = formatCarName(result.modelA);
+    const carBLabel = formatCarName(result.modelB);
 
     return (
       <div className="min-h-screen bg-linear-to-br from-gray-100 to-gray-200 p-8 flex items-center justify-center">

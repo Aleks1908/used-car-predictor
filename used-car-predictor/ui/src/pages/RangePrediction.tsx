@@ -87,10 +87,8 @@ function RangePrediction({ onBack }: RangePredictionProps) {
       });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const data = await res.json();
-      console.log("Range prediction response:", data);
       setPredictionResult(data);
     } catch (err) {
-      console.error("Range prediction failed:", err);
       setError(err instanceof Error ? err.message : "Range prediction failed");
     } finally {
       setIsSubmitting(false);
@@ -109,7 +107,7 @@ function RangePrediction({ onBack }: RangePredictionProps) {
 
   if (predictionResult !== null) {
     const firstItem = predictionResult.items[0];
-    const carName = formatCarName(firstItem.manufacturer, firstItem.model);
+    const carName = formatCarName(predictionResult.items[0].model);
 
     return (
       <div className="min-h-screen bg-linear-to-br from-gray-100 to-gray-200 p-8 flex items-center justify-center">

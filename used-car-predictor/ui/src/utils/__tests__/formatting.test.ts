@@ -10,12 +10,12 @@ describe("Formatting Utils", () => {
       expect(formatCarName("honda", "civic")).toBe("Honda Civic");
     });
 
-    it("returns empty string when manufacturer is missing", () => {
-      expect(formatCarName(undefined, "civic")).toBe("");
+    it("returns only formatted model when manufacturer is missing", () => {
+      expect(formatCarName(undefined, "civic")).toBe("Civic");
     });
 
-    it("returns empty string when model is missing", () => {
-      expect(formatCarName("honda", undefined)).toBe("");
+    it("returns only formatted manufacturer when model is missing", () => {
+      expect(formatCarName("honda", undefined)).toBe("Honda");
     });
 
     it("returns empty string when both are missing", () => {

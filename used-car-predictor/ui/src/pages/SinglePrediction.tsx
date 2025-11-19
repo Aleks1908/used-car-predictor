@@ -98,10 +98,7 @@ function SinglePrediction({ onBack }: SinglePredictionProps) {
     yearOfProduction;
 
   if (predictionResult !== null) {
-    const carName = formatCarName(
-      predictionResult.manufacturer,
-      predictionResult.model
-    );
+    const carName = formatCarName(predictionResult.model);
 
     return (
       <div className="min-h-screen bg-linear-to-br from-gray-100 to-gray-200 p-8 flex items-center justify-center">

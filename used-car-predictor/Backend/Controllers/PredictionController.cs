@@ -281,7 +281,7 @@ public class PredictionController : ControllerBase
         var a = new PredictResponse
         {
             Manufacturer = req.CarA.Manufacturer,
-            Model = req.CarA.Model,
+            Model = BundleId.BundleLabel.From(req.CarA.Model),
             YearOfProduction = req.CarA.YearOfProduction,
             TargetYear = ta,
             Results = resA,
@@ -300,7 +300,7 @@ public class PredictionController : ControllerBase
         var b = new PredictResponse
         {
             Manufacturer = req.CarB.Manufacturer,
-            Model = req.CarB.Model,
+            Model = BundleId.BundleLabel.From(req.CarB.Model),
             YearOfProduction = req.CarB.YearOfProduction,
             TargetYear = tb,
             Results = resB,
@@ -341,10 +341,13 @@ public class PredictionController : ControllerBase
         var seriesB = BuildSeriesForCurrentActive(req.CarB, start, end, algoKey);
         var infoB = CurrentModelInfo();
         var metricsB = BuildMetricsSummary(algoKey);
-
         return Ok(new TwoCarPredictRangeResponse
         {
             Algorithm = algoKey,
+            ManufacturerA = req.CarA.Manufacturer,
+            ModelA = BundleId.BundleLabel.From(req.CarA.Model),
+            ManufacturerB = req.CarB.Manufacturer,
+            ModelB = BundleId.BundleLabel.From(req.CarB.Model),
             CarA = seriesA,
             CarB = seriesB,
             ModelInfoA = infoA,

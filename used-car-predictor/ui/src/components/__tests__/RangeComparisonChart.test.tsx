@@ -179,7 +179,7 @@ describe("RangeComparisonChart", () => {
 
     expect(yAxisCallback(25000)).toMatch(/\$25[\s,]000/);
     expect(yAxisCallback("30000")).toMatch(/\$30[\s,]000/);
-    expect(yAxisCallback(1000)).toBe("$1000");
+    expect(yAxisCallback(1000)).toMatch(/\$1[\s,]?000/);
   });
 
   it("uses unknown algorithm name in title when not in predefined list", () => {

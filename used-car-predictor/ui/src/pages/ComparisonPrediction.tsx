@@ -120,10 +120,8 @@ function ComparisonPrediction({ onBack }: ComparisonPredictionProps) {
       });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const data = await res.json();
-      console.log("Comparison prediction response:", data);
       setPredictionResult(data);
     } catch (err) {
-      console.error("Comparison prediction failed:", err);
       setError(
         err instanceof Error ? err.message : "Comparison prediction failed"
       );
@@ -133,14 +131,8 @@ function ComparisonPrediction({ onBack }: ComparisonPredictionProps) {
   };
 
   if (predictionResult !== null) {
-    const carAName = formatCarName(
-      predictionResult.carA.manufacturer,
-      predictionResult.carA.model
-    );
-    const carBName = formatCarName(
-      predictionResult.carB.manufacturer,
-      predictionResult.carB.model
-    );
+    const carAName = formatCarName(predictionResult.carA.model);
+    const carBName = formatCarName(predictionResult.carB.model);
     const carALabel = `${carAName} (${predictionResult.carA.yearOfProduction})`;
     const carBLabel = `${carBName} (${predictionResult.carB.yearOfProduction})`;
 
