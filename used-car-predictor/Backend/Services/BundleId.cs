@@ -12,7 +12,7 @@ public static class BundleId
         x = x.Replace(' ', '_').Replace('-', '_');
         while (x.Contains("__")) x = x.Replace("__", "_");
         x = x.Trim('_');
-        return x;
+        return x.Trim('_');
     }
     
     public static string From(string manufacturer, string model)
@@ -42,7 +42,11 @@ public static class BundleId
         public static string From(string model)
         {
             if (string.IsNullOrWhiteSpace(model)) return model;
-            var clean = model.Replace('_', ' ').Trim();
+            var clean = model
+                .Trim()
+                .Replace('_', ' ')
+                .Replace('-', ' ')
+                .Trim();
             return System.Globalization.CultureInfo.CurrentCulture.TextInfo
                 .ToTitleCase(clean.ToLowerInvariant());
         }
