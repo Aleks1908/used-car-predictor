@@ -186,7 +186,7 @@ public class PredictionController : ControllerBase
         return Ok(new PredictResponse
         {
             Manufacturer = req.Manufacturer,
-            Model = req.Model,
+            Model = BundleId.BundleLabel.From(req.Model),
             YearOfProduction = req.YearOfProduction,
             TargetYear = targetYear,
             Results = results,
@@ -205,7 +205,7 @@ public class PredictionController : ControllerBase
         var pre = ValidateCategoricalsPreflight(new PredictRequest
         {
             Manufacturer = req.Manufacturer,
-            Model = req.Model,
+            Model = BundleId.BundleLabel.From(req.Model),
             YearOfProduction = req.YearOfProduction,
             MileageKm = req.MileageKm,
             FuelType = req.FuelType,
@@ -219,7 +219,7 @@ public class PredictionController : ControllerBase
         var bad = ValidateCategoricalsAgainstActive(new PredictRequest
         {
             Manufacturer = req.Manufacturer,
-            Model = req.Model,
+            Model = BundleId.BundleLabel.From(req.Model),
             YearOfProduction = req.YearOfProduction,
             MileageKm = req.MileageKm,
             FuelType = req.FuelType,
@@ -233,7 +233,7 @@ public class PredictionController : ControllerBase
             var single = new PredictRequest
             {
                 Manufacturer = req.Manufacturer,
-                Model = req.Model,
+                Model = BundleId.BundleLabel.From(req.Model),
                 YearOfProduction = req.YearOfProduction,
                 MileageKm = req.MileageKm,
                 FuelType = req.FuelType,
@@ -247,7 +247,7 @@ public class PredictionController : ControllerBase
             items.Add(new PredictRangeItem
             {
                 Manufacturer = req.Manufacturer,
-                Model = req.Model,
+                Model = BundleId.BundleLabel.From(req.Model),
                 YearOfProduction = req.YearOfProduction,
                 TargetYear = y,
                 Results = results

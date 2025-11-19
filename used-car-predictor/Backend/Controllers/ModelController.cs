@@ -1,7 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using used_car_predictor.Backend.Api;
-using used_car_predictor.Backend.Evaluation;
 using used_car_predictor.Backend.Serialization;
+using used_car_predictor.Backend.Services;
 
 namespace used_car_predictor.Backend.Controllers;
 
@@ -30,14 +30,13 @@ public sealed class ModelsController(IWebHostEnvironment env) : ControllerBase
             {
                 var bundle = ModelPersistence.LoadBundle(file);
                 var make = (bundle.Car?.Manufacturer ?? "").Trim();
-
                 if (!make.Equals(req.Manufacturer.Trim(), StringComparison.OrdinalIgnoreCase))
                     continue;
 
-                var modelId = Path.GetFileNameWithoutExtension(file);
+                var modelId = Path.GetFileNameWithoutExtension(file).Trim();
                 var displayModel = (bundle.Car?.Model ?? modelId).Trim();
 
-                var value = ModelNormalizer.Normalize(modelId);
+                var value = BundleId.From(req.Manufacturer, modelId);
                 var label = ToTitleCase(displayModel);
 
                 if (seen.Add(value))
@@ -57,7 +56,6 @@ public sealed class ModelsController(IWebHostEnvironment env) : ControllerBase
     {
         public string Manufacturer { get; set; } = default!;
         public string Model { get; set; } = default!;
-
         public string[]? AllowedFuels { get; set; }
         public string[]? AllowedTransmissions { get; set; }
     }
@@ -70,8 +68,8 @@ public sealed class ModelsController(IWebHostEnvironment env) : ControllerBase
 
         if (!Directory.Exists(ProcessedDir))
             return NotFound(new { error = "No processed directory found." });
-
-        var wantedId = ModelNormalizer.Normalize(req.Model);
+        
+        var wantedId = BundleId.From(req.Manufacturer, req.Model);
 
         foreach (var file in Directory.EnumerateFiles(ProcessedDir, "*.json", SearchOption.TopDirectoryOnly))
         {
@@ -82,12 +80,14 @@ public sealed class ModelsController(IWebHostEnvironment env) : ControllerBase
                 if (!make.Equals(req.Manufacturer.Trim(), StringComparison.OrdinalIgnoreCase))
                     continue;
 
-                var fileId = Path.GetFileNameWithoutExtension(file);
-                var bundleModelName = (bundle.Car?.Model ?? fileId).Trim();
+                var fileId = Path.GetFileNameWithoutExtension(file).Trim();
+                var candidateId = BundleId.From(req.Manufacturer, fileId);
 
-                var matches =
-                    ModelNormalizer.Normalize(fileId).Equals(wantedId, StringComparison.OrdinalIgnoreCase) ||
-                    ModelNormalizer.Normalize(bundleModelName).Equals(wantedId, StringComparison.OrdinalIgnoreCase);
+                var bundleModelName = (bundle.Car?.Model ?? fileId).Trim();
+                var bundleNameId = BundleId.From(req.Manufacturer, bundleModelName);
+
+                var matches = candidateId.Equals(wantedId, StringComparison.OrdinalIgnoreCase)
+                              || bundleNameId.Equals(wantedId, StringComparison.OrdinalIgnoreCase);
 
                 if (!matches) continue;
 
@@ -99,7 +99,7 @@ public sealed class ModelsController(IWebHostEnvironment env) : ControllerBase
 
                 int? minYear = bundle.Car?.MinYear ?? bundle.Preprocess?.MinYear;
                 int? maxYear = bundle.Car?.MaxYear ?? bundle.Preprocess?.MaxYear;
-                int? trainedForYear = bundle.Preprocess?.AnchorTargetYear; 
+                int? trainedForYear = bundle.Preprocess?.AnchorTargetYear;
 
                 var formatted = new ModelFeatureMetaDto
                 {

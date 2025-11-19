@@ -1,7 +1,4 @@
-using System.Threading;
-using used_car_predictor.Backend.Evaluation;
-
-namespace used_car_predictor.Backend.Services;
+using used_car_predictor.Backend.Services;
 
 public sealed class ModelHotLoader
 {
@@ -16,29 +13,27 @@ public sealed class ModelHotLoader
         _resolver = resolver;
     }
 
-    private static string Norm(string s) => ModelNormalizer.Normalize(s ?? string.Empty);
-
     public async Task EnsureLoadedAsync(string manufacturer, string model, CancellationToken ct = default)
     {
-        var key = $"{Norm(manufacturer)}_{Norm(model)}";
-
-        if (_active.IsLoaded && string.Equals(_currentKey, key, StringComparison.OrdinalIgnoreCase))
+        var fileId = BundleId.From(manufacturer, model);
+        
+        if (_active.IsLoaded && string.Equals(_currentKey, fileId, StringComparison.OrdinalIgnoreCase))
             return;
 
         await _gate.WaitAsync(ct);
         try
         {
-            if (_active.IsLoaded && string.Equals(_currentKey, key, StringComparison.OrdinalIgnoreCase))
+            if (_active.IsLoaded && string.Equals(_currentKey, fileId, StringComparison.OrdinalIgnoreCase))
                 return;
             
-            var (path, algorithm) = _resolver.Resolve(manufacturer, key);
-
+            var (path, algorithm) = _resolver.Resolve(manufacturer, fileId);
             if (!File.Exists(path))
-                throw new FileNotFoundException($"Bundle not found: {path}");
+                throw new FileNotFoundException($"Bundle not found at: {path}");
 
             _active.LoadFromBundle(path, algorithm);
-            _currentKey = key;
-            Console.WriteLine($"[Model] Hot-swapped: '{key}' via {algorithm}");
+            _currentKey = fileId;
+
+            Console.WriteLine($"[Model] Hot-swapped: '{fileId}' via {algorithm}");
         }
         finally
         {

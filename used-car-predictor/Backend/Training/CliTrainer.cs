@@ -3,6 +3,7 @@ using used_car_predictor.Backend.Data;
 using used_car_predictor.Backend.Evaluation;
 using used_car_predictor.Backend.Models;
 using used_car_predictor.Backend.Serialization;
+using used_car_predictor.Backend.Services;
 
 namespace used_car_predictor.Backend.Training
 {
@@ -19,8 +20,12 @@ namespace used_car_predictor.Backend.Training
 
             var csvPath = opts.CsvPath ?? Path.Combine(rawDir, "vehicles.csv");
             Console.WriteLine($"[CLI] Loading vehicles from: {csvPath}");
+            Console.WriteLine($"[QualityGate] Defaults -> min R² = {opts.MinR2:F2}" +
+                              (opts.MaxMAE.HasValue ? $", max MAE = {opts.MaxMAE.Value:F0}" : "") +
+                              (opts.MaxRMSE.HasValue ? $", max RMSE = {opts.MaxRMSE.Value:F0}" : ""));
+
             var vehicles = CsvLoader.LoadVehicles(csvPath, opts.MaxRows);
-            
+
             const int minCount = 50;
             var pairCounts = vehicles
                 .Where(v => !string.IsNullOrWhiteSpace(v.Manufacturer) && !string.IsNullOrWhiteSpace(v.Model))
@@ -31,7 +36,7 @@ namespace used_car_predictor.Backend.Training
                 .Select(g => new { g.Key.Make, g.Key.Model, Count = g.Count() })
                 .OrderByDescending(x => x.Count)
                 .ToList();
-            
+
             List<(string Make, string Model, int Count)> trainList;
             if (!string.IsNullOrEmpty(opts.SpecificModelNormalized))
             {
@@ -75,6 +80,7 @@ namespace used_car_predictor.Backend.Training
             }
 
             int trained = 0;
+            int skipped = 0;
 
             foreach (var m in trainList)
             {
@@ -92,7 +98,7 @@ namespace used_car_predictor.Backend.Training
                     Preprocessor.ToMatrix(rows, targetYear: opts.AnchorYear, anchorTargetYear: opts.AnchorYear);
 
                 var (trainRawX, trainRawY, testRawX, testRawY) = DataSplitter.Split(rawX, rawY, trainRatio: 0.8);
-                
+
                 var fScaler = new FeatureScaler();
                 var lScaler = new LabelScaler();
 
@@ -131,12 +137,12 @@ namespace used_car_predictor.Backend.Training
                     ["RandomForest"] = new TrainingTimeDto { MeanTrialMs = null, Trials = null, TotalMs = null },
                     ["GradientBoosting"] = new TrainingTimeDto { MeanTrialMs = null, Trials = null, TotalMs = null }
                 };
-
+                
                 linearModel = new LinearRegression();
                 linearModel.Fit(trainX, trainY);
                 bundleMetrics["linear"] = EvaluateAndTest("Linear", linearModel, testX, testY, lScaler, m.Make, m.Model);
                 trainingTimes["Linear"] = new TrainingTimeDto { TotalMs = linearModel.TotalMs };
-
+                
                 {
                     var (ridgeTrainedModel, ridgeMeanMs, ridgeTotalMs, ridgeTrials) =
                         RidgeRegression.TrainWithBestParamsKFold(
@@ -154,9 +160,8 @@ namespace used_car_predictor.Backend.Training
                         Trials = ridgeTrials
                     };
                 }
-
+                
                 static double[] ZPred(double[,] X, IRegressor model) => model.Predict(X);
-
                 var ty_ridge = ZPred(tx, ridgeModel!);
                 var vy_ridge = ZPred(vx, ridgeModel!);
 
@@ -230,48 +235,74 @@ namespace used_car_predictor.Backend.Training
                     Console.WriteLine($"{m.Make} {m.Model,-18} [Ridge+GB]  MAE={mae,7:F0} RMSE={rmse,7:F0} R²={r2,5:F3}");
                 }
 
-                var displayRow = rows.FirstOrDefault();
-                var displayModel = displayRow?.Model?.Trim() ?? m.Model;
-                var displayMake  = displayRow?.Manufacturer?.Trim() ?? m.Make;
-                int totalRows = rows.Count;
+                bool FailsThresholds(MetricsDto mm)
+                    => (opts.MinR2.HasValue && mm.R2 < opts.MinR2.Value)
+                       || (opts.MaxMAE.HasValue && mm.MAE > opts.MaxMAE.Value)
+                       || (opts.MaxRMSE.HasValue && mm.RMSE > opts.MaxRMSE.Value);
 
-                var bundle = ModelPersistence.ExportBundle(
-                    ridgeModel!,
-                    rfModel!,
-                    gbModel!,
-                    fScaler, lScaler, fuels, transmissions,
-                    notes:
-                    $"make={displayMake}, model={displayModel}, rows={rows.Count}; anchorTargetYear={opts.AnchorYear}, totalRows={totalRows}"
-                );
+                var failing = bundleMetrics
+                    .Where(kv => FailsThresholds(kv.Value))
+                    .Select(kv => $"{kv.Key} (R2={kv.Value.R2:F3}, MAE={kv.Value.MAE:F0}, RMSE={kv.Value.RMSE:F0})")
+                    .ToList();
 
-                bundle.Car = new CarMetaDto
+                if (failing.Count > 0)
                 {
-                    Manufacturer = displayMake,
-                    Model = displayModel,
-                    MinYear = minYear,
-                    MaxYear = maxYear
-                };
+                    var displayRow = rows.FirstOrDefault();
+                    var displayModel = displayRow?.Model?.Trim() ?? m.Model;
+                    var displayMake  = displayRow?.Manufacturer?.Trim() ?? m.Make;
 
-                if (bundle.Preprocess != null)
-                {
-                    bundle.Preprocess.AnchorTargetYear = opts.AnchorYear;
-                    bundle.Preprocess.MinYear = minYear;
-                    bundle.Preprocess.MaxYear = maxYear;
-                    try { bundle.Preprocess.TotalRows = totalRows; } catch { /* ignore */ }
+                    Console.WriteLine($"[QualityGate] SKIP -> {displayMake} {displayModel} " +
+                                      $"(normalized: {m.Make} {m.Model}) due to failing metrics: {string.Join("; ", failing)}");
+                    skipped++;
+                    continue; 
                 }
-                
-                if (linearModel != null)
-                    bundle.Linear = ModelPersistence.ExportLinear(linearModel);
 
-                bundle.Metrics = bundleMetrics;
-                bundle.TrainingTimes = trainingTimes;
-                
-                var outPath = Path.Combine(processedDir, $"{m.Make}_{m.Model}.json");
-                ModelPersistence.SaveBundle(bundle, outPath);
-                Console.WriteLine($"Saved model bundle -> {outPath}");
+                {
+                    var displayRow = rows.FirstOrDefault();
+                    var displayModel = displayRow?.Model?.Trim() ?? m.Model;
+                    var displayMake  = displayRow?.Manufacturer?.Trim() ?? m.Make;
+                    int totalRows = rows.Count;
 
-                trained++;
-                if (opts.SpecificModelNormalized != null) break;
+                    var bundle = ModelPersistence.ExportBundle(
+                        ridgeModel!,
+                        rfModel!,
+                        gbModel!,
+                        fScaler, lScaler, fuels, transmissions,
+                        notes:
+                        $"make={displayMake}, model={displayModel}, rows={rows.Count}; anchorTargetYear={opts.AnchorYear}, totalRows={totalRows}"
+                    );
+
+                    bundle.Car = new CarMetaDto
+                    {
+                        Manufacturer = displayMake,
+                        Model = displayModel,
+                        MinYear = minYear,
+                        MaxYear = maxYear
+                    };
+
+                    if (bundle.Preprocess != null)
+                    {
+                        bundle.Preprocess.AnchorTargetYear = opts.AnchorYear;
+                        bundle.Preprocess.MinYear = minYear;
+                        bundle.Preprocess.MaxYear = maxYear;
+                        try { bundle.Preprocess.TotalRows = totalRows; } catch { /* ignore */ }
+                    }
+
+                    if (linearModel != null)
+                        bundle.Linear = ModelPersistence.ExportLinear(linearModel);
+
+                    bundle.Metrics = bundleMetrics;
+                    bundle.TrainingTimes = trainingTimes;
+
+                    var fileId = BundleId.From(m.Make, m.Model);
+                    var outPath = Path.Combine(processedDir, $"{fileId}.json");
+
+                    ModelPersistence.SaveBundle(bundle, outPath);                    ModelPersistence.SaveBundle(bundle, outPath);
+                    Console.WriteLine($"Saved model bundle -> {outPath}");
+
+                    trained++;
+                    if (opts.SpecificModelNormalized != null) break;
+                }
             }
 
             if (opts.RequestedAnchorYear != opts.AnchorYear)
@@ -281,7 +312,7 @@ namespace used_car_predictor.Backend.Training
 
             Console.WriteLine($"[Train] Anchor target year = {opts.AnchorYear}");
             Console.WriteLine($"[Train] Max hyperparameter search configs = {opts.MaxConfigs}");
-            Console.WriteLine($"[Done] Training finished. Bundles trained: {trained}");
+            Console.WriteLine($"[Done] Training finished. Bundles trained: {trained}, skipped (quality): {skipped}");
             return 0;
         }
 
@@ -309,6 +340,10 @@ namespace used_car_predictor.Backend.Training
             public string? SpecificModelNormalized { get; private init; }
             public int MaxConfigs { get; private init; } = 60;
 
+            public double? MinR2 { get; private init; } = 0.5;
+            public double? MaxMAE { get; private init; }
+            public double? MaxRMSE { get; private init; }
+
             public static TrainingOptions Parse(string[] args)
             {
                 static string? ArgValue(string[] a, string name)
@@ -321,8 +356,12 @@ namespace used_car_predictor.Backend.Training
                 var maxRowsArg    = ArgValue(args, "--max");
                 var anchorYearArg = ArgValue(args, "--anchor-year");
                 var modelArg      = ArgValue(args, "--model");
-                var makeArg       = ArgValue(args, "--manufacturer") ?? ArgValue(args, "--make"); // alias
+                var makeArg       = ArgValue(args, "--manufacturer") ?? ArgValue(args, "--make");
                 var maxConfigsArg = ArgValue(args, "--max-configs");
+
+                var minR2Arg      = ArgValue(args, "--min-r2");
+                var maxMaeArg     = ArgValue(args, "--max-mae");
+                var maxRmseArg    = ArgValue(args, "--max-rmse");
 
                 int maxRows = int.TryParse(maxRowsArg, out var mr) ? mr : 1_000_000;
 
@@ -338,12 +377,21 @@ namespace used_car_predictor.Backend.Training
                 string? makeNorm = null;
                 if (!string.IsNullOrWhiteSpace(makeArg))
                     makeNorm = ModelNormalizer.Normalize(makeArg.Trim());
-                
+
                 if (modelNorm != null && makeNorm == null)
                 {
                     Console.WriteLine("Error: when using --model, you must also pass --manufacturer <name>.");
-                    Environment.ExitCode = 2; 
+                    Environment.ExitCode = 2;
                 }
+
+                double? minR2 = 0.5;
+                if (double.TryParse(minR2Arg, out var minr2Parsed)) minR2 = minr2Parsed;
+
+                double? maxMae = null;
+                if (double.TryParse(maxMaeArg, out var maxMaeParsed)) maxMae = maxMaeParsed;
+
+                double? maxRmse = null;
+                if (double.TryParse(maxRmseArg, out var maxRmseParsed)) maxRmse = maxRmseParsed;
 
                 return new TrainingOptions
                 {
@@ -353,7 +401,10 @@ namespace used_car_predictor.Backend.Training
                     AnchorYear = anchorYear,
                     SpecificModelNormalized = modelNorm,
                     SpecificManufacturerNormalized = makeNorm,
-                    MaxConfigs = maxConfigs
+                    MaxConfigs = maxConfigs,
+                    MinR2 = minR2,
+                    MaxMAE = maxMae,
+                    MaxRMSE = maxRmse
                 };
             }
         }
