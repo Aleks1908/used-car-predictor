@@ -97,6 +97,13 @@ namespace used_car_predictor.Backend.Training
                 var (rawX, rawY, fuels, transmissions) =
                     Preprocessor.ToMatrix(rows, targetYear: opts.AnchorYear, anchorTargetYear: opts.AnchorYear);
 
+                if (fuels.Count == 0 || transmissions.Count == 0)
+                {
+                    Console.WriteLine($" SKIP -> {m.Make} {m.Model} because fuels/transmissions are empty.");
+                    skipped++;
+                    continue;
+                }
+                
                 var (trainRawX, trainRawY, testRawX, testRawY) = DataSplitter.Split(rawX, rawY, trainRatio: 0.8);
 
                 var fScaler = new FeatureScaler();
