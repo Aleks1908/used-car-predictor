@@ -61,6 +61,7 @@ export function usePredictionData() {
       async function loadModels() {
         try {
           setModels(null);
+          setError(null);
           const res = await fetch("/api/v1/models/list", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
@@ -106,6 +107,7 @@ export function usePredictionData() {
           setDetails(null);
           setSelectedFuel("");
           setSelectedTransmission("");
+          setError(null);
           const res = await fetch("/api/v1/models/details", {
             method: "POST",
             headers: { "Content-Type": "application/json" },

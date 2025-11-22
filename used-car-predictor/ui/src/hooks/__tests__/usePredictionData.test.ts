@@ -633,4 +633,116 @@ describe("usePredictionData", () => {
     expect(result.current.selectedFuel).toBe("");
     expect(result.current.selectedTransmission).toBe("");
   });
+
+  it("clears error when models fetch succeeds after previous error", async () => {
+    const consoleErrorSpy = jest.spyOn(console, "error").mockImplementation();
+
+    (global.fetch as jest.Mock)
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ["toyota"],
+      })
+      .mockResolvedValueOnce({
+        ok: false,
+        status: 500,
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ["camry", "corolla"],
+      });
+
+    const { result } = renderHook(() => usePredictionData());
+
+    await waitFor(() => {
+      expect(result.current.manufacturers).not.toBeNull();
+    });
+
+    await act(async () => {
+      result.current.setSelectedManufacturer("toyota");
+    });
+
+    await waitFor(() => {
+      expect(result.current.error).toBe("HTTP 500");
+    });
+
+    await act(async () => {
+      result.current.setSelectedManufacturer("honda");
+    });
+
+    await waitFor(() => {
+      expect(result.current.models).not.toBeNull();
+    });
+
+    expect(result.current.error).toBeNull();
+    expect(result.current.models).toEqual([
+      { value: "camry", label: "camry" },
+      { value: "corolla", label: "corolla" },
+    ]);
+
+    consoleErrorSpy.mockRestore();
+  });
+
+  it("clears error when details fetch succeeds after previous error", async () => {
+    const consoleErrorSpy = jest.spyOn(console, "error").mockImplementation();
+
+    const mockDetails = {
+      fuels: [{ value: "petrol", label: "Petrol" }],
+      transmissions: [{ value: "automatic", label: "Automatic" }],
+      minYear: 2010,
+      maxYear: 2024,
+    };
+
+    (global.fetch as jest.Mock)
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ["toyota"],
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ["camry", "corolla"],
+      })
+      .mockResolvedValueOnce({
+        ok: false,
+        status: 500,
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => mockDetails,
+      });
+
+    const { result } = renderHook(() => usePredictionData());
+
+    await waitFor(() => {
+      expect(result.current.manufacturers).not.toBeNull();
+    });
+
+    await act(async () => {
+      result.current.setSelectedManufacturer("toyota");
+    });
+
+    await waitFor(() => {
+      expect(result.current.models).not.toBeNull();
+    });
+
+    await act(async () => {
+      result.current.setSelectedModel("camry");
+    });
+
+    await waitFor(() => {
+      expect(result.current.error).toBe("HTTP 500");
+    });
+
+    await act(async () => {
+      result.current.setSelectedModel("corolla");
+    });
+
+    await waitFor(() => {
+      expect(result.current.details).not.toBeNull();
+    });
+
+    expect(result.current.error).toBeNull();
+    expect(result.current.details).toEqual(mockDetails);
+
+    consoleErrorSpy.mockRestore();
+  });
 });

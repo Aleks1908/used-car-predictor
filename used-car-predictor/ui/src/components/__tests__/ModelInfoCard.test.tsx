@@ -44,7 +44,7 @@ describe("ModelInfoCard", () => {
     expect(screen.getByText("2020")).toBeInTheDocument();
     expect(screen.getByText("Automatic")).toBeInTheDocument();
     expect(screen.getByText("Petrol")).toBeInTheDocument();
-    expect(screen.getByText(/50,?000/)).toBeInTheDocument();
+    expect(screen.getByText(/50[\s,]000/)).toBeInTheDocument();
   });
 
   it("does not render car details when not provided", () => {
