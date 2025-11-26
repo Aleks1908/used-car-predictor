@@ -1,21 +1,21 @@
 using System.Reflection;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using used_car_predictor.Backend.Data;
 using used_car_predictor.Backend.Evaluation;
 using used_car_predictor.Backend.Models;
-
 
 namespace used_car_predictor.Backend.Serialization
 {
     public static class ModelPersistence
     {
         private const BindingFlags Inst = BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public;
-
+        
         private static readonly JsonSerializerOptions JsonOptions = new()
         {
-            WriteIndented = true
+            WriteIndented = true,
+            NumberHandling = JsonNumberHandling.AllowNamedFloatingPointLiterals
         };
-
 
         public static void SaveBundle(BundleDto dto, string path)
         {
@@ -33,7 +33,6 @@ namespace used_car_predictor.Backend.Serialization
             return dto;
         }
 
-
         public static BundleDto ExportBundle(
             RidgeRegression ridge,
             RandomForestRegressor rf,
@@ -45,7 +44,8 @@ namespace used_car_predictor.Backend.Serialization
             string? notes = null,
             int? anchorTargetYear = null,
             int? minYear = null,
-            int? maxYear = null, int totalRows = 0)
+            int? maxYear = null,
+            int totalRows = 0)
         {
             return new BundleDto
             {
@@ -59,8 +59,7 @@ namespace used_car_predictor.Backend.Serialization
                 GradientBoosting = ExportGradientBoosting(gb)
             };
         }
-
-
+        
         public static PreprocessDto ExportPreprocess(
             FeatureScaler fScaler,
             LabelScaler yScaler,
@@ -120,7 +119,6 @@ namespace used_car_predictor.Backend.Serialization
             return (mean, std, useLog);
         }
 
-
         public static LinearDto ExportLinear(LinearRegression model)
         {
             var t = typeof(LinearRegression);
@@ -166,12 +164,11 @@ namespace used_car_predictor.Backend.Serialization
             return model;
         }
 
-
         public static RidgeDto ExportRidge(RidgeRegression model)
         {
             var w = (double[])typeof(RidgeRegression).GetField("_weights", Inst)!.GetValue(model)!;
             var b = (double)typeof(RidgeRegression).GetField("_bias", Inst)!.GetValue(model)!;
-
+            
             double alpha = 1.0;
             var alphaF = typeof(RidgeRegression).GetField("_alpha", Inst);
             if (alphaF != null)
@@ -200,11 +197,9 @@ namespace used_car_predictor.Backend.Serialization
             return model;
         }
 
-
         public static RandomForestDto ExportRandomForest(RandomForestRegressor model)
         {
             var dto = new RandomForestDto();
-
             dto.NumTrees = (int)(typeof(RandomForestRegressor).GetField("_nEstimators", Inst)?.GetValue(model) ?? 0);
             dto.MaxDepth = (int)(typeof(RandomForestRegressor).GetField("_maxDepth", Inst)?.GetValue(model) ?? 10);
             dto.MinSamplesSplit =
@@ -238,7 +233,6 @@ namespace used_car_predictor.Backend.Serialization
 
             return model;
         }
-
 
         public static GradientBoostingDto ExportGradientBoosting(GradientBoostingRegressor model)
         {
@@ -289,7 +283,6 @@ namespace used_car_predictor.Backend.Serialization
 
             return model;
         }
-
 
         private static TreeNodeDto ExportNode(object? nodeObj)
         {
