@@ -1,6 +1,3 @@
-using System;
-using System.Collections.Generic;
-
 namespace used_car_predictor.Backend.Serialization
 {
     public class RidgeDto

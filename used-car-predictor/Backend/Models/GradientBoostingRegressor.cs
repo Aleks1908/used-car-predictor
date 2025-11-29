@@ -3,6 +3,8 @@ using used_car_predictor.Backend.Evaluation;
 
 namespace used_car_predictor.Backend.Models
 {
+    /// Builds an ensemble of decision trees sequentially,
+    /// where each new tree fits the residual errors of the previous trees.
     public class GradientBoostingRegressor : IRegressor
     {
         private readonly int _nEstimators;
@@ -39,6 +41,8 @@ namespace used_car_predictor.Backend.Models
 
         public void Fit(double[,] x, double[] y) => Fit(x, y, null, null, null);
 
+        /// Fits the ensemble on training data.
+        /// Optionally evaluates on validation data for early stopping.
         public void Fit(
             double[,] x, double[] y,
             double[,]? xval,
@@ -149,6 +153,7 @@ namespace used_car_predictor.Backend.Models
             return sum / arr.Length;
         }
 
+        /// Randomly sample row indices without replacement for subsampling.
         private int[] SampleIndicesNoReplacement(int n, double frac)
         {
             int k = Math.Max(1, (int)Math.Round(n * frac));
@@ -190,13 +195,13 @@ namespace used_car_predictor.Backend.Models
                 _trees.RemoveRange(keep, _trees.Count - keep);
         }
 
+        /// Random hyperparameter search for residual learning stage.
         public static (GradientBoostingRegressor Model, double MeanTrialMs, int Trials, long TotalMs)
             TrainResidualsWithBestParams(
                 double[,] trainX, double[] trainResidualY,
                 double[,] valX, double[] valResidualY,
                 int maxConfigs = 60,
-                int? searchSeed = null,
-                int? modelSeed = null)
+                int? searchSeed = null)
         {
             var rng = new Random(searchSeed ?? Random.Shared.Next());
 

@@ -1,5 +1,7 @@
 namespace used_car_predictor.Backend.Evaluation;
 
+/// Provides common regression evaluation metrics used
+/// for model validation and quality gating during training.
 public static class Metrics
 {
     public static double MeanAbsoluteError(double[] actual, double[] predicted) =>

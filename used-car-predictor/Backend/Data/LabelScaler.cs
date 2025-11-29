@@ -1,7 +1,8 @@
-using System.Linq;
-
 namespace used_car_predictor.Backend.Data
 {
+    
+    /// Scales and normalizes the target variable (labels) during training.
+    /// This ensures consistent magnitude for regression targets and improves model stability.
     public class LabelScaler()
     {
         private double _mean;

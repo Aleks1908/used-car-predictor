@@ -1,5 +1,3 @@
-using System;
-using System.Collections.Generic;
 using used_car_predictor.Backend.Data;
 using used_car_predictor.Backend.Evaluation;
 

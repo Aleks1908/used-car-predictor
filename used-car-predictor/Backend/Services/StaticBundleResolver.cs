@@ -1,7 +1,6 @@
-using used_car_predictor.Backend.Evaluation;
-
 namespace used_car_predictor.Backend.Services;
 
+//Used for resolving the path to a preprocessed dataset bundle based on manufacturer and model.
 public sealed class StaticBundleResolver : IBundleResolver
 {
     private readonly string _processedDir;

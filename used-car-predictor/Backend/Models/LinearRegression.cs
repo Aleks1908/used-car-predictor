@@ -1,5 +1,7 @@
 namespace used_car_predictor.Backend.Models
 {
+    /// Linear regression model.
+    /// Used as the simplest baseline algorithm in the system.
     public class LinearRegression(double learningRate = 0.01, int epochs = 10000) : IRegressor
     {
         private double[] _weights = [];

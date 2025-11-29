@@ -7,6 +7,8 @@ using used_car_predictor.Backend.Models;
 
 namespace used_car_predictor.Backend.Serialization
 {
+    /// Responsible for saving and loading trained model bundles to/from disk.
+    /// Handles serialization of scalers, metrics, and model parameters.
     public static class ModelPersistence
     {
         private const BindingFlags Inst = BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public;
@@ -17,6 +19,7 @@ namespace used_car_predictor.Backend.Serialization
             NumberHandling = JsonNumberHandling.AllowNamedFloatingPointLiterals
         };
 
+        /// Saves a bundle DTO as a JSON file to the given path.
         public static void SaveBundle(BundleDto dto, string path)
         {
             Directory.CreateDirectory(Path.GetDirectoryName(Path.GetFullPath(path))!);
@@ -24,6 +27,7 @@ namespace used_car_predictor.Backend.Serialization
             File.WriteAllText(path, json);
         }
 
+        /// Loads and deserializes a JSON bundle from disk.
         public static BundleDto LoadBundle(string path)
         {
             var json = File.ReadAllText(path);
@@ -33,6 +37,7 @@ namespace used_car_predictor.Backend.Serialization
             return dto;
         }
 
+        /// Exports a bundle from trained regressors and preprocessing info.
         public static BundleDto ExportBundle(
             RidgeRegression ridge,
             RandomForestRegressor rf,

@@ -1,4 +1,3 @@
-using Microsoft.Extensions.Hosting;
 using used_car_predictor.Backend.Data;
 using used_car_predictor.Backend.Evaluation;
 using used_car_predictor.Backend.Models;
@@ -7,6 +6,9 @@ using used_car_predictor.Backend.Services;
 
 namespace used_car_predictor.Backend.Training
 {
+    /// Command-line training entry point. Takes args, loads CSV,
+    /// trains per (make, model) pairs, enforces quality gates,
+    /// and exports bundles into Backend/datasets/processed.
     public static class CliTrainer
     {
         public static int Run(string[] args, IHostEnvironment env)

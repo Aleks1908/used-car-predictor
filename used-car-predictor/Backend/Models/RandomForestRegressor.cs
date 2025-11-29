@@ -1,11 +1,10 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using used_car_predictor.Backend.Data;
 using used_car_predictor.Backend.Evaluation;
 
 namespace used_car_predictor.Backend.Models
 {
+    /// Random Forest regression model.
+    /// Builds an ensemble of independent decision trees and averages their outputs.
+    /// Used both as a standalone regressor and as a residual learner (ridge + RF).
     public class RandomForestRegressor(
         int nEstimators = 50,
         int maxDepth = 8,
@@ -29,7 +28,8 @@ namespace used_car_predictor.Backend.Models
         public int? TuningTrials { get; private set; }
         public string Name => "Random Forest Regressor";
 
-
+        /// Fits all trees independently on random bootstrap samples.
+        /// Uses parallelism for efficiency.
         public void Fit(double[,] features, double[] labels)
         {
             _trees.Clear();
@@ -62,6 +62,7 @@ namespace used_car_predictor.Backend.Models
             _trees.AddRange(trees);
         }
 
+        /// Predicts outputs for multiple samples by averaging tree predictions.
         public double[] Predict(double[,] features)
         {
             if (_trees.Count == 0)
@@ -90,6 +91,8 @@ namespace used_car_predictor.Backend.Models
             return sum / _trees.Count;
         }
 
+        /// Performs random search over RF hyperparameters for residual learning stage.
+        /// Selects the configuration that yields the lowest RMSE on validation residuals.
         public static (RandomForestRegressor Model, double MeanTrialMs, double TotalMs, int Trials)
             TrainResidualsWithBestParams(
                 double[,] trainX, double[] trainResidualY,
