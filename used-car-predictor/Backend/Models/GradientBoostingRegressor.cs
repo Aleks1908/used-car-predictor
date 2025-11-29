@@ -3,8 +3,8 @@ using used_car_predictor.Backend.Evaluation;
 
 namespace used_car_predictor.Backend.Models
 {
-    /// Builds an ensemble of decision trees sequentially,
-    /// where each new tree fits the residual errors of the previous trees.
+    /// Gradient boosting regressor that builds an ensemble of decision trees.
+    /// Each tree fits residual errors of the current model
     public class GradientBoostingRegressor : IRegressor
     {
         private readonly int _nEstimators;
@@ -41,8 +41,8 @@ namespace used_car_predictor.Backend.Models
 
         public void Fit(double[,] x, double[] y) => Fit(x, y, null, null, null);
 
-        /// Fits the ensemble on training data.
-        /// Optionally evaluates on validation data for early stopping.
+        /// Fits the ensemble on training data
+        /// Optionally uses validation data + early stopping based on RMSE
         public void Fit(
             double[,] x, double[] y,
             double[,]? xval,
@@ -54,8 +54,8 @@ namespace used_car_predictor.Backend.Models
         {
             _trees.Clear();
             int n = x.GetLength(0);
-            _init = Mean(y);
 
+            _init = Mean(y);
             var pred = Enumerable.Repeat(_init, n).ToArray();
 
             double[]? valPred = null;
@@ -69,16 +69,19 @@ namespace used_car_predictor.Backend.Models
             int lastImproveAt = -1;
             BestIteration = -1;
 
+            // Build trees sequentially
             for (int t = 0; t < _nEstimators; t++)
             {
                 var residuals = new double[n];
                 for (int i = 0; i < n; i++)
                     residuals[i] = y[i] - pred[i];
 
+                // Subsample rows for this tree
                 int[] idx = SampleIndicesNoReplacement(n, _subsample);
                 var xt = Subset(x, idx);
                 var rt = Subset(residuals, idx);
 
+                // Fit tree on residuals
                 var tree = new DecisionTreeRegressor(
                     maxDepth: _maxDepth,
                     minSamplesSplit: _minSamplesSplit,
@@ -88,10 +91,12 @@ namespace used_car_predictor.Backend.Models
                 tree.Fit(xt, rt);
                 _trees.Add(tree);
 
+                // Update training predictions
                 var stepPredTrain = tree.Predict(x);
                 for (int i = 0; i < n; i++)
                     pred[i] += _learningRate * stepPredTrain[i];
 
+                // Optional validation/early stopping
                 if (xval is not null && valPred is not null && (t + 1) % evalEvery == 0)
                 {
                     var stepPredVal = tree.Predict(xval);
@@ -119,10 +124,12 @@ namespace used_car_predictor.Backend.Models
                 }
             }
 
+            // If early stopping found a best iteration, discard later trees
             if (BestIteration > 0 && BestIteration < _trees.Count)
                 TruncateTrees(BestIteration);
         }
 
+        /// Predicts for a batch of samples by summing tree outputs
         public double[] Predict(double[,] x)
         {
             int n = x.GetLength(0);
@@ -138,6 +145,7 @@ namespace used_car_predictor.Backend.Models
             return outp;
         }
 
+        /// Predicts a single sample by aggregating all trees
         public double Predict(double[] row)
         {
             double y = _init;
@@ -153,7 +161,7 @@ namespace used_car_predictor.Backend.Models
             return sum / arr.Length;
         }
 
-        /// Randomly sample row indices without replacement for subsampling.
+        /// Randomly samples row indices without replacement
         private int[] SampleIndicesNoReplacement(int n, double frac)
         {
             int k = Math.Max(1, (int)Math.Round(n * frac));
@@ -189,13 +197,14 @@ namespace used_car_predictor.Backend.Models
             return b;
         }
 
+        /// Truncates the ensemble to the first `keep` trees
         private void TruncateTrees(int keep)
         {
             if (keep >= 0 && keep < _trees.Count)
                 _trees.RemoveRange(keep, _trees.Count - keep);
         }
 
-        /// Random hyperparameter search for residual learning stage.
+        /// Random hyperparameter search used when training residual models
         public static (GradientBoostingRegressor Model, double MeanTrialMs, int Trials, long TotalMs)
             TrainResidualsWithBestParams(
                 double[,] trainX, double[] trainResidualY,
@@ -241,6 +250,7 @@ namespace used_car_predictor.Backend.Models
                     minSamplesLeaf: (int)p["minSamplesLeaf"],
                     subsample: (double)p["subsample"]);
 
+                // Train on residuals only
                 model.Fit(trainX, trainResidualY, valX, valResidualY,
                     labelScaler: null, evalEvery: 5, patience: 20);
 

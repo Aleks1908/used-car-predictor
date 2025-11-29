@@ -2,9 +2,8 @@ using used_car_predictor.Backend.Evaluation;
 
 namespace used_car_predictor.Backend.Models
 {
-    /// Random Forest regression model.
-    /// Builds an ensemble of independent decision trees and averages their outputs.
-    /// Used both as a standalone regressor and as a residual learner (ridge + RF).
+    /// Random Forest regression model
+    /// Builds an ensemble of decision trees on random subsets of the data
     public class RandomForestRegressor(
         int nEstimators = 50,
         int maxDepth = 8,
@@ -23,13 +22,13 @@ namespace used_car_predictor.Backend.Models
         private readonly double _sampleRatio = Math.Clamp(sampleRatio, 0.1, 1.0);
         private readonly List<DecisionTreeRegressor> _trees = new();
         private readonly Random _rng = Random.Shared;
+
         public double? TuningMeanTrialMs { get; private set; }
         public double? TuningTotalMs { get; private set; }
         public int? TuningTrials { get; private set; }
         public string Name => "Random Forest Regressor";
 
-        /// Fits all trees independently on random bootstrap samples.
-        /// Uses parallelism for efficiency.
+        /// Fits all trees independently on sampled subsets of the training rows
         public void Fit(double[,] features, double[] labels)
         {
             _trees.Clear();
@@ -62,11 +61,11 @@ namespace used_car_predictor.Backend.Models
             _trees.AddRange(trees);
         }
 
-        /// Predicts outputs for multiple samples by averaging tree predictions.
+        /// Predicts outputs for multiple samples by averaging tree predictions
         public double[] Predict(double[,] features)
         {
             if (_trees.Count == 0)
-                throw new InvalidOperationException("Forest not trained yet.");
+                throw new InvalidOperationException("Forest not trained yet");
 
             int n = features.GetLength(0);
             var sums = new double[n];
@@ -74,25 +73,30 @@ namespace used_car_predictor.Backend.Models
             foreach (var tree in _trees)
             {
                 var preds = tree.Predict(features);
-                for (int i = 0; i < n; i++) sums[i] += preds[i];
+                for (int i = 0; i < n; i++)
+                    sums[i] += preds[i];
             }
 
-            for (int i = 0; i < n; i++) sums[i] /= _trees.Count;
+            for (int i = 0; i < n; i++)
+                sums[i] /= _trees.Count;
+
             return sums;
         }
 
+        /// Predicts a single sample by averaging predictions from all trees
         public double Predict(double[] featureRow)
         {
             if (_trees.Count == 0)
-                throw new InvalidOperationException("Forest not trained yet.");
+                throw new InvalidOperationException("Forest not trained yet");
 
             double sum = 0;
-            foreach (var tree in _trees) sum += tree.Predict(featureRow);
+            foreach (var tree in _trees)
+                sum += tree.Predict(featureRow);
+
             return sum / _trees.Count;
         }
 
-        /// Performs random search over RF hyperparameters for residual learning stage.
-        /// Selects the configuration that yields the lowest RMSE on validation residuals.
+        /// Random search over hyperparameters for the residual-learning stage
         public static (RandomForestRegressor Model, double MeanTrialMs, double TotalMs, int Trials)
             TrainResidualsWithBestParams(
                 double[,] trainX, double[] trainResidualY,
@@ -147,14 +151,6 @@ namespace used_car_predictor.Backend.Models
                 trials++;
 
                 var rmse = Metrics.RootMeanSquaredError(valResidualY, valPredRes);
-                var mae = Metrics.MeanAbsoluteError(valResidualY, valPredRes);
-                var r2 = Metrics.RSquared(valResidualY, valPredRes);
-
-                Console.WriteLine(
-                    $"[RF tune] try={trial + 1}/{maxConfigs} " +
-                    $"nEst={p["nEstimators"]}, maxDepth={p["maxDepth"]}, minSplit={p["minSamplesSplit"]}, " +
-                    $"minLeaf={p["minSamplesLeaf"]}, sampleRatio={p["sampleRatio"]}, bootstrap={p["bootstrap"]} -> " +
-                    $"RMSE={rmse:F2}, MAE={mae:F2}, R²={r2:F3}, time={sw.Elapsed.TotalMilliseconds:F3} ms");
 
                 if (rmse < bestRmse)
                 {
@@ -165,7 +161,7 @@ namespace used_car_predictor.Backend.Models
             }
 
             if (bestModel == null)
-                throw new InvalidOperationException("RF residual search failed.");
+                throw new InvalidOperationException("RF residual search failed");
 
             double totalMs = tuningTotalTicks * 1000.0 / System.Diagnostics.Stopwatch.Frequency;
             double meanMs = trials > 0 ? totalMs / trials : 0.0;
@@ -174,20 +170,14 @@ namespace used_car_predictor.Backend.Models
             bestModel.TuningMeanTrialMs = meanMs;
             bestModel.TuningTrials = trials;
 
-            Console.WriteLine(
-                $"[RF Best] nEst={bestParams!["nEstimators"]}, maxDepth={bestParams!["maxDepth"]}, " +
-                $"minSplit={bestParams!["minSamplesSplit"]}, minLeaf={bestParams!["minSamplesLeaf"]}, " +
-                $"sampleRatio={bestParams!["sampleRatio"]}, bootstrap={bestParams!["bootstrap"]}, " +
-                $"Trials={trials}, MeanTrialMs={meanMs:F3}, TotalMs={totalMs:F3}");
-
             return (bestModel, meanMs, totalMs, trials);
         }
-
 
         private static int[] SampleWithReplacement(Random rng, int n, int k)
         {
             var idx = new int[k];
-            for (int i = 0; i < k; i++) idx[i] = rng.Next(n);
+            for (int i = 0; i < k; i++)
+                idx[i] = rng.Next(n);
             return idx;
         }
 
@@ -209,9 +199,11 @@ namespace used_car_predictor.Backend.Models
         {
             int rows = indices.Length, cols = matrix.GetLength(1);
             var result = new double[rows, cols];
+
             for (int i = 0; i < rows; i++)
             for (int j = 0; j < cols; j++)
                 result[i, j] = matrix[indices[i], j];
+
             return result;
         }
 

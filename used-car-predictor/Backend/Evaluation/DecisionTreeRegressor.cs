@@ -2,8 +2,9 @@ using used_car_predictor.Backend.Models;
 
 namespace used_car_predictor.Backend.Evaluation
 {
-    /// Implemented a regression decision tree used internally by the Random Forest and
-    /// Gradient Boosting ensemble models.
+    /// A regression decision tree implementation used internally by the 
+    /// Random Forest and Gradient Boosting ensemble models
+    /// Each leaf stores the mean target value for its region
     public class DecisionTreeRegressor(
         int maxDepth = 10,
         int minSamplesSplit = 2,
@@ -15,11 +16,13 @@ namespace used_car_predictor.Backend.Evaluation
 
         public string Name => "Decision Tree Regressor";
 
+        
         public void Fit(double[,] features, double[] labels)
         {
             _root = BuildTree(features, labels, depth: 0);
         }
 
+        /// Predicts values for a batch of samples
         public double[] Predict(double[,] features)
         {
             var n = features.GetLength(0);
@@ -37,21 +40,29 @@ namespace used_car_predictor.Backend.Evaluation
             return preds;
         }
 
+        /// Predicts the value for a single sample by traversing the tree
         public double Predict(double[] featureRow)
         {
             if (_root == null)
                 throw new InvalidOperationException("Tree not trained yet.");
             return Traverse(_root, featureRow);
         }
-
+        
+        /// Recursively builds a regression tree node:
         private Node BuildTree(double[,] features, double[] labels, int depth)
         {
             int nSamples = features.GetLength(0);
             int nFeatures = features.GetLength(1);
             double currentVar = Variance(labels);
 
-            if (depth >= maxDepth || nSamples < minSamplesSplit || currentVar == 0)
+            // Stopping Criteria
+            if (depth >= maxDepth ||
+                nSamples < minSamplesSplit ||
+                currentVar == 0)
+            {
+                // Create a leaf node storing mean label
                 return new Node { Value = Mean(labels) };
+            }
 
             double bestGain = 0;
             int bestFeature = -1;
@@ -59,6 +70,7 @@ namespace used_car_predictor.Backend.Evaluation
             List<int>? bestLeftIdx = null;
             List<int>? bestRightIdx = null;
 
+            // Search for best split across features
             for (int feature = 0; feature < nFeatures; feature++)
             {
                 double[] column = GetColumn(features, feature);
@@ -75,6 +87,7 @@ namespace used_car_predictor.Backend.Evaluation
                     double threshold = sorted[idx];
 
                     var (leftIdx, rightIdx) = SplitIndices(column, threshold);
+
                     if (leftIdx.Count < minSamplesLeaf || rightIdx.Count < minSamplesLeaf)
                         continue;
 
@@ -93,11 +106,14 @@ namespace used_car_predictor.Backend.Evaluation
                 }
             }
 
+            // If no improvement found, create a leaf node
             if (bestFeature == -1 || bestGain == 0)
                 return new Node { Value = Mean(labels) };
 
+            // Recurse left and right ---
             double[,] leftX = Subset(features, bestLeftIdx!);
             double[] leftYFinal = Subset(labels, bestLeftIdx!);
+
             double[,] rightX = Subset(features, bestRightIdx!);
             double[] rightYFinal = Subset(labels, bestRightIdx!);
 
@@ -110,17 +126,18 @@ namespace used_car_predictor.Backend.Evaluation
             };
         }
 
+        /// Traverses the decision tree to make a prediction
+        /// A leaf node returns its stored value
         private double Traverse(Node node, double[] x)
         {
             if (node.Left == null || node.Right == null)
                 return node.Value;
 
-            if (x[node.FeatureIndex] <= node.Threshold)
-                return Traverse(node.Left, x);
-            else
-                return Traverse(node.Right, x);
+            return x[node.FeatureIndex] <= node.Threshold
+                ? Traverse(node.Left, x)
+                : Traverse(node.Right, x);
         }
-
+        
 
         private static double Variance(double[] y)
         {
@@ -139,6 +156,7 @@ namespace used_car_predictor.Backend.Evaluation
             double varRight = Variance(right);
             double wLeft = (double)left.Length / parent.Length;
             double wRight = (double)right.Length / parent.Length;
+
             return varParent - (wLeft * varLeft + wRight * varRight);
         }
 
@@ -180,9 +198,11 @@ namespace used_car_predictor.Backend.Evaluation
             int n = indices.Count;
             int m = matrix.GetLength(1);
             double[,] result = new double[n, m];
+
             for (int i = 0; i < n; i++)
             for (int j = 0; j < m; j++)
                 result[i, j] = matrix[indices[i], j];
+
             return result;
         }
 
@@ -193,7 +213,7 @@ namespace used_car_predictor.Backend.Evaluation
                 result[i] = arr[indices[i]];
             return result;
         }
-
+        
         private class Node
         {
             public int FeatureIndex;

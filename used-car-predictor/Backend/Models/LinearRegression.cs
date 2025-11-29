@@ -1,7 +1,7 @@
 namespace used_car_predictor.Backend.Models
 {
-    /// Linear regression model.
-    /// Used as the simplest baseline algorithm in the system.
+    /// Linear regression model trained with gradient descent
+    /// Used as the simplest baseline algorithm in the system
     public class LinearRegression(double learningRate = 0.01, int epochs = 10000) : IRegressor
     {
         private double[] _weights = [];
@@ -11,6 +11,7 @@ namespace used_car_predictor.Backend.Models
 
         public double TotalMs { get; private set; }
 
+        /// Fits the linear model using gradient descent on squared error
         public void Fit(double[,] features, double[] labels)
         {
             var stopwatch = System.Diagnostics.Stopwatch.StartNew();
@@ -26,6 +27,7 @@ namespace used_car_predictor.Backend.Models
                 var gradients = new double[featureCount];
                 double biasGradient = 0;
 
+                // Accumulate gradients over all samples
                 for (var i = 0; i < sampleCount; i++)
                 {
                     var prediction = _bias;
@@ -40,6 +42,7 @@ namespace used_car_predictor.Backend.Models
                     biasGradient += error;
                 }
 
+                // Gradient descent update
                 for (var j = 0; j < featureCount; j++)
                     _weights[j] -= learningRate * gradients[j] / sampleCount;
 
@@ -53,11 +56,12 @@ namespace used_car_predictor.Backend.Models
             TotalMs = stopwatch.Elapsed.TotalMilliseconds;
         }
 
+        /// Predicts for a single row
         public double Predict(double[] featureRow)
         {
             return _bias + _weights.Select((t, j) => t * featureRow[j]).Sum();
         }
-
+        
         public double[] Predict(double[,] features)
         {
             var sampleCount = features.GetLength(0);
@@ -68,6 +72,7 @@ namespace used_car_predictor.Backend.Models
                 double[] row = new double[features.GetLength(1)];
                 for (int j = 0; j < row.Length; j++)
                     row[j] = features[i, j];
+
                 predictions[i] = Predict(row);
             }
 

@@ -4,7 +4,8 @@ using used_car_predictor.Backend.Evaluation;
 
 namespace used_car_predictor.Backend.Models
 {
-    /// Ridge Regression (L2-regularized linear regression).
+    /// L2-regularized linear regression
+    /// Uses the closed-form ridge solution
     public class RidgeRegression : IRegressor
     {
         private double[] _weights = Array.Empty<double>();
@@ -16,7 +17,7 @@ namespace used_car_predictor.Backend.Models
         public double[] Weights => _weights;
         public double Bias => _bias;
         public double Alpha => _alpha;
-        
+
         public double TotalMs { get; private set; }
         public double MeanTrialMs { get; private set; }
 
@@ -29,8 +30,7 @@ namespace used_car_predictor.Backend.Models
             _alpha = Math.Max(0, lambda);
         }
 
-        /// Train the model on (features, labels) using the closed-form ridge solution.
-        /// Records training time in TotalMs and MeanTrialMs.
+        /// Fits the model using the closed-form ridge regression formula
         public void Fit(double[,] features, double[] labels)
         {
             var sw = System.Diagnostics.Stopwatch.StartNew();
@@ -42,33 +42,34 @@ namespace used_car_predictor.Backend.Models
             MeanTrialMs = TotalMs;
         }
 
-        
+        /// Predicts one sample
         public double Predict(double[] featureRow)
         {
             double s = _bias;
-            var w = _weights;
-            for (int j = 0; j < w.Length; j++) s += w[j] * featureRow[j];
+            for (int j = 0; j < _weights.Length; j++)
+                s += _weights[j] * featureRow[j];
             return s;
         }
-        
+
+        /// Predicts a batch of samples
         public double[] Predict(double[,] features)
         {
             int n = features.GetLength(0);
             int p = features.GetLength(1);
             var outp = new double[n];
-            var w = _weights;
-            double b = _bias;
 
             for (int i = 0; i < n; i++)
             {
-                double s = b;
-                for (int j = 0; j < p; j++) s += w[j] * features[i, j];
+                double s = _bias;
+                for (int j = 0; j < p; j++)
+                    s += _weights[j] * features[i, j];
                 outp[i] = s;
             }
 
             return outp;
         }
-        
+
+        /// Closed-form ridge solution using centered data and solver
         private static void FitClosedForm(double[,] X, double[] y, double alpha, out double[] w, out double b)
         {
             int n = X.GetLength(0);
@@ -81,7 +82,7 @@ namespace used_car_predictor.Backend.Models
                 for (int i = 0; i < n; i++) s += X[i, j];
                 meanX[j] = s / n;
             }
-            
+
             double meanY = 0;
             for (int i = 0; i < n; i++) meanY += y[i];
             meanY /= n;
@@ -107,14 +108,16 @@ namespace used_car_predictor.Backend.Models
                 G[j, j] += alpha;
             }
             
-            w = SolveCholesky(G, r);
-            
+            w = Solve(G, r);
+
             double bb = meanY;
-            for (int j = 0; j < p; j++) bb -= meanX[j] * w[j];
+            for (int j = 0; j < p; j++)
+                bb -= meanX[j] * w[j];
             b = bb;
         }
-        
-        private static double[] SolveCholesky(double[,] A, double[] b)
+
+        /// Solves A w = b 
+        private static double[] Solve(double[,] A, double[] b)
         {
             int n = A.GetLength(0);
             var L = new double[n, n];
@@ -138,7 +141,8 @@ namespace used_car_predictor.Backend.Models
                     }
                 }
             }
-            
+
+            // Solve Ly = b
             var y = new double[n];
             for (int i = 0; i < n; i++)
             {
@@ -147,6 +151,7 @@ namespace used_car_predictor.Backend.Models
                 y[i] = (b[i] - sum) / L[i, i];
             }
 
+            // Solve L^T w = y
             var x = new double[n];
             for (int i = n - 1; i >= 0; i--)
             {
@@ -158,6 +163,7 @@ namespace used_car_predictor.Backend.Models
             return x;
         }
 
+        /// Generates logarithmic grid of regularization values
         private static double[] LogSpace(double startExp, double endExp, int steps)
         {
             var arr = new double[Math.Max(1, steps)];
@@ -172,7 +178,8 @@ namespace used_car_predictor.Backend.Models
                 arr[i] = Math.Pow(10, startExp + i * step);
             return arr;
         }
-        
+
+        /// K-fold search for best α based on RMSE
         public static (RidgeRegression Model, double MeanTrialMs, double TotalMs, int Trials)
             TrainWithBestParamsKFold(
                 double[,] X, double[] y,
@@ -252,14 +259,11 @@ namespace used_car_predictor.Backend.Models
             final.TuningTotalMs = totalMs;
             final.TuningMeanTrialMs = meanMs;
 
-            Console.WriteLine(
-                $"[Ridge] α={bestAlpha:g}, Trials={trials}, MeanTrialMs={meanMs:F3}, TotalMs={totalMs:F3}");
-
             return (final, meanMs, totalMs, trials);
         }
 
-        private static (double[,], double[], double[,], double[]) SplitByIndex(
-            double[,] X, double[] y, int[] shuffledIdx, int valStart, int valEnd)
+        private static (double[,], double[], double[,], double[])
+            SplitByIndex(double[,] X, double[] y, int[] shuffledIdx, int valStart, int valEnd)
         {
             int n = X.GetLength(0);
             int p = X.GetLength(1);
@@ -270,11 +274,12 @@ namespace used_car_predictor.Backend.Models
             var ty = new double[trainN];
             var vx = new double[valN, p];
             var vy = new double[valN];
-            
+
             for (int ii = 0; ii < valN; ii++)
             {
                 int src = shuffledIdx[valStart + ii];
-                for (int j = 0; j < p; j++) vx[ii, j] = X[src, j];
+                for (int j = 0; j < p; j++)
+                    vx[ii, j] = X[src, j];
                 vy[ii] = y[src];
             }
 
@@ -283,7 +288,8 @@ namespace used_car_predictor.Backend.Models
             {
                 if (ii >= valStart && ii < valEnd) continue;
                 int src = shuffledIdx[ii];
-                for (int j = 0; j < p; j++) tx[t, j] = X[src, j];
+                for (int j = 0; j < p; j++)
+                    tx[t, j] = X[src, j];
                 ty[t] = y[src];
                 t++;
             }
