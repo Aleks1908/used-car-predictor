@@ -41,17 +41,10 @@ public sealed class ModelsController(IWebHostEnvironment env) : ControllerBase
             var afterMake = fileIdNorm[(wantedMakeNorm.Length)..].TrimStart('_');
             var label = BundleId.BundleLabel.From(afterMake);
             
-            try
-            {
-                var bundle = ModelPersistence.LoadBundle(path);
-                var displayModel = (bundle.Car?.Model ?? afterMake).Trim();
-                if (!string.IsNullOrWhiteSpace(displayModel))
-                    label = BundleId.BundleLabel.From(displayModel);
-            }
-            catch
-            {
-                // ignore parse errors; filename-derived label is OK
-            }
+            var bundle = ModelPersistence.LoadBundle(path);
+            var displayModel = (bundle.Car?.Model ?? afterMake).Trim();
+            if (!string.IsNullOrWhiteSpace(displayModel))
+                label = BundleId.BundleLabel.From(displayModel);
 
             if (seen.Add(value))
                 result.Add(new LabeledValueDto { Value = value, Label = label });
