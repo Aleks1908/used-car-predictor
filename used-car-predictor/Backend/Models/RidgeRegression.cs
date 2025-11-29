@@ -1,24 +1,22 @@
+using System;
 using used_car_predictor.Backend.Data;
 using used_car_predictor.Backend.Evaluation;
 
 namespace used_car_predictor.Backend.Models
 {
+    /// Ridge Regression (L2-regularized linear regression).
     public class RidgeRegression : IRegressor
     {
         private double[] _weights = Array.Empty<double>();
         private double _bias;
         private double _alpha;
 
-        private readonly bool _useClosedForm;
-        private readonly double _learningRate;
-        private readonly int _epochs;
-
         public string Name => "Ridge Regression";
-
+        
         public double[] Weights => _weights;
         public double Bias => _bias;
         public double Alpha => _alpha;
-
+        
         public double TotalMs { get; private set; }
         public double MeanTrialMs { get; private set; }
 
@@ -26,32 +24,25 @@ namespace used_car_predictor.Backend.Models
         public double? TuningTotalMs { get; private set; }
         public double? TuningMeanTrialMs { get; private set; }
 
-        public RidgeRegression(
-            double learningRate = 1e-4,
-            int epochs = 10_000,
-            double lambda = 0.1,
-            bool useClosedForm = true)
+        public RidgeRegression(double lambda = 0.1)
         {
-            _learningRate = learningRate;
-            _epochs = epochs;
             _alpha = Math.Max(0, lambda);
-            _useClosedForm = useClosedForm;
         }
 
+        /// Train the model on (features, labels) using the closed-form ridge solution.
+        /// Records training time in TotalMs and MeanTrialMs.
         public void Fit(double[,] features, double[] labels)
         {
             var sw = System.Diagnostics.Stopwatch.StartNew();
 
-            if (_useClosedForm)
-                FitClosedForm(features, labels, _alpha, out _weights, out _bias);
-            else
-                FitGradientDescent(features, labels, _alpha, _learningRate, _epochs, out _weights, out _bias);
+            FitClosedForm(features, labels, _alpha, out _weights, out _bias);
 
             sw.Stop();
             TotalMs = sw.Elapsed.TotalMilliseconds;
             MeanTrialMs = TotalMs;
         }
 
+        
         public double Predict(double[] featureRow)
         {
             double s = _bias;
@@ -59,7 +50,7 @@ namespace used_car_predictor.Backend.Models
             for (int j = 0; j < w.Length; j++) s += w[j] * featureRow[j];
             return s;
         }
-
+        
         public double[] Predict(double[,] features)
         {
             int n = features.GetLength(0);
@@ -77,7 +68,7 @@ namespace used_car_predictor.Backend.Models
 
             return outp;
         }
-
+        
         private static void FitClosedForm(double[,] X, double[] y, double alpha, out double[] w, out double b)
         {
             int n = X.GetLength(0);
@@ -90,7 +81,7 @@ namespace used_car_predictor.Backend.Models
                 for (int i = 0; i < n; i++) s += X[i, j];
                 meanX[j] = s / n;
             }
-
+            
             double meanY = 0;
             for (int i = 0; i < n; i++) meanY += y[i];
             meanY /= n;
@@ -115,14 +106,14 @@ namespace used_car_predictor.Backend.Models
                 for (int k = 0; k < j; k++) G[k, j] = G[j, k];
                 G[j, j] += alpha;
             }
-
+            
             w = SolveCholesky(G, r);
-
+            
             double bb = meanY;
             for (int j = 0; j < p; j++) bb -= meanX[j] * w[j];
             b = bb;
         }
-
+        
         private static double[] SolveCholesky(double[,] A, double[] b)
         {
             int n = A.GetLength(0);
@@ -147,7 +138,7 @@ namespace used_car_predictor.Backend.Models
                     }
                 }
             }
-
+            
             var y = new double[n];
             for (int i = 0; i < n; i++)
             {
@@ -167,34 +158,6 @@ namespace used_car_predictor.Backend.Models
             return x;
         }
 
-        private static void FitGradientDescent(
-            double[,] X, double[] y, double alpha, double lr, int epochs,
-            out double[] w, out double b)
-        {
-            int n = X.GetLength(0), p = X.GetLength(1);
-            w = new double[p];
-            b = 0;
-
-            for (int ep = 0; ep < epochs; ep++)
-            {
-                var gw = new double[p];
-                double gb = 0;
-
-                for (int i = 0; i < n; i++)
-                {
-                    double pred = b;
-                    for (int j = 0; j < p; j++) pred += w[j] * X[i, j];
-                    double err = pred - y[i];
-                    for (int j = 0; j < p; j++) gw[j] += err * X[i, j];
-                    gb += err;
-                }
-
-                for (int j = 0; j < p; j++)
-                    w[j] -= lr * (gw[j] / n + alpha * w[j]);
-                b -= lr * gb / n;
-            }
-        }
-
         private static double[] LogSpace(double startExp, double endExp, int steps)
         {
             var arr = new double[Math.Max(1, steps)];
@@ -209,7 +172,7 @@ namespace used_car_predictor.Backend.Models
                 arr[i] = Math.Pow(10, startExp + i * step);
             return arr;
         }
-
+        
         public static (RidgeRegression Model, double MeanTrialMs, double TotalMs, int Trials)
             TrainWithBestParamsKFold(
                 double[,] X, double[] y,
@@ -247,14 +210,13 @@ namespace used_car_predictor.Backend.Models
                 {
                     int start = f * foldSize;
                     int end = (f == kFolds - 1) ? n : Math.Min(n, start + foldSize);
-
                     if (start >= end) break;
 
                     var sw = System.Diagnostics.Stopwatch.StartNew();
 
                     var (tx, ty, vx, vy) = SplitByIndex(X, y, idx, start, end);
 
-                    var rr = new RidgeRegression(lambda: a, useClosedForm: true);
+                    var rr = new RidgeRegression(lambda: a);
                     rr.Fit(tx, ty);
 
                     var predScaled = rr.Predict(vx);
@@ -280,7 +242,7 @@ namespace used_car_predictor.Backend.Models
                 }
             }
 
-            var final = new RidgeRegression(lambda: bestAlpha, useClosedForm: true);
+            var final = new RidgeRegression(lambda: bestAlpha);
             final.Fit(X, y);
 
             double totalMs = tuningTotalTicks * 1000.0 / System.Diagnostics.Stopwatch.Frequency;
@@ -292,29 +254,8 @@ namespace used_car_predictor.Backend.Models
 
             Console.WriteLine(
                 $"[Ridge] α={bestAlpha:g}, Trials={trials}, MeanTrialMs={meanMs:F3}, TotalMs={totalMs:F3}");
+
             return (final, meanMs, totalMs, trials);
-        }
-
-        private static (double[,], double[]) Concat(double[,] x1, double[] y1, double[,] x2, double[] y2)
-        {
-            int n1 = x1.GetLength(0), n2 = x2.GetLength(0), p = x1.GetLength(1);
-            var X = new double[n1 + n2, p];
-            var y = new double[n1 + n2];
-
-            for (int i = 0; i < n1; i++)
-            {
-                for (int j = 0; j < p; j++) X[i, j] = x1[i, j];
-                y[i] = y1[i];
-            }
-
-            for (int i = 0; i < n2; i++)
-            {
-                int r = n1 + i;
-                for (int j = 0; j < p; j++) X[r, j] = x2[i, j];
-                y[r] = y2[i];
-            }
-
-            return (X, y);
         }
 
         private static (double[,], double[], double[,], double[]) SplitByIndex(
@@ -329,7 +270,7 @@ namespace used_car_predictor.Backend.Models
             var ty = new double[trainN];
             var vx = new double[valN, p];
             var vy = new double[valN];
-
+            
             for (int ii = 0; ii < valN; ii++)
             {
                 int src = shuffledIdx[valStart + ii];

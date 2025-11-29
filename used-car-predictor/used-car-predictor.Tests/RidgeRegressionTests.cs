@@ -16,7 +16,7 @@ public class RidgeRegressionTests
         };
         var y = new double[] {1, 3, 5, 7, 9};
 
-        var rr = new RidgeRegression(lambda: 1e-6, useClosedForm: true);
+        var rr = new RidgeRegression(lambda: 1e-6);
         rr.Fit(X, y);
         
         var pred = rr.Predict(new double[] {5});

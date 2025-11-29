@@ -21,7 +21,7 @@ public class PersistenceRoundTripTests
         var X = fScaler.FitTransform(rawX);
         var y = lScaler.FitTransform(rawY);
         
-        var ridge = new RidgeRegression(useClosedForm: true, lambda: 0.1);
+        var ridge = new RidgeRegression( lambda: 0.1);
         ridge.Fit(X, y);
         
         var rf = new RandomForestRegressor();
