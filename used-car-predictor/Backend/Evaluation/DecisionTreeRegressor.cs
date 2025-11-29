@@ -2,6 +2,8 @@ using used_car_predictor.Backend.Models;
 
 namespace used_car_predictor.Backend.Evaluation
 {
+    /// Implemented a regression decision tree used internally by the Random Forest and
+    /// Gradient Boosting ensemble models.
     public class DecisionTreeRegressor(
         int maxDepth = 10,
         int minSamplesSplit = 2,

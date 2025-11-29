@@ -25,17 +25,11 @@ public sealed class ManufacturersController : ControllerBase
 
         foreach (var file in Directory.EnumerateFiles(dir, "*.json", SearchOption.TopDirectoryOnly))
         {
-            try
-            {
-                var bundle = ModelPersistence.LoadBundle(file);
-                var manufacturer = bundle.Car?.Manufacturer ?? bundle.Car?.Manufacturer ?? "";
-                if (!string.IsNullOrWhiteSpace(manufacturer))
-                    manufacturers.Add(manufacturer.Trim());
-            }
-            catch
-            {
-                // log
-            }
+            var bundle = ModelPersistence.LoadBundle(file);
+            var manufacturer = bundle.Car?.Manufacturer ?? bundle.Car?.Manufacturer ?? "";
+            if (!string.IsNullOrWhiteSpace(manufacturer))
+                manufacturers.Add(manufacturer.Trim());
+            
         }
 
         var formatted = manufacturers

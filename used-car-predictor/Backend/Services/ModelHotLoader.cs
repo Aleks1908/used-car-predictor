@@ -1,5 +1,7 @@
 using used_car_predictor.Backend.Services;
 
+/// Responsible for dynamically loading and hot-swapping the correct trained model bundle
+/// based on the requested manufacturer and model.
 public sealed class ModelHotLoader
 {
     private readonly ActiveModel _active;
