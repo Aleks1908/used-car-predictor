@@ -5,7 +5,7 @@ using System.Globalization;
 namespace used_car_predictor.Backend.Data;
 
 /// Provides utilities for loading raw vehicle listing data from CSV files into strongly typed
-/// Vehicle objects. Uses CsvHelper for parsing, applies basic validation and filtering.
+/// Vehicle objects. Uses CsvHelper for parsing, applies basic validation and filtering
 public abstract class CsvLoader
 {
     public static List<Vehicle> LoadVehicles(string filePath, int? maxRows = null)

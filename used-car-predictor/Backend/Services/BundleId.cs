@@ -3,8 +3,8 @@ using used_car_predictor.Backend.Evaluation;
 namespace used_car_predictor.Backend.Services;
 
 /// Provides identifier generation for trained model bundles by normalizing
-/// and restructuring manufacturer/model strings into consistent file-safe IDs.
-/// Also includes utilities for converting bundle IDs into readble labels.
+/// and restructuring manufacturer/model strings into consistent file-safe IDs
+/// Also includes utilities for converting bundle IDs into readble labels
 public static class BundleId
 {
     private static string N(string s) => ModelNormalizer.Normalize(s ?? string.Empty);

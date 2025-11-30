@@ -1,8 +1,8 @@
 namespace used_car_predictor.Backend.Data
 {
-    /// Scales numerical features using Z-score normalization.
-    /// This ensures all features are on a comparable scale,
-    /// which helps many ML models converge faster and perform better.
+    /// Scales numerical features using Z-score normalization
+    /// This ensures all features are on a comparable scale
+    /// which helps many ML models converge faster and perform better
     public class FeatureScaler
     {
         private double[] _means = Array.Empty<double>();

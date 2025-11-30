@@ -1,8 +1,8 @@
 namespace used_car_predictor.Backend.Data
 {
     /// Converts raw vehicle dataset rows into numerical matrices (X, y)
-    /// suitable for model training. Handles categorical encoding,
-    /// basic sanitization, and target/feature construction.
+    /// suitable for model training. Handles categorical encoding
+    /// basic sanitization, and target/feature construction
     public static class Preprocessor
     {
         public static (double[,] X, double[] y, List<string> fuels, List<string> transmissions)

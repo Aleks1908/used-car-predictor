@@ -3,9 +3,9 @@ using used_car_predictor.Backend.Serialization;
 
 namespace used_car_predictor.Backend.Services;
 
-/// Represents the currently loaded ML bundle in memory.
-/// Stores trained models, metadata, scalers, and metrics.
-/// Acts as a thread-safe singleton shared across predictions.
+/// Represents the currently loaded ML bundle in memory
+/// Stores trained models, metadata, scalers, and metrics
+/// Acts as a thread-safe singleton shared across predictions
 public class ActiveModel
 {
     private Dictionary<string, IRegressor> _models = new(StringComparer.OrdinalIgnoreCase);

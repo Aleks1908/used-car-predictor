@@ -1,12 +1,12 @@
 namespace used_car_predictor.Backend.Api;
 
 /// Contains helper functions for encoding and scaling manual API inputs
-/// into the same numerical format used during model training.
+/// into the same numerical format used during model training
 public static class ServingHelpers
 {
     /// Encodes a single user input
-    /// into a feature vector compatible with the model's training schema.
-    /// Includes numerical and one-hot categorical features.
+    /// into a feature vector compatible with the model's training schema
+    /// Includes numerical and one-hot categorical features
     public static double[] EncodeManualInput(
         int yearOfProduction, int mileageKm, string fuel, string transmission,
         IReadOnlyList<string> fuels, IReadOnlyList<string> transmissions,

@@ -1,6 +1,6 @@
 namespace used_car_predictor.Backend.Data
 {
-    /// Utility for splitting a dataset into train and test partitions.
+    /// Utility for splitting a dataset into train and test partitions
     public static class DataSplitter
     {
         public static (double[,], double[], double[,], double[]) Split(
