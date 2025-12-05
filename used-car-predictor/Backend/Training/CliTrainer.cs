@@ -99,9 +99,16 @@ namespace used_car_predictor.Backend.Training
                 var (rawX, rawY, fuels, transmissions) =
                     Preprocessor.ToMatrix(rows, targetYear: opts.AnchorYear, anchorTargetYear: opts.AnchorYear);
 
-                if (fuels.Count == 0 || transmissions.Count == 0)
+                bool hasRealFuel =
+                    fuels.Any(f => !string.Equals(f, "other", StringComparison.OrdinalIgnoreCase));
+
+                bool hasRealTransmission =
+                    transmissions.Any(t => !string.Equals(t, "other", StringComparison.OrdinalIgnoreCase));
+
+                if (!hasRealFuel || !hasRealTransmission)
                 {
-                    Console.WriteLine($" SKIP -> {m.Make} {m.Model} because fuels/transmissions are empty.");
+                    Console.WriteLine(
+                        $" SKIP -> {m.Make} {m.Model} because fuels/transmissions have no meaningful categories");
                     skipped++;
                     continue;
                 }
