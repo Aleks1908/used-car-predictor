@@ -1,0 +1,5457 @@
+{
+  "TrainedAtUtc": "2025-12-05T21:06:14.451783Z",
+  "Notes": "make=ford, model=escape xlt 4x4, rows=60; anchorTargetYear=2030, totalRows=60",
+  "Car": {
+    "Manufacturer": "ford",
+    "Model": "escape xlt 4x4",
+    "MinYear": 2001,
+    "MaxYear": 2012
+  },
+  "Preprocess": {
+    "Fuels": [
+      "gas",
+      "other"
+    ],
+    "Transmissions": [
+      "automatic",
+      "other"
+    ],
+    "FeatureMeans": [
+      2007.4583333333333,
+      142754.89583333334,
+      22.541666666666668,
+      0,
+      1,
+      0,
+      1,
+      0
+    ],
+    "FeatureStds": [
+      3.1021385992390633,
+      37075.66052470699,
+      3.1021385992390615,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "LabelMean": 5836.895833333333,
+    "LabelStd": 1779.0254499723446,
+    "LabelUseLog": false,
+    "MinYear": 2001,
+    "MaxYear": 2012,
+    "AnchorTargetYear": 2030,
+    "TotalRows": 60
+  },
+  "Linear": {
+    "Weights": [
+      0.20625217788511718,
+      -0.44324698800687284,
+      -0.20625217788511788,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "Bias": -5.027104311531708E-15
+  },
+  "Ridge": {
+    "Weights": [
+      0.2077815438604663,
+      -0.4118468004754562,
+      -0.20778154386046657,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "Bias": -5.11708176842002E-15,
+    "Alpha": 3.455107294592218
+  },
+  "RandomForest": {
+    "Trees": [
+      {
+        "FeatureIndex": 1,
+        "Threshold": -0.8422748345244792,
+        "Value": 0,
+        "Left": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": 0.8946151349812398,
+          "Left": null,
+          "Right": null
+        },
+        "Right": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": -0.2531379543577572,
+          "Left": null,
+          "Right": null
+        }
+      },
+      {
+        "FeatureIndex": 1,
+        "Threshold": -0.6676859018286899,
+        "Value": 0,
+        "Left": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": 0.563237865176595,
+          "Left": null,
+          "Right": null
+        },
+        "Right": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": -0.5716968863884816,
+          "Left": null,
+          "Right": null
+        }
+      },
+      {
+        "FeatureIndex": 1,
+        "Threshold": -1.1262077395899162,
+        "Value": 0,
+        "Left": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": 0.4291619753336615,
+          "Left": null,
+          "Right": null
+        },
+        "Right": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": -0.010272338114594964,
+          "Left": null,
+          "Right": null
+        }
+      },
+      {
+        "FeatureIndex": 1,
+        "Threshold": -0.6676859018286899,
+        "Value": 0,
+        "Left": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": 0.41628599357517126,
+          "Left": null,
+          "Right": null
+        },
+        "Right": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": -0.25692141942611024,
+          "Left": null,
+          "Right": null
+        }
+      },
+      {
+        "FeatureIndex": 0,
+        "Threshold": -1.4371805742099535,
+        "Value": 0,
+        "Left": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": 0.40213569173250113,
+          "Left": null,
+          "Right": null
+        },
+        "Right": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": -0.16643462757249317,
+          "Left": null,
+          "Right": null
+        }
+      },
+      {
+        "FeatureIndex": 0,
+        "Threshold": -0.4701057953023048,
+        "Value": 0,
+        "Left": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": -0.04089851466274065,
+          "Left": null,
+          "Right": null
+        },
+        "Right": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": -0.4553075948260607,
+          "Left": null,
+          "Right": null
+        }
+      },
+      {
+        "FeatureIndex": 1,
+        "Threshold": 0.1954140280747949,
+        "Value": 0,
+        "Left": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": -0.2211060195130841,
+          "Left": null,
+          "Right": null
+        },
+        "Right": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": 0.27190325243031455,
+          "Left": null,
+          "Right": null
+        }
+      },
+      {
+        "FeatureIndex": 1,
+        "Threshold": 0.11449840964634321,
+        "Value": 0,
+        "Left": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": -0.054470932534187326,
+          "Left": null,
+          "Right": null
+        },
+        "Right": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": 0.6196400506927333,
+          "Left": null,
+          "Right": null
+        }
+      },
+      {
+        "FeatureIndex": 1,
+        "Threshold": -0.3979671737338509,
+        "Value": 0,
+        "Left": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": 0.19005258416191376,
+          "Left": null,
+          "Right": null
+        },
+        "Right": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": -0.10285718219756713,
+          "Left": null,
+          "Right": null
+        }
+      },
+      {
+        "FeatureIndex": 1,
+        "Threshold": -0.6676859018286899,
+        "Value": 0,
+        "Left": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": 0.4963323461504876,
+          "Left": null,
+          "Right": null
+        },
+        "Right": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": -0.15718901679453717,
+          "Left": null,
+          "Right": null
+        }
+      },
+      {
+        "FeatureIndex": 1,
+        "Threshold": 0.1954140280747949,
+        "Value": 0,
+        "Left": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": -0.34310777118782243,
+          "Left": null,
+          "Right": null
+        },
+        "Right": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": 0.13669804846222514,
+          "Left": null,
+          "Right": null
+        }
+      },
+      {
+        "FeatureIndex": 1,
+        "Threshold": -0.6676859018286899,
+        "Value": 0,
+        "Left": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": 0.5224388454628605,
+          "Left": null,
+          "Right": null
+        },
+        "Right": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": -0.05491113004534821,
+          "Left": null,
+          "Right": null
+        }
+      },
+      {
+        "FeatureIndex": 1,
+        "Threshold": -0.05944319810201845,
+        "Value": 0,
+        "Left": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": -0.5427095671989233,
+          "Left": null,
+          "Right": null
+        },
+        "Right": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": 0.32745011483223774,
+          "Left": null,
+          "Right": null
+        }
+      },
+      {
+        "FeatureIndex": 0,
+        "Threshold": 0.17461072396946098,
+        "Value": 0,
+        "Left": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": 0.35274884433561254,
+          "Left": null,
+          "Right": null
+        },
+        "Right": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": -0.0038532746246569337,
+          "Left": null,
+          "Right": null
+        }
+      },
+      {
+        "FeatureIndex": 1,
+        "Threshold": -0.3979671737338509,
+        "Value": 0,
+        "Left": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": 0.46073067189881844,
+          "Left": null,
+          "Right": null
+        },
+        "Right": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": -0.24379320818878986,
+          "Left": null,
+          "Right": null
+        }
+      },
+      {
+        "FeatureIndex": 1,
+        "Threshold": -0.8343990476641099,
+        "Value": 0,
+        "Left": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": 0.9132771983465711,
+          "Left": null,
+          "Right": null
+        },
+        "Right": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": 0.05312262698636255,
+          "Left": null,
+          "Right": null
+        }
+      },
+      {
+        "FeatureIndex": 1,
+        "Threshold": 0.28711839562704017,
+        "Value": 0,
+        "Left": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": 0.033054130060685846,
+          "Left": null,
+          "Right": null
+        },
+        "Right": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": 0.336063678965446,
+          "Left": null,
+          "Right": null
+        }
+      },
+      {
+        "FeatureIndex": 1,
+        "Threshold": -1.449870213303723,
+        "Value": 0,
+        "Left": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": 1.011967124980267,
+          "Left": null,
+          "Right": null
+        },
+        "Right": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": -0.3787934845425461,
+          "Left": null,
+          "Right": null
+        }
+      },
+      {
+        "FeatureIndex": 0,
+        "Threshold": 0.49696898360534386,
+        "Value": 0,
+        "Left": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": -0.1000094418009321,
+          "Left": null,
+          "Right": null
+        },
+        "Right": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": 0.7579727765783585,
+          "Left": null,
+          "Right": null
+        }
+      },
+      {
+        "FeatureIndex": 0,
+        "Threshold": -0.7924640549381876,
+        "Value": 0,
+        "Left": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": 0.13148449117846814,
+          "Left": null,
+          "Right": null
+        },
+        "Right": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": -0.12027186443960787,
+          "Left": null,
+          "Right": null
+        }
+      },
+      {
+        "FeatureIndex": 0,
+        "Threshold": -1.4371805742099535,
+        "Value": 0,
+        "Left": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": 0.610539911251141,
+          "Left": null,
+          "Right": null
+        },
+        "Right": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": 0.024132345782057488,
+          "Left": null,
+          "Right": null
+        }
+      },
+      {
+        "FeatureIndex": 1,
+        "Threshold": -0.6676859018286899,
+        "Value": 0,
+        "Left": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": 0.3511921252520541,
+          "Left": null,
+          "Right": null
+        },
+        "Right": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": -0.23647631598210914,
+          "Left": null,
+          "Right": null
+        }
+      },
+      {
+        "FeatureIndex": 1,
+        "Threshold": -0.6676859018286899,
+        "Value": 0,
+        "Left": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": 0.3281163019718493,
+          "Left": null,
+          "Right": null
+        },
+        "Right": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": -0.27070285226033414,
+          "Left": null,
+          "Right": null
+        }
+      },
+      {
+        "FeatureIndex": 1,
+        "Threshold": -0.8343990476641099,
+        "Value": 0,
+        "Left": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": 0.5871375205293415,
+          "Left": null,
+          "Right": null
+        },
+        "Right": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": -0.14368403241715177,
+          "Left": null,
+          "Right": null
+        }
+      },
+      {
+        "FeatureIndex": 1,
+        "Threshold": -0.05944319810201845,
+        "Value": 0,
+        "Left": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": -0.30562486793762106,
+          "Left": null,
+          "Right": null
+        },
+        "Right": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": 0.16425145828359664,
+          "Left": null,
+          "Right": null
+        }
+      },
+      {
+        "FeatureIndex": 1,
+        "Threshold": -0.8343990476641099,
+        "Value": 0,
+        "Left": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": 0.5044831618943328,
+          "Left": null,
+          "Right": null
+        },
+        "Right": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": -0.03922962739914261,
+          "Left": null,
+          "Right": null
+        }
+      },
+      {
+        "FeatureIndex": 1,
+        "Threshold": -1.449870213303723,
+        "Value": 0,
+        "Left": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": 1.0365522037035717,
+          "Left": null,
+          "Right": null
+        },
+        "Right": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": 0.04893207717351342,
+          "Left": null,
+          "Right": null
+        }
+      },
+      {
+        "FeatureIndex": 1,
+        "Threshold": 0.11449840964634321,
+        "Value": 0,
+        "Left": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": -0.04874483691442926,
+          "Left": null,
+          "Right": null
+        },
+        "Right": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": 0.42675462646504275,
+          "Left": null,
+          "Right": null
+        }
+      },
+      {
+        "FeatureIndex": 1,
+        "Threshold": -0.05944319810201845,
+        "Value": 0,
+        "Left": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": -0.5202689186967363,
+          "Left": null,
+          "Right": null
+        },
+        "Right": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": -0.13918025820129823,
+          "Left": null,
+          "Right": null
+        }
+      },
+      {
+        "FeatureIndex": 0,
+        "Threshold": -0.7924640549381876,
+        "Value": 0,
+        "Left": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": -0.8535170426010258,
+          "Left": null,
+          "Right": null
+        },
+        "Right": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": -0.11111302930077484,
+          "Left": null,
+          "Right": null
+        }
+      },
+      {
+        "FeatureIndex": 0,
+        "Threshold": 0.17461072396946098,
+        "Value": 0,
+        "Left": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": 0.22691676240484515,
+          "Left": null,
+          "Right": null
+        },
+        "Right": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": -0.4565090997887807,
+          "Left": null,
+          "Right": null
+        }
+      },
+      {
+        "FeatureIndex": 1,
+        "Threshold": 0.1954140280747949,
+        "Value": 0,
+        "Left": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": -0.40560837130813915,
+          "Left": null,
+          "Right": null
+        },
+        "Right": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": 0.23764416474392608,
+          "Left": null,
+          "Right": null
+        }
+      },
+      {
+        "FeatureIndex": 1,
+        "Threshold": -0.05944319810201845,
+        "Value": 0,
+        "Left": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": -0.5790405696276707,
+          "Left": null,
+          "Right": null
+        },
+        "Right": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": 0.44723860188889963,
+          "Left": null,
+          "Right": null
+        }
+      },
+      {
+        "FeatureIndex": 1,
+        "Threshold": 0.28711839562704017,
+        "Value": 0,
+        "Left": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": -0.2948146789294868,
+          "Left": null,
+          "Right": null
+        },
+        "Right": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": 0.4104840459900387,
+          "Left": null,
+          "Right": null
+        }
+      },
+      {
+        "FeatureIndex": 0,
+        "Threshold": -1.4371805742099535,
+        "Value": 0,
+        "Left": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": 0.610539911251141,
+          "Left": null,
+          "Right": null
+        },
+        "Right": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": 0.15177218298799205,
+          "Left": null,
+          "Right": null
+        }
+      },
+      {
+        "FeatureIndex": 1,
+        "Threshold": -0.6676859018286899,
+        "Value": 0,
+        "Left": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": 0.3534546647599552,
+          "Left": null,
+          "Right": null
+        },
+        "Right": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": -0.10535847347819013,
+          "Left": null,
+          "Right": null
+        }
+      },
+      {
+        "FeatureIndex": 1,
+        "Threshold": -0.05944319810201845,
+        "Value": 0,
+        "Left": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": -0.5459730866591932,
+          "Left": null,
+          "Right": null
+        },
+        "Right": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": 0.16017491860807823,
+          "Left": null,
+          "Right": null
+        }
+      },
+      {
+        "FeatureIndex": 1,
+        "Threshold": -1.449870213303723,
+        "Value": 0,
+        "Left": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": 0.9005995426396266,
+          "Left": null,
+          "Right": null
+        },
+        "Right": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": -0.017278128176673357,
+          "Left": null,
+          "Right": null
+        }
+      },
+      {
+        "FeatureIndex": 1,
+        "Threshold": 0.28711839562704017,
+        "Value": 0,
+        "Left": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": -0.2837540386050866,
+          "Left": null,
+          "Right": null
+        },
+        "Right": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": 0.653073601841355,
+          "Left": null,
+          "Right": null
+        }
+      },
+      {
+        "FeatureIndex": 1,
+        "Threshold": -0.3979671737338509,
+        "Value": 0,
+        "Left": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": 0.7211208974467332,
+          "Left": null,
+          "Right": null
+        },
+        "Right": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": -0.041182976140909607,
+          "Left": null,
+          "Right": null
+        }
+      },
+      {
+        "FeatureIndex": 1,
+        "Threshold": 0.28711839562704017,
+        "Value": 0,
+        "Left": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": -0.13922711027137685,
+          "Left": null,
+          "Right": null
+        },
+        "Right": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": 0.5477236366291562,
+          "Left": null,
+          "Right": null
+        }
+      },
+      {
+        "FeatureIndex": 0,
+        "Threshold": -1.4371805742099535,
+        "Value": 0,
+        "Left": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": 0.610539911251141,
+          "Left": null,
+          "Right": null
+        },
+        "Right": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": -0.04989086986611301,
+          "Left": null,
+          "Right": null
+        }
+      },
+      {
+        "FeatureIndex": 1,
+        "Threshold": -0.3979671737338509,
+        "Value": 0,
+        "Left": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": 0.359900034490521,
+          "Left": null,
+          "Right": null
+        },
+        "Right": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": -0.3629156155839283,
+          "Left": null,
+          "Right": null
+        }
+      },
+      {
+        "FeatureIndex": 1,
+        "Threshold": 0.24935777369376272,
+        "Value": 0,
+        "Left": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": -0.2412264154333173,
+          "Left": null,
+          "Right": null
+        },
+        "Right": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": 0.3562943745192408,
+          "Left": null,
+          "Right": null
+        }
+      },
+      {
+        "FeatureIndex": 1,
+        "Threshold": 0.1954140280747949,
+        "Value": 0,
+        "Left": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": -0.14194928457046063,
+          "Left": null,
+          "Right": null
+        },
+        "Right": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": 0.5665685190157517,
+          "Left": null,
+          "Right": null
+        }
+      },
+      {
+        "FeatureIndex": 0,
+        "Threshold": -1.4371805742099535,
+        "Value": 0,
+        "Left": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": 0.402135691732501,
+          "Left": null,
+          "Right": null
+        },
+        "Right": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": -0.11661387994919928,
+          "Left": null,
+          "Right": null
+        }
+      },
+      {
+        "FeatureIndex": 1,
+        "Threshold": -0.6676859018286899,
+        "Value": 0,
+        "Left": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": 0.8161353260461561,
+          "Left": null,
+          "Right": null
+        },
+        "Right": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": 0.1345562318632138,
+          "Left": null,
+          "Right": null
+        }
+      },
+      {
+        "FeatureIndex": 0,
+        "Threshold": -0.7924640549381876,
+        "Value": 0,
+        "Left": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": 0.2742968738824438,
+          "Left": null,
+          "Right": null
+        },
+        "Right": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": -0.07529617849207293,
+          "Left": null,
+          "Right": null
+        }
+      },
+      {
+        "FeatureIndex": 1,
+        "Threshold": -0.05944319810201845,
+        "Value": 0,
+        "Left": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": -0.25042382113093314,
+          "Left": null,
+          "Right": null
+        },
+        "Right": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": 0.10217023038086873,
+          "Left": null,
+          "Right": null
+        }
+      },
+      {
+        "FeatureIndex": 1,
+        "Threshold": -0.8343990476641099,
+        "Value": 0,
+        "Left": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": 0.6429939876379894,
+          "Left": null,
+          "Right": null
+        },
+        "Right": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": -0.22401124142990791,
+          "Left": null,
+          "Right": null
+        }
+      },
+      {
+        "FeatureIndex": 1,
+        "Threshold": -0.18197641627550382,
+        "Value": 0,
+        "Left": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": -0.07761285172446639,
+          "Left": null,
+          "Right": null
+        },
+        "Right": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": 0.3697355202725708,
+          "Left": null,
+          "Right": null
+        }
+      },
+      {
+        "FeatureIndex": 1,
+        "Threshold": 0.1954140280747949,
+        "Value": 0,
+        "Left": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": -0.3684555996438578,
+          "Left": null,
+          "Right": null
+        },
+        "Right": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": 0.4207951685060034,
+          "Left": null,
+          "Right": null
+        }
+      },
+      {
+        "FeatureIndex": 1,
+        "Threshold": 0.28711839562704017,
+        "Value": 0,
+        "Left": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": -0.2667929784639266,
+          "Left": null,
+          "Right": null
+        },
+        "Right": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": 0.5463794847160095,
+          "Left": null,
+          "Right": null
+        }
+      },
+      {
+        "FeatureIndex": 1,
+        "Threshold": 0.24935777369376272,
+        "Value": 0,
+        "Left": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": -0.3050099066760797,
+          "Left": null,
+          "Right": null
+        },
+        "Right": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": 0.4799721316748433,
+          "Left": null,
+          "Right": null
+        }
+      },
+      {
+        "FeatureIndex": 1,
+        "Threshold": -0.05944319810201845,
+        "Value": 0,
+        "Left": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": -0.41508314419160336,
+          "Left": null,
+          "Right": null
+        },
+        "Right": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": 0.17902893035193498,
+          "Left": null,
+          "Right": null
+        }
+      },
+      {
+        "FeatureIndex": 1,
+        "Threshold": 0.28711839562704017,
+        "Value": 0,
+        "Left": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": -0.048132605967822206,
+          "Left": null,
+          "Right": null
+        },
+        "Right": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": 0.26739684306801015,
+          "Left": null,
+          "Right": null
+        }
+      },
+      {
+        "FeatureIndex": 1,
+        "Threshold": 0.1954140280747949,
+        "Value": 0,
+        "Left": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": -0.19265768819325094,
+          "Left": null,
+          "Right": null
+        },
+        "Right": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": 0.33266761855962107,
+          "Left": null,
+          "Right": null
+        }
+      },
+      {
+        "FeatureIndex": 1,
+        "Threshold": -0.8343990476641099,
+        "Value": 0,
+        "Left": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": 0.5989008338256697,
+          "Left": null,
+          "Right": null
+        },
+        "Right": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": 0.010010879120309797,
+          "Left": null,
+          "Right": null
+        }
+      },
+      {
+        "FeatureIndex": 1,
+        "Threshold": -0.6676859018286899,
+        "Value": 0,
+        "Left": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": 0.5521992472976387,
+          "Left": null,
+          "Right": null
+        },
+        "Right": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": -0.4567267099253398,
+          "Left": null,
+          "Right": null
+        }
+      },
+      {
+        "FeatureIndex": 1,
+        "Threshold": 0.24935777369376272,
+        "Value": 0,
+        "Left": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": -0.3228263441107948,
+          "Left": null,
+          "Right": null
+        },
+        "Right": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": 0.5362473919266294,
+          "Left": null,
+          "Right": null
+        }
+      },
+      {
+        "FeatureIndex": 0,
+        "Threshold": -1.4371805742099535,
+        "Value": 0,
+        "Left": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": 0.610539911251141,
+          "Left": null,
+          "Right": null
+        },
+        "Right": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": -0.06200529380556607,
+          "Left": null,
+          "Right": null
+        }
+      },
+      {
+        "FeatureIndex": 0,
+        "Threshold": -0.4701057953023048,
+        "Value": 0,
+        "Left": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": -0.5013863770689454,
+          "Left": null,
+          "Right": null
+        },
+        "Right": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": 0.2666750906398153,
+          "Left": null,
+          "Right": null
+        }
+      },
+      {
+        "FeatureIndex": 1,
+        "Threshold": -0.8343990476641099,
+        "Value": 0,
+        "Left": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": 0.8817347993194147,
+          "Left": null,
+          "Right": null
+        },
+        "Right": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": -0.1617628902265881,
+          "Left": null,
+          "Right": null
+        }
+      },
+      {
+        "FeatureIndex": 1,
+        "Threshold": -0.8343990476641099,
+        "Value": 0,
+        "Left": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": 0.6583890329504005,
+          "Left": null,
+          "Right": null
+        },
+        "Right": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": -0.13038362259488784,
+          "Left": null,
+          "Right": null
+        }
+      },
+      {
+        "FeatureIndex": 1,
+        "Threshold": 0.11449840964634321,
+        "Value": 0,
+        "Left": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": -0.10927881378141012,
+          "Left": null,
+          "Right": null
+        },
+        "Right": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": 0.44447699754429854,
+          "Left": null,
+          "Right": null
+        }
+      },
+      {
+        "FeatureIndex": 1,
+        "Threshold": -0.05944319810201845,
+        "Value": 0,
+        "Left": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": -0.6443589745763277,
+          "Left": null,
+          "Right": null
+        },
+        "Right": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": -0.13368366096860526,
+          "Left": null,
+          "Right": null
+        }
+      },
+      {
+        "FeatureIndex": 1,
+        "Threshold": -1.449870213303723,
+        "Value": 0,
+        "Left": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": 0.7804680692910025,
+          "Left": null,
+          "Right": null
+        },
+        "Right": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": -0.20562301219516746,
+          "Left": null,
+          "Right": null
+        }
+      },
+      {
+        "FeatureIndex": 1,
+        "Threshold": 0.28711839562704017,
+        "Value": 0,
+        "Left": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": -0.23770305874639255,
+          "Left": null,
+          "Right": null
+        },
+        "Right": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": 0.5100892146836817,
+          "Left": null,
+          "Right": null
+        }
+      },
+      {
+        "FeatureIndex": 1,
+        "Threshold": 0.1954140280747949,
+        "Value": 0,
+        "Left": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": -0.6350094172040774,
+          "Left": null,
+          "Right": null
+        },
+        "Right": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": 0.2727941223143443,
+          "Left": null,
+          "Right": null
+        }
+      },
+      {
+        "FeatureIndex": 1,
+        "Threshold": -0.05944319810201845,
+        "Value": 0,
+        "Left": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": -0.38945219412766485,
+          "Left": null,
+          "Right": null
+        },
+        "Right": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": 0.12850651547484368,
+          "Left": null,
+          "Right": null
+        }
+      },
+      {
+        "FeatureIndex": 1,
+        "Threshold": -0.8343990476641099,
+        "Value": 0,
+        "Left": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": 0.6840387706137319,
+          "Left": null,
+          "Right": null
+        },
+        "Right": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": -0.20612748812196516,
+          "Left": null,
+          "Right": null
+        }
+      },
+      {
+        "FeatureIndex": 1,
+        "Threshold": -0.6676859018286899,
+        "Value": 0,
+        "Left": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": 0.5238572622609147,
+          "Left": null,
+          "Right": null
+        },
+        "Right": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": -0.3310955323868062,
+          "Left": null,
+          "Right": null
+        }
+      },
+      {
+        "FeatureIndex": 1,
+        "Threshold": 0.4921046289791178,
+        "Value": 0,
+        "Left": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": 0.4057608102310293,
+          "Left": null,
+          "Right": null
+        },
+        "Right": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": -0.5798082021930682,
+          "Left": null,
+          "Right": null
+        }
+      },
+      {
+        "FeatureIndex": 0,
+        "Threshold": -1.4371805742099535,
+        "Value": 0,
+        "Left": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": 0.610539911251141,
+          "Left": null,
+          "Right": null
+        },
+        "Right": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": -0.34866527518361246,
+          "Left": null,
+          "Right": null
+        }
+      },
+      {
+        "FeatureIndex": 1,
+        "Threshold": 0.11449840964634321,
+        "Value": 0,
+        "Left": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": -0.03683978312839002,
+          "Left": null,
+          "Right": null
+        },
+        "Right": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": 0.39098958935018396,
+          "Left": null,
+          "Right": null
+        }
+      },
+      {
+        "FeatureIndex": 1,
+        "Threshold": -0.6676859018286899,
+        "Value": 0,
+        "Left": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": 0.6613179216619992,
+          "Left": null,
+          "Right": null
+        },
+        "Right": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": -0.1909036851983243,
+          "Left": null,
+          "Right": null
+        }
+      },
+      {
+        "FeatureIndex": 1,
+        "Threshold": -0.4438193575099735,
+        "Value": 0,
+        "Left": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": 0.48377038861866434,
+          "Left": null,
+          "Right": null
+        },
+        "Right": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": -0.31489965715577606,
+          "Left": null,
+          "Right": null
+        }
+      },
+      {
+        "FeatureIndex": 1,
+        "Threshold": -0.4438193575099735,
+        "Value": 0,
+        "Left": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": 0.5795451416947166,
+          "Left": null,
+          "Right": null
+        },
+        "Right": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": -0.14346587249825746,
+          "Left": null,
+          "Right": null
+        }
+      },
+      {
+        "FeatureIndex": 0,
+        "Threshold": -0.7924640549381876,
+        "Value": 0,
+        "Left": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": -0.33001743120354565,
+          "Left": null,
+          "Right": null
+        },
+        "Right": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": 0.19860893136312252,
+          "Left": null,
+          "Right": null
+        }
+      },
+      {
+        "FeatureIndex": 1,
+        "Threshold": -0.5867702834002382,
+        "Value": 0,
+        "Left": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": 0.32085319563227116,
+          "Left": null,
+          "Right": null
+        },
+        "Right": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": -0.2327636964212065,
+          "Left": null,
+          "Right": null
+        }
+      }
+    ],
+    "NumTrees": 80,
+    "MaxDepth": 8,
+    "MinSamplesSplit": 20,
+    "MinSamplesLeaf": 5
+  },
+  "GradientBoosting": {
+    "Trees": [
+      {
+        "FeatureIndex": 1,
+        "Threshold": 0.28711839562704017,
+        "Value": 0,
+        "Left": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": -0.05081060306534286,
+          "Left": null,
+          "Right": null
+        },
+        "Right": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": 0.22852371806532235,
+          "Left": null,
+          "Right": null
+        }
+      },
+      {
+        "FeatureIndex": 1,
+        "Threshold": 0.28711839562704017,
+        "Value": 0,
+        "Left": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": -0.10930000867456735,
+          "Left": null,
+          "Right": null
+        },
+        "Right": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": 0.16770088035991235,
+          "Left": null,
+          "Right": null
+        }
+      },
+      {
+        "FeatureIndex": 1,
+        "Threshold": 0.28711839562704017,
+        "Value": 0,
+        "Left": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": -0.14929527198140297,
+          "Left": null,
+          "Right": null
+        },
+        "Right": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": 0.3875913382917506,
+          "Left": null,
+          "Right": null
+        }
+      },
+      {
+        "FeatureIndex": 1,
+        "Threshold": -0.3979671737338509,
+        "Value": 0,
+        "Left": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": 0.10393093047704682,
+          "Left": null,
+          "Right": null
+        },
+        "Right": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": -0.24098740120772863,
+          "Left": null,
+          "Right": null
+        }
+      },
+      {
+        "FeatureIndex": 1,
+        "Threshold": -0.3979671737338509,
+        "Value": 0,
+        "Left": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": 0.1878598403269136,
+          "Left": null,
+          "Right": null
+        },
+        "Right": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": -0.22975885773158566,
+          "Left": null,
+          "Right": null
+        }
+      },
+      {
+        "FeatureIndex": 1,
+        "Threshold": -0.05944319810201845,
+        "Value": 0,
+        "Left": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": -0.21330173883306552,
+          "Left": null,
+          "Right": null
+        },
+        "Right": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": 0.17489274400390692,
+          "Left": null,
+          "Right": null
+        }
+      },
+      {
+        "FeatureIndex": 0,
+        "Threshold": -0.4701057953023048,
+        "Value": 0,
+        "Left": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": -0.17178749676587293,
+          "Left": null,
+          "Right": null
+        },
+        "Right": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": 0.1255536119656151,
+          "Left": null,
+          "Right": null
+        }
+      },
+      {
+        "FeatureIndex": 1,
+        "Threshold": 0.1954140280747949,
+        "Value": 0,
+        "Left": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": -0.33286804804702985,
+          "Left": null,
+          "Right": null
+        },
+        "Right": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": 0.18607947669034341,
+          "Left": null,
+          "Right": null
+        }
+      },
+      {
+        "FeatureIndex": 1,
+        "Threshold": 0.28711839562704017,
+        "Value": 0,
+        "Left": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": -0.21196876304495488,
+          "Left": null,
+          "Right": null
+        },
+        "Right": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": 0.2969253417728902,
+          "Left": null,
+          "Right": null
+        }
+      },
+      {
+        "FeatureIndex": 1,
+        "Threshold": -0.3979671737338509,
+        "Value": 0,
+        "Left": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": 0.2270678779452407,
+          "Left": null,
+          "Right": null
+        },
+        "Right": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": -0.19160008264441075,
+          "Left": null,
+          "Right": null
+        }
+      },
+      {
+        "FeatureIndex": 1,
+        "Threshold": -0.05944319810201845,
+        "Value": 0,
+        "Left": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": -0.02980060907060974,
+          "Left": null,
+          "Right": null
+        },
+        "Right": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": 0.2335120174492241,
+          "Left": null,
+          "Right": null
+        }
+      },
+      {
+        "FeatureIndex": 1,
+        "Threshold": -0.3979671737338509,
+        "Value": 0,
+        "Left": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": 0.3321291219881851,
+          "Left": null,
+          "Right": null
+        },
+        "Right": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": -0.16522730480986136,
+          "Left": null,
+          "Right": null
+        }
+      },
+      {
+        "FeatureIndex": 1,
+        "Threshold": -0.4438193575099735,
+        "Value": 0,
+        "Left": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": 0.23951213936462884,
+          "Left": null,
+          "Right": null
+        },
+        "Right": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": -0.1349181996176043,
+          "Left": null,
+          "Right": null
+        }
+      },
+      {
+        "FeatureIndex": 1,
+        "Threshold": 0.28711839562704017,
+        "Value": 0,
+        "Left": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": -0.019874709346635,
+          "Left": null,
+          "Right": null
+        },
+        "Right": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": 0.24396631838934776,
+          "Left": null,
+          "Right": null
+        }
+      },
+      {
+        "FeatureIndex": 1,
+        "Threshold": 0.28711839562704017,
+        "Value": 0,
+        "Left": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": -0.11412028316077641,
+          "Left": null,
+          "Right": null
+        },
+        "Right": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": 0.23595582534519605,
+          "Left": null,
+          "Right": null
+        }
+      },
+      {
+        "FeatureIndex": 0,
+        "Threshold": -0.4701057953023048,
+        "Value": 0,
+        "Left": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": -0.1639491429931792,
+          "Left": null,
+          "Right": null
+        },
+        "Right": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": 0.18547020806129114,
+          "Left": null,
+          "Right": null
+        }
+      },
+      {
+        "FeatureIndex": 1,
+        "Threshold": 0.1954140280747949,
+        "Value": 0,
+        "Left": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": -0.15594115016476456,
+          "Left": null,
+          "Right": null
+        },
+        "Right": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": 0.13339725818700077,
+          "Left": null,
+          "Right": null
+        }
+      },
+      {
+        "FeatureIndex": 1,
+        "Threshold": 0.1954140280747949,
+        "Value": 0,
+        "Left": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": -0.19790211197502156,
+          "Left": null,
+          "Right": null
+        },
+        "Right": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": 0.1789435187544847,
+          "Left": null,
+          "Right": null
+        }
+      },
+      {
+        "FeatureIndex": 1,
+        "Threshold": 0.28711839562704017,
+        "Value": 0,
+        "Left": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": -0.03965608866931422,
+          "Left": null,
+          "Right": null
+        },
+        "Right": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": 0.22232888546006419,
+          "Left": null,
+          "Right": null
+        }
+      },
+      {
+        "FeatureIndex": 1,
+        "Threshold": 0.1954140280747949,
+        "Value": 0,
+        "Left": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": -0.24182618914762566,
+          "Left": null,
+          "Right": null
+        },
+        "Right": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": 0.19964554267048176,
+          "Left": null,
+          "Right": null
+        }
+      },
+      {
+        "FeatureIndex": 1,
+        "Threshold": 0.24935777369376272,
+        "Value": 0,
+        "Left": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": -0.15723940586310245,
+          "Left": null,
+          "Right": null
+        },
+        "Right": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": 0.39842754397768415,
+          "Left": null,
+          "Right": null
+        }
+      },
+      {
+        "FeatureIndex": 1,
+        "Threshold": -0.3979671737338509,
+        "Value": 0,
+        "Left": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": 0.32477859102266754,
+          "Left": null,
+          "Right": null
+        },
+        "Right": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": -0.1993533050773023,
+          "Left": null,
+          "Right": null
+        }
+      },
+      {
+        "FeatureIndex": 0,
+        "Threshold": -0.7924640549381876,
+        "Value": 0,
+        "Left": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": 0.23435389949841112,
+          "Left": null,
+          "Right": null
+        },
+        "Right": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": -0.05008204565260972,
+          "Left": null,
+          "Right": null
+        }
+      },
+      {
+        "FeatureIndex": 1,
+        "Threshold": 0.28711839562704017,
+        "Value": 0,
+        "Left": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": -0.11963783721647282,
+          "Left": null,
+          "Right": null
+        },
+        "Right": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": 0.3879846233320795,
+          "Left": null,
+          "Right": null
+        }
+      },
+      {
+        "FeatureIndex": 1,
+        "Threshold": -0.3979671737338509,
+        "Value": 0,
+        "Left": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": 0.244176161932349,
+          "Left": null,
+          "Right": null
+        },
+        "Right": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": -0.13421204966269365,
+          "Left": null,
+          "Right": null
+        }
+      },
+      {
+        "FeatureIndex": 1,
+        "Threshold": -0.3979671737338509,
+        "Value": 0,
+        "Left": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": 0.32655377118765805,
+          "Left": null,
+          "Right": null
+        },
+        "Right": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": -0.037040411349489336,
+          "Left": null,
+          "Right": null
+        }
+      },
+      {
+        "FeatureIndex": 1,
+        "Threshold": -0.05944319810201845,
+        "Value": 0,
+        "Left": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": -0.2022028214553814,
+          "Left": null,
+          "Right": null
+        },
+        "Right": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": 0.16086329078680645,
+          "Left": null,
+          "Right": null
+        }
+      },
+      {
+        "FeatureIndex": 1,
+        "Threshold": 0.28711839562704017,
+        "Value": 0,
+        "Left": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": -0.12130548335047629,
+          "Left": null,
+          "Right": null
+        },
+        "Right": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": 0.26431461958590124,
+          "Left": null,
+          "Right": null
+        }
+      },
+      {
+        "FeatureIndex": 1,
+        "Threshold": 0.1954140280747949,
+        "Value": 0,
+        "Left": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": -0.10995301434417111,
+          "Left": null,
+          "Right": null
+        },
+        "Right": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": 0.23331251133672476,
+          "Left": null,
+          "Right": null
+        }
+      },
+      {
+        "FeatureIndex": 1,
+        "Threshold": 0.24935777369376272,
+        "Value": 0,
+        "Left": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": -0.089897568862234,
+          "Left": null,
+          "Right": null
+        },
+        "Right": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": 0.2860986044488708,
+          "Left": null,
+          "Right": null
+        }
+      },
+      {
+        "FeatureIndex": 1,
+        "Threshold": -0.3979671737338509,
+        "Value": 0,
+        "Left": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": 0.4149519492363546,
+          "Left": null,
+          "Right": null
+        },
+        "Right": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": -0.15602054243505392,
+          "Left": null,
+          "Right": null
+        }
+      },
+      {
+        "FeatureIndex": 1,
+        "Threshold": -0.4438193575099735,
+        "Value": 0,
+        "Left": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": 0.18838759895376062,
+          "Left": null,
+          "Right": null
+        },
+        "Right": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": -0.16658856558102408,
+          "Left": null,
+          "Right": null
+        }
+      },
+      {
+        "FeatureIndex": 1,
+        "Threshold": -0.3979671737338509,
+        "Value": 0,
+        "Left": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": 0.13255931100116708,
+          "Left": null,
+          "Right": null
+        },
+        "Right": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": -0.13974123269189512,
+          "Left": null,
+          "Right": null
+        }
+      },
+      {
+        "FeatureIndex": 1,
+        "Threshold": -0.3979671737338509,
+        "Value": 0,
+        "Left": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": 0.377063355218416,
+          "Left": null,
+          "Right": null
+        },
+        "Right": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": -0.23115690950820328,
+          "Left": null,
+          "Right": null
+        }
+      },
+      {
+        "FeatureIndex": 1,
+        "Threshold": 0.24935777369376272,
+        "Value": 0,
+        "Left": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": -0.0743787884208395,
+          "Left": null,
+          "Right": null
+        },
+        "Right": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": 0.3611829156367892,
+          "Left": null,
+          "Right": null
+        }
+      },
+      {
+        "FeatureIndex": 1,
+        "Threshold": 0.1954140280747949,
+        "Value": 0,
+        "Left": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": -0.33699676990894134,
+          "Left": null,
+          "Right": null
+        },
+        "Right": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": 0.26887902442011996,
+          "Left": null,
+          "Right": null
+        }
+      },
+      {
+        "FeatureIndex": 0,
+        "Threshold": -0.4701057953023048,
+        "Value": 0,
+        "Left": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": -0.03961821295571542,
+          "Left": null,
+          "Right": null
+        },
+        "Right": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": 0.23562874580337012,
+          "Left": null,
+          "Right": null
+        }
+      },
+      {
+        "FeatureIndex": 1,
+        "Threshold": -0.4438193575099735,
+        "Value": 0,
+        "Left": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": 0.25686520167086546,
+          "Left": null,
+          "Right": null
+        },
+        "Right": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": -0.12873065163451886,
+          "Left": null,
+          "Right": null
+        }
+      },
+      {
+        "FeatureIndex": 1,
+        "Threshold": -0.18219219125797967,
+        "Value": 0,
+        "Left": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": 0.2684901824148464,
+          "Left": null,
+          "Right": null
+        },
+        "Right": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": -0.09281306619311026,
+          "Left": null,
+          "Right": null
+        }
+      },
+      {
+        "FeatureIndex": 1,
+        "Threshold": 0.1954140280747949,
+        "Value": 0,
+        "Left": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": -0.05912039055316956,
+          "Left": null,
+          "Right": null
+        },
+        "Right": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": 0.23241870059171096,
+          "Left": null,
+          "Right": null
+        }
+      },
+      {
+        "FeatureIndex": 1,
+        "Threshold": 0.1954140280747949,
+        "Value": 0,
+        "Left": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": -0.15734074131600476,
+          "Left": null,
+          "Right": null
+        },
+        "Right": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": 0.08263797423260642,
+          "Left": null,
+          "Right": null
+        }
+      },
+      {
+        "FeatureIndex": 1,
+        "Threshold": -0.3979671737338509,
+        "Value": 0,
+        "Left": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": 0.24039160920098157,
+          "Left": null,
+          "Right": null
+        },
+        "Right": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": -0.09154291808929296,
+          "Left": null,
+          "Right": null
+        }
+      },
+      {
+        "FeatureIndex": 1,
+        "Threshold": 0.24935777369376272,
+        "Value": 0,
+        "Left": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": -0.028290104222417185,
+          "Left": null,
+          "Right": null
+        },
+        "Right": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": 0.249611698427537,
+          "Left": null,
+          "Right": null
+        }
+      },
+      {
+        "FeatureIndex": 1,
+        "Threshold": 0.1954140280747949,
+        "Value": 0,
+        "Left": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": -0.14568974312003108,
+          "Left": null,
+          "Right": null
+        },
+        "Right": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": 0.15128945790908335,
+          "Left": null,
+          "Right": null
+        }
+      },
+      {
+        "FeatureIndex": 1,
+        "Threshold": 0.1954140280747949,
+        "Value": 0,
+        "Left": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": -0.15357176782495663,
+          "Left": null,
+          "Right": null
+        },
+        "Right": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": 0.10027814820011746,
+          "Left": null,
+          "Right": null
+        }
+      },
+      {
+        "FeatureIndex": 1,
+        "Threshold": -0.34402342811488307,
+        "Value": 0,
+        "Left": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": 0.2154883395336232,
+          "Left": null,
+          "Right": null
+        },
+        "Right": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": -0.09131026545064505,
+          "Left": null,
+          "Right": null
+        }
+      },
+      {
+        "FeatureIndex": 1,
+        "Threshold": 0.24935777369376272,
+        "Value": 0,
+        "Left": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": -0.07716473180866815,
+          "Left": null,
+          "Right": null
+        },
+        "Right": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": 0.29257709509222624,
+          "Left": null,
+          "Right": null
+        }
+      },
+      {
+        "FeatureIndex": 0,
+        "Threshold": -0.4701057953023048,
+        "Value": 0,
+        "Left": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": -0.10603275154722996,
+          "Left": null,
+          "Right": null
+        },
+        "Right": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": 0.11990611573483013,
+          "Left": null,
+          "Right": null
+        }
+      },
+      {
+        "FeatureIndex": 1,
+        "Threshold": 0.1954140280747949,
+        "Value": 0,
+        "Left": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": -0.15404797411047003,
+          "Left": null,
+          "Right": null
+        },
+        "Right": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": 0.08604191047769212,
+          "Left": null,
+          "Right": null
+        }
+      },
+      {
+        "FeatureIndex": 1,
+        "Threshold": 0.28711839562704017,
+        "Value": 0,
+        "Left": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": -0.022307914674641636,
+          "Left": null,
+          "Right": null
+        },
+        "Right": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": 0.28316711365000713,
+          "Left": null,
+          "Right": null
+        }
+      },
+      {
+        "FeatureIndex": 1,
+        "Threshold": -0.34402342811488307,
+        "Value": 0,
+        "Left": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": 0.13388967986717185,
+          "Left": null,
+          "Right": null
+        },
+        "Right": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": -0.17061759884321917,
+          "Left": null,
+          "Right": null
+        }
+      },
+      {
+        "FeatureIndex": 1,
+        "Threshold": 0.1954140280747949,
+        "Value": 0,
+        "Left": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": -0.21588956433877168,
+          "Left": null,
+          "Right": null
+        },
+        "Right": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": 0.12169887479199,
+          "Left": null,
+          "Right": null
+        }
+      },
+      {
+        "FeatureIndex": 1,
+        "Threshold": 0.1954140280747949,
+        "Value": 0,
+        "Left": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": -0.12932096440630936,
+          "Left": null,
+          "Right": null
+        },
+        "Right": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": 0.15500578739103937,
+          "Left": null,
+          "Right": null
+        }
+      },
+      {
+        "FeatureIndex": 1,
+        "Threshold": 0.1954140280747949,
+        "Value": 0,
+        "Left": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": -0.15867350394753785,
+          "Left": null,
+          "Right": null
+        },
+        "Right": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": 0.20199586038506362,
+          "Left": null,
+          "Right": null
+        }
+      },
+      {
+        "FeatureIndex": 1,
+        "Threshold": 0.28711839562704017,
+        "Value": 0,
+        "Left": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": -0.07892584932754294,
+          "Left": null,
+          "Right": null
+        },
+        "Right": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": 0.17954470751862778,
+          "Left": null,
+          "Right": null
+        }
+      },
+      {
+        "FeatureIndex": 1,
+        "Threshold": -0.18219219125797967,
+        "Value": 0,
+        "Left": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": 0.08381424941663347,
+          "Left": null,
+          "Right": null
+        },
+        "Right": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": -0.09500454252975599,
+          "Left": null,
+          "Right": null
+        }
+      },
+      {
+        "FeatureIndex": 1,
+        "Threshold": 0.28711839562704017,
+        "Value": 0,
+        "Left": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": -0.1572969105503833,
+          "Left": null,
+          "Right": null
+        },
+        "Right": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": 0.15802811164599825,
+          "Left": null,
+          "Right": null
+        }
+      },
+      {
+        "FeatureIndex": 1,
+        "Threshold": -0.3979671737338509,
+        "Value": 0,
+        "Left": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": 0.3144321773875295,
+          "Left": null,
+          "Right": null
+        },
+        "Right": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": -0.11976175350278427,
+          "Left": null,
+          "Right": null
+        }
+      },
+      {
+        "FeatureIndex": 1,
+        "Threshold": -0.18219219125797967,
+        "Value": 0,
+        "Left": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": 0.12496675538328003,
+          "Left": null,
+          "Right": null
+        },
+        "Right": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": -0.12260637426686613,
+          "Left": null,
+          "Right": null
+        }
+      },
+      {
+        "FeatureIndex": 1,
+        "Threshold": -0.3979671737338509,
+        "Value": 0,
+        "Left": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": 0.24427270607675047,
+          "Left": null,
+          "Right": null
+        },
+        "Right": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": -0.062039045756287985,
+          "Left": null,
+          "Right": null
+        }
+      },
+      {
+        "FeatureIndex": 1,
+        "Threshold": -0.18219219125797967,
+        "Value": 0,
+        "Left": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": 0.09216332957786338,
+          "Left": null,
+          "Right": null
+        },
+        "Right": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": -0.17360692561799201,
+          "Left": null,
+          "Right": null
+        }
+      },
+      {
+        "FeatureIndex": 1,
+        "Threshold": 0.1954140280747949,
+        "Value": 0,
+        "Left": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": -0.19019919942667302,
+          "Left": null,
+          "Right": null
+        },
+        "Right": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": 0.08810619257304188,
+          "Left": null,
+          "Right": null
+        }
+      },
+      {
+        "FeatureIndex": 1,
+        "Threshold": -0.3979671737338509,
+        "Value": 0,
+        "Left": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": 0.28219488467485315,
+          "Left": null,
+          "Right": null
+        },
+        "Right": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": -0.16101410935393407,
+          "Left": null,
+          "Right": null
+        }
+      },
+      {
+        "FeatureIndex": 0,
+        "Threshold": -0.4701057953023048,
+        "Value": 0,
+        "Left": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": -0.2551064678362413,
+          "Left": null,
+          "Right": null
+        },
+        "Right": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": 0.1397648205637995,
+          "Left": null,
+          "Right": null
+        }
+      },
+      {
+        "FeatureIndex": 1,
+        "Threshold": -0.18219219125797967,
+        "Value": 0,
+        "Left": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": 0.1277251449615837,
+          "Left": null,
+          "Right": null
+        },
+        "Right": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": -0.15441157788033064,
+          "Left": null,
+          "Right": null
+        }
+      },
+      {
+        "FeatureIndex": 0,
+        "Threshold": 0.17461072396946098,
+        "Value": 0,
+        "Left": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": 0.17049466085828976,
+          "Left": null,
+          "Right": null
+        },
+        "Right": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": -0.04854189632741237,
+          "Left": null,
+          "Right": null
+        }
+      },
+      {
+        "FeatureIndex": 1,
+        "Threshold": -0.3979671737338509,
+        "Value": 0,
+        "Left": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": 0.22947556014134102,
+          "Left": null,
+          "Right": null
+        },
+        "Right": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": -0.06356042354752088,
+          "Left": null,
+          "Right": null
+        }
+      },
+      {
+        "FeatureIndex": 1,
+        "Threshold": -0.18219219125797967,
+        "Value": 0,
+        "Left": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": 0.0357761169744555,
+          "Left": null,
+          "Right": null
+        },
+        "Right": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": -0.15784333786784258,
+          "Left": null,
+          "Right": null
+        }
+      },
+      {
+        "FeatureIndex": 1,
+        "Threshold": -0.18219219125797967,
+        "Value": 0,
+        "Left": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": 0.12754979101236597,
+          "Left": null,
+          "Right": null
+        },
+        "Right": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": -0.10747208014853221,
+          "Left": null,
+          "Right": null
+        }
+      },
+      {
+        "FeatureIndex": 1,
+        "Threshold": 0.1954140280747949,
+        "Value": 0,
+        "Left": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": -0.22008474518534174,
+          "Left": null,
+          "Right": null
+        },
+        "Right": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": 0.10665159183620254,
+          "Left": null,
+          "Right": null
+        }
+      },
+      {
+        "FeatureIndex": 1,
+        "Threshold": 0.28711839562704017,
+        "Value": 0,
+        "Left": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": -0.05379838235507839,
+          "Left": null,
+          "Right": null
+        },
+        "Right": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": 0.15492722879361642,
+          "Left": null,
+          "Right": null
+        }
+      },
+      {
+        "FeatureIndex": 1,
+        "Threshold": 0.28711839562704017,
+        "Value": 0,
+        "Left": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": -0.056522701339593626,
+          "Left": null,
+          "Right": null
+        },
+        "Right": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": 0.2591348656271532,
+          "Left": null,
+          "Right": null
+        }
+      },
+      {
+        "FeatureIndex": 1,
+        "Threshold": -0.05944319810201845,
+        "Value": 0,
+        "Left": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": -0.0886142111673903,
+          "Left": null,
+          "Right": null
+        },
+        "Right": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": 0.12171648088102041,
+          "Left": null,
+          "Right": null
+        }
+      },
+      {
+        "FeatureIndex": 1,
+        "Threshold": -0.3979671737338509,
+        "Value": 0,
+        "Left": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": 0.15100502786927814,
+          "Left": null,
+          "Right": null
+        },
+        "Right": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": -0.1378100271205717,
+          "Left": null,
+          "Right": null
+        }
+      },
+      {
+        "FeatureIndex": 1,
+        "Threshold": 0.1954140280747949,
+        "Value": 0,
+        "Left": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": -0.24523265228488933,
+          "Left": null,
+          "Right": null
+        },
+        "Right": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": 0.09105054226167056,
+          "Left": null,
+          "Right": null
+        }
+      },
+      {
+        "FeatureIndex": 0,
+        "Threshold": -0.4701057953023048,
+        "Value": 0,
+        "Left": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": -0.05488556909485102,
+          "Left": null,
+          "Right": null
+        },
+        "Right": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": 0.11162930884691805,
+          "Left": null,
+          "Right": null
+        }
+      },
+      {
+        "FeatureIndex": 1,
+        "Threshold": 0.1954140280747949,
+        "Value": 0,
+        "Left": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": -0.07087818651076126,
+          "Left": null,
+          "Right": null
+        },
+        "Right": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": 0.2761875536715516,
+          "Left": null,
+          "Right": null
+        }
+      },
+      {
+        "FeatureIndex": 1,
+        "Threshold": -0.3979671737338509,
+        "Value": 0,
+        "Left": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": 0.26988775660218495,
+          "Left": null,
+          "Right": null
+        },
+        "Right": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": -0.04429354662188552,
+          "Left": null,
+          "Right": null
+        }
+      },
+      {
+        "FeatureIndex": 1,
+        "Threshold": 0.1954140280747949,
+        "Value": 0,
+        "Left": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": -0.22376748392305046,
+          "Left": null,
+          "Right": null
+        },
+        "Right": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": 0.08353331458991071,
+          "Left": null,
+          "Right": null
+        }
+      },
+      {
+        "FeatureIndex": 0,
+        "Threshold": -0.4701057953023048,
+        "Value": 0,
+        "Left": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": -0.22085190423974288,
+          "Left": null,
+          "Right": null
+        },
+        "Right": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": 0.09168768601075077,
+          "Left": null,
+          "Right": null
+        }
+      },
+      {
+        "FeatureIndex": 1,
+        "Threshold": 0.28711839562704017,
+        "Value": 0,
+        "Left": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": -0.08307635799904933,
+          "Left": null,
+          "Right": null
+        },
+        "Right": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": 0.37008961923055594,
+          "Left": null,
+          "Right": null
+        }
+      },
+      {
+        "FeatureIndex": 1,
+        "Threshold": -0.18219219125797967,
+        "Value": 0,
+        "Left": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": 0.15599422092380485,
+          "Left": null,
+          "Right": null
+        },
+        "Right": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": -0.18806225386365563,
+          "Left": null,
+          "Right": null
+        }
+      },
+      {
+        "FeatureIndex": 0,
+        "Threshold": -0.4701057953023048,
+        "Value": 0,
+        "Left": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": -0.1579766598082102,
+          "Left": null,
+          "Right": null
+        },
+        "Right": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": 0.048758397477989074,
+          "Left": null,
+          "Right": null
+        }
+      },
+      {
+        "FeatureIndex": 1,
+        "Threshold": -0.3979671737338509,
+        "Value": 0,
+        "Left": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": 0.21132006620558927,
+          "Left": null,
+          "Right": null
+        },
+        "Right": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": -0.11356160375966214,
+          "Left": null,
+          "Right": null
+        }
+      },
+      {
+        "FeatureIndex": 1,
+        "Threshold": -0.18219219125797967,
+        "Value": 0,
+        "Left": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": 0.2173851577975656,
+          "Left": null,
+          "Right": null
+        },
+        "Right": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": -0.14709493381746905,
+          "Left": null,
+          "Right": null
+        }
+      },
+      {
+        "FeatureIndex": 1,
+        "Threshold": 0.28711839562704017,
+        "Value": 0,
+        "Left": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": -0.1391977743924508,
+          "Left": null,
+          "Right": null
+        },
+        "Right": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": 0.27445741944159746,
+          "Left": null,
+          "Right": null
+        }
+      },
+      {
+        "FeatureIndex": 0,
+        "Threshold": -0.4701057953023048,
+        "Value": 0,
+        "Left": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": -0.18630620492009517,
+          "Left": null,
+          "Right": null
+        },
+        "Right": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": 0.1332589862896168,
+          "Left": null,
+          "Right": null
+        }
+      },
+      {
+        "FeatureIndex": 1,
+        "Threshold": 0.1954140280747949,
+        "Value": 0,
+        "Left": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": -0.1823607472962422,
+          "Left": null,
+          "Right": null
+        },
+        "Right": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": 0.051216145508826694,
+          "Left": null,
+          "Right": null
+        }
+      },
+      {
+        "FeatureIndex": 1,
+        "Threshold": -0.18219219125797967,
+        "Value": 0,
+        "Left": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": 0.09522266872397908,
+          "Left": null,
+          "Right": null
+        },
+        "Right": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": -0.19079426023266147,
+          "Left": null,
+          "Right": null
+        }
+      },
+      {
+        "FeatureIndex": 1,
+        "Threshold": -0.3979671737338509,
+        "Value": 0,
+        "Left": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": 0.17914719087448275,
+          "Left": null,
+          "Right": null
+        },
+        "Right": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": -0.10281757339211091,
+          "Left": null,
+          "Right": null
+        }
+      },
+      {
+        "FeatureIndex": 0,
+        "Threshold": -0.4701057953023048,
+        "Value": 0,
+        "Left": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": -0.11732636542010948,
+          "Left": null,
+          "Right": null
+        },
+        "Right": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": 0.16990290408131886,
+          "Left": null,
+          "Right": null
+        }
+      },
+      {
+        "FeatureIndex": 1,
+        "Threshold": -0.18219219125797967,
+        "Value": 0,
+        "Left": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": 0.11703036069102787,
+          "Left": null,
+          "Right": null
+        },
+        "Right": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": -0.14369687340138143,
+          "Left": null,
+          "Right": null
+        }
+      },
+      {
+        "FeatureIndex": 1,
+        "Threshold": 0.28711839562704017,
+        "Value": 0,
+        "Left": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": -0.014630868452229807,
+          "Left": null,
+          "Right": null
+        },
+        "Right": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": 0.2597221167444192,
+          "Left": null,
+          "Right": null
+        }
+      },
+      {
+        "FeatureIndex": 1,
+        "Threshold": 0.1954140280747949,
+        "Value": 0,
+        "Left": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": -0.12256187708922986,
+          "Left": null,
+          "Right": null
+        },
+        "Right": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": 0.11748715371198397,
+          "Left": null,
+          "Right": null
+        }
+      },
+      {
+        "FeatureIndex": 1,
+        "Threshold": 0.24935777369376272,
+        "Value": 0,
+        "Left": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": -0.04419764947683324,
+          "Left": null,
+          "Right": null
+        },
+        "Right": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": 0.19403987546827187,
+          "Left": null,
+          "Right": null
+        }
+      },
+      {
+        "FeatureIndex": 0,
+        "Threshold": -0.4701057953023048,
+        "Value": 0,
+        "Left": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": -0.03796509861024615,
+          "Left": null,
+          "Right": null
+        },
+        "Right": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": 0.1566346633773707,
+          "Left": null,
+          "Right": null
+        }
+      },
+      {
+        "FeatureIndex": 0,
+        "Threshold": -0.7924640549381876,
+        "Value": 0,
+        "Left": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": -0.08717735905033264,
+          "Left": null,
+          "Right": null
+        },
+        "Right": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": 0.23345219729301867,
+          "Left": null,
+          "Right": null
+        }
+      },
+      {
+        "FeatureIndex": 1,
+        "Threshold": 0.1954140280747949,
+        "Value": 0,
+        "Left": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": -0.14535452679790914,
+          "Left": null,
+          "Right": null
+        },
+        "Right": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": 0.053941840083856454,
+          "Left": null,
+          "Right": null
+        }
+      },
+      {
+        "FeatureIndex": 1,
+        "Threshold": 0.1954140280747949,
+        "Value": 0,
+        "Left": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": -0.10872268235301447,
+          "Left": null,
+          "Right": null
+        },
+        "Right": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": 0.09024992514268997,
+          "Left": null,
+          "Right": null
+        }
+      },
+      {
+        "FeatureIndex": 1,
+        "Threshold": -0.4438193575099735,
+        "Value": 0,
+        "Left": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": 0.25593184671125196,
+          "Left": null,
+          "Right": null
+        },
+        "Right": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": -0.03138905322224119,
+          "Left": null,
+          "Right": null
+        }
+      },
+      {
+        "FeatureIndex": 0,
+        "Threshold": -0.4701057953023048,
+        "Value": 0,
+        "Left": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": -0.07945626820110949,
+          "Left": null,
+          "Right": null
+        },
+        "Right": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": 0.1548685537256549,
+          "Left": null,
+          "Right": null
+        }
+      },
+      {
+        "FeatureIndex": 1,
+        "Threshold": -0.18219219125797967,
+        "Value": 0,
+        "Left": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": 0.10742216802749974,
+          "Left": null,
+          "Right": null
+        },
+        "Right": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": -0.18611914886311942,
+          "Left": null,
+          "Right": null
+        }
+      },
+      {
+        "FeatureIndex": 0,
+        "Threshold": -0.4701057953023048,
+        "Value": 0,
+        "Left": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": -0.14580301159020367,
+          "Left": null,
+          "Right": null
+        },
+        "Right": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": 0.09481948049832167,
+          "Left": null,
+          "Right": null
+        }
+      },
+      {
+        "FeatureIndex": 1,
+        "Threshold": 0.1954140280747949,
+        "Value": 0,
+        "Left": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": -0.10551801013457762,
+          "Left": null,
+          "Right": null
+        },
+        "Right": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": 0.20146545674891478,
+          "Left": null,
+          "Right": null
+        }
+      },
+      {
+        "FeatureIndex": 1,
+        "Threshold": 0.24935777369376272,
+        "Value": 0,
+        "Left": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": -0.02114462268479076,
+          "Left": null,
+          "Right": null
+        },
+        "Right": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": 0.24234927543042523,
+          "Left": null,
+          "Right": null
+        }
+      },
+      {
+        "FeatureIndex": 1,
+        "Threshold": 0.24935777369376272,
+        "Value": 0,
+        "Left": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": -0.02029030800384312,
+          "Left": null,
+          "Right": null
+        },
+        "Right": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": 0.267687920028043,
+          "Left": null,
+          "Right": null
+        }
+      },
+      {
+        "FeatureIndex": 1,
+        "Threshold": 0.1954140280747949,
+        "Value": 0,
+        "Left": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": -0.1583933752393331,
+          "Left": null,
+          "Right": null
+        },
+        "Right": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": 0.06545142749409862,
+          "Left": null,
+          "Right": null
+        }
+      },
+      {
+        "FeatureIndex": 1,
+        "Threshold": -0.4438193575099735,
+        "Value": 0,
+        "Left": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": 0.1920848339263034,
+          "Left": null,
+          "Right": null
+        },
+        "Right": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": -0.10721428292353813,
+          "Left": null,
+          "Right": null
+        }
+      },
+      {
+        "FeatureIndex": 0,
+        "Threshold": -0.4701057953023048,
+        "Value": 0,
+        "Left": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": -0.12862339611639723,
+          "Left": null,
+          "Right": null
+        },
+        "Right": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": 0.10299006229681779,
+          "Left": null,
+          "Right": null
+        }
+      },
+      {
+        "FeatureIndex": 1,
+        "Threshold": 0.1954140280747949,
+        "Value": 0,
+        "Left": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": -0.18257991996154632,
+          "Left": null,
+          "Right": null
+        },
+        "Right": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": 0.03231198981807235,
+          "Left": null,
+          "Right": null
+        }
+      },
+      {
+        "FeatureIndex": 1,
+        "Threshold": -0.18219219125797967,
+        "Value": 0,
+        "Left": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": 0.04728166215571988,
+          "Left": null,
+          "Right": null
+        },
+        "Right": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": -0.19549692679205696,
+          "Left": null,
+          "Right": null
+        }
+      },
+      {
+        "FeatureIndex": 1,
+        "Threshold": -0.3979671737338509,
+        "Value": 0,
+        "Left": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": 0.23339234193957437,
+          "Left": null,
+          "Right": null
+        },
+        "Right": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": -0.07650303444430614,
+          "Left": null,
+          "Right": null
+        }
+      },
+      {
+        "FeatureIndex": 1,
+        "Threshold": -0.18219219125797967,
+        "Value": 0,
+        "Left": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": 0.27696324826431235,
+          "Left": null,
+          "Right": null
+        },
+        "Right": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": -0.06556788135510946,
+          "Left": null,
+          "Right": null
+        }
+      },
+      {
+        "FeatureIndex": 1,
+        "Threshold": 0.1954140280747949,
+        "Value": 0,
+        "Left": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": -0.16126540968213268,
+          "Left": null,
+          "Right": null
+        },
+        "Right": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": 0.08982910993021909,
+          "Left": null,
+          "Right": null
+        }
+      },
+      {
+        "FeatureIndex": 1,
+        "Threshold": 0.1954140280747949,
+        "Value": 0,
+        "Left": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": -0.1383840204973481,
+          "Left": null,
+          "Right": null
+        },
+        "Right": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": 0.1980688504149317,
+          "Left": null,
+          "Right": null
+        }
+      },
+      {
+        "FeatureIndex": 1,
+        "Threshold": -0.18219219125797967,
+        "Value": 0,
+        "Left": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": 0.16083428566804644,
+          "Left": null,
+          "Right": null
+        },
+        "Right": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": -0.08704284310354628,
+          "Left": null,
+          "Right": null
+        }
+      },
+      {
+        "FeatureIndex": 1,
+        "Threshold": 0.28711839562704017,
+        "Value": 0,
+        "Left": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": -0.11100543568307368,
+          "Left": null,
+          "Right": null
+        },
+        "Right": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": 0.267206051664291,
+          "Left": null,
+          "Right": null
+        }
+      },
+      {
+        "FeatureIndex": 1,
+        "Threshold": -0.18219219125797967,
+        "Value": 0,
+        "Left": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": 0.11653743534031347,
+          "Left": null,
+          "Right": null
+        },
+        "Right": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": -0.10678071331035544,
+          "Left": null,
+          "Right": null
+        }
+      },
+      {
+        "FeatureIndex": 0,
+        "Threshold": -0.4701057953023048,
+        "Value": 0,
+        "Left": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": -0.17632438853727783,
+          "Left": null,
+          "Right": null
+        },
+        "Right": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": 0.22263030959388663,
+          "Left": null,
+          "Right": null
+        }
+      },
+      {
+        "FeatureIndex": 1,
+        "Threshold": -0.05944319810201845,
+        "Value": 0,
+        "Left": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": -0.0876394169442753,
+          "Left": null,
+          "Right": null
+        },
+        "Right": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": 0.10953162313732079,
+          "Left": null,
+          "Right": null
+        }
+      },
+      {
+        "FeatureIndex": 1,
+        "Threshold": 0.1954140280747949,
+        "Value": 0,
+        "Left": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": -0.09040841089563323,
+          "Left": null,
+          "Right": null
+        },
+        "Right": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": 0.1168782169761741,
+          "Left": null,
+          "Right": null
+        }
+      },
+      {
+        "FeatureIndex": 1,
+        "Threshold": 0.24935777369376272,
+        "Value": 0,
+        "Left": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": -0.027238847218565353,
+          "Left": null,
+          "Right": null
+        },
+        "Right": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": 0.3266428325160919,
+          "Left": null,
+          "Right": null
+        }
+      },
+      {
+        "FeatureIndex": 0,
+        "Threshold": -0.4701057953023048,
+        "Value": 0,
+        "Left": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": -0.11958221191676872,
+          "Left": null,
+          "Right": null
+        },
+        "Right": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": 0.11972420420849013,
+          "Left": null,
+          "Right": null
+        }
+      },
+      {
+        "FeatureIndex": 0,
+        "Threshold": -0.4701057953023048,
+        "Value": 0,
+        "Left": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": -0.23725919174161236,
+          "Left": null,
+          "Right": null
+        },
+        "Right": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": 0.11182785145416536,
+          "Left": null,
+          "Right": null
+        }
+      },
+      {
+        "FeatureIndex": 0,
+        "Threshold": -0.4701057953023048,
+        "Value": 0,
+        "Left": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": -0.11788821995991988,
+          "Left": null,
+          "Right": null
+        },
+        "Right": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": 0.07899530214832998,
+          "Left": null,
+          "Right": null
+        }
+      },
+      {
+        "FeatureIndex": 1,
+        "Threshold": -0.05944319810201845,
+        "Value": 0,
+        "Left": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": -0.15581462754284064,
+          "Left": null,
+          "Right": null
+        },
+        "Right": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": 0.1995934072199793,
+          "Left": null,
+          "Right": null
+        }
+      },
+      {
+        "FeatureIndex": 1,
+        "Threshold": -0.18219219125797967,
+        "Value": 0,
+        "Left": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": 0.10842958705894569,
+          "Left": null,
+          "Right": null
+        },
+        "Right": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": -0.11938988748547702,
+          "Left": null,
+          "Right": null
+        }
+      },
+      {
+        "FeatureIndex": 0,
+        "Threshold": -0.4701057953023048,
+        "Value": 0,
+        "Left": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": -0.11103491888066812,
+          "Left": null,
+          "Right": null
+        },
+        "Right": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": 0.13415438255367199,
+          "Left": null,
+          "Right": null
+        }
+      },
+      {
+        "FeatureIndex": 1,
+        "Threshold": 0.1954140280747949,
+        "Value": 0,
+        "Left": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": -0.15607982890193894,
+          "Left": null,
+          "Right": null
+        },
+        "Right": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": 0.06904903298231659,
+          "Left": null,
+          "Right": null
+        }
+      },
+      {
+        "FeatureIndex": 1,
+        "Threshold": -0.18219219125797967,
+        "Value": 0,
+        "Left": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": 0.1355344945519645,
+          "Left": null,
+          "Right": null
+        },
+        "Right": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": -0.12020483136139387,
+          "Left": null,
+          "Right": null
+        }
+      },
+      {
+        "FeatureIndex": 1,
+        "Threshold": -0.05944319810201845,
+        "Value": 0,
+        "Left": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": -0.10292325832724689,
+          "Left": null,
+          "Right": null
+        },
+        "Right": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": 0.09736483181850925,
+          "Left": null,
+          "Right": null
+        }
+      },
+      {
+        "FeatureIndex": 1,
+        "Threshold": 0.28711839562704017,
+        "Value": 0,
+        "Left": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": -0.12131152125927845,
+          "Left": null,
+          "Right": null
+        },
+        "Right": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": 0.07741321132463902,
+          "Left": null,
+          "Right": null
+        }
+      },
+      {
+        "FeatureIndex": 1,
+        "Threshold": -0.05944319810201845,
+        "Value": 0,
+        "Left": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": -0.14967849483592782,
+          "Left": null,
+          "Right": null
+        },
+        "Right": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": 0.09373774815269732,
+          "Left": null,
+          "Right": null
+        }
+      },
+      {
+        "FeatureIndex": 1,
+        "Threshold": 0.1954140280747949,
+        "Value": 0,
+        "Left": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": -0.038724368980479554,
+          "Left": null,
+          "Right": null
+        },
+        "Right": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": 0.13753435024357266,
+          "Left": null,
+          "Right": null
+        }
+      },
+      {
+        "FeatureIndex": 1,
+        "Threshold": -0.18219219125797967,
+        "Value": 0,
+        "Left": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": 0.06026165905867147,
+          "Left": null,
+          "Right": null
+        },
+        "Right": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": -0.17659580026894897,
+          "Left": null,
+          "Right": null
+        }
+      },
+      {
+        "FeatureIndex": 1,
+        "Threshold": -0.3979671737338509,
+        "Value": 0,
+        "Left": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": 0.1429009268226919,
+          "Left": null,
+          "Right": null
+        },
+        "Right": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": -0.12485387981726918,
+          "Left": null,
+          "Right": null
+        }
+      },
+      {
+        "FeatureIndex": 1,
+        "Threshold": -0.05944319810201845,
+        "Value": 0,
+        "Left": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": -0.09505324485377106,
+          "Left": null,
+          "Right": null
+        },
+        "Right": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": 0.15663922931934945,
+          "Left": null,
+          "Right": null
+        }
+      },
+      {
+        "FeatureIndex": 1,
+        "Threshold": 0.1954140280747949,
+        "Value": 0,
+        "Left": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": -0.19911469921060282,
+          "Left": null,
+          "Right": null
+        },
+        "Right": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": 0.07179558053229215,
+          "Left": null,
+          "Right": null
+        }
+      },
+      {
+        "FeatureIndex": 0,
+        "Threshold": -0.4701057953023048,
+        "Value": 0,
+        "Left": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": -0.1608560187145414,
+          "Left": null,
+          "Right": null
+        },
+        "Right": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": 0.045994420742241755,
+          "Left": null,
+          "Right": null
+        }
+      },
+      {
+        "FeatureIndex": 1,
+        "Threshold": 0.1954140280747949,
+        "Value": 0,
+        "Left": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": -0.03251612141811175,
+          "Left": null,
+          "Right": null
+        },
+        "Right": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": 0.18701414738179895,
+          "Left": null,
+          "Right": null
+        }
+      },
+      {
+        "FeatureIndex": 1,
+        "Threshold": 0.24935777369376272,
+        "Value": 0,
+        "Left": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": -0.07042266044834421,
+          "Left": null,
+          "Right": null
+        },
+        "Right": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": 0.12707505184446846,
+          "Left": null,
+          "Right": null
+        }
+      },
+      {
+        "FeatureIndex": 1,
+        "Threshold": 0.24935777369376272,
+        "Value": 0,
+        "Left": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": -0.025139439070695428,
+          "Left": null,
+          "Right": null
+        },
+        "Right": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": 0.17759147140501091,
+          "Left": null,
+          "Right": null
+        }
+      },
+      {
+        "FeatureIndex": 1,
+        "Threshold": 0.24935777369376272,
+        "Value": 0,
+        "Left": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": -0.03292743989151601,
+          "Left": null,
+          "Right": null
+        },
+        "Right": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": 0.17914439518327865,
+          "Left": null,
+          "Right": null
+        }
+      },
+      {
+        "FeatureIndex": 1,
+        "Threshold": 0.24935777369376272,
+        "Value": 0,
+        "Left": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": -0.09335223585588999,
+          "Left": null,
+          "Right": null
+        },
+        "Right": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": 0.1763846647754151,
+          "Left": null,
+          "Right": null
+        }
+      },
+      {
+        "FeatureIndex": 0,
+        "Threshold": -0.4701057953023048,
+        "Value": 0,
+        "Left": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": -0.15690032444705346,
+          "Left": null,
+          "Right": null
+        },
+        "Right": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": 0.05208262885042414,
+          "Left": null,
+          "Right": null
+        }
+      },
+      {
+        "FeatureIndex": 1,
+        "Threshold": -0.18219219125797967,
+        "Value": 0,
+        "Left": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": 0.12501910905715669,
+          "Left": null,
+          "Right": null
+        },
+        "Right": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": -0.17651160048159995,
+          "Left": null,
+          "Right": null
+        }
+      },
+      {
+        "FeatureIndex": 0,
+        "Threshold": -0.4701057953023048,
+        "Value": 0,
+        "Left": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": -0.11287381596014243,
+          "Left": null,
+          "Right": null
+        },
+        "Right": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": 0.06374888826301298,
+          "Left": null,
+          "Right": null
+        }
+      },
+      {
+        "FeatureIndex": 1,
+        "Threshold": 0.28711839562704017,
+        "Value": 0,
+        "Left": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": 0.055679706740384784,
+          "Left": null,
+          "Right": null
+        },
+        "Right": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": 0.27771738265253965,
+          "Left": null,
+          "Right": null
+        }
+      },
+      {
+        "FeatureIndex": 1,
+        "Threshold": 0.1954140280747949,
+        "Value": 0,
+        "Left": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": -0.12255916463903388,
+          "Left": null,
+          "Right": null
+        },
+        "Right": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": 0.04878888787590966,
+          "Left": null,
+          "Right": null
+        }
+      },
+      {
+        "FeatureIndex": 1,
+        "Threshold": -0.18219219125797967,
+        "Value": 0,
+        "Left": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": 0.1168629542034818,
+          "Left": null,
+          "Right": null
+        },
+        "Right": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": -0.22054915546495307,
+          "Left": null,
+          "Right": null
+        }
+      },
+      {
+        "FeatureIndex": 0,
+        "Threshold": -0.4701057953023048,
+        "Value": 0,
+        "Left": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": -0.13700437791411452,
+          "Left": null,
+          "Right": null
+        },
+        "Right": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": 0.06132300969841758,
+          "Left": null,
+          "Right": null
+        }
+      },
+      {
+        "FeatureIndex": 1,
+        "Threshold": 0.1954140280747949,
+        "Value": 0,
+        "Left": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": -0.13446807432647687,
+          "Left": null,
+          "Right": null
+        },
+        "Right": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": 0.2941961946940392,
+          "Left": null,
+          "Right": null
+        }
+      },
+      {
+        "FeatureIndex": 1,
+        "Threshold": -0.18219219125797967,
+        "Value": 0,
+        "Left": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": 0.11842970628226991,
+          "Left": null,
+          "Right": null
+        },
+        "Right": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": -0.1569139410162156,
+          "Left": null,
+          "Right": null
+        }
+      },
+      {
+        "FeatureIndex": 1,
+        "Threshold": -0.05944319810201845,
+        "Value": 0,
+        "Left": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": -0.14905653885985753,
+          "Left": null,
+          "Right": null
+        },
+        "Right": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": 0.07011726005142754,
+          "Left": null,
+          "Right": null
+        }
+      },
+      {
+        "FeatureIndex": 1,
+        "Threshold": 0.1954140280747949,
+        "Value": 0,
+        "Left": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": -0.18371496940520213,
+          "Left": null,
+          "Right": null
+        },
+        "Right": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": 0.05034238642203289,
+          "Left": null,
+          "Right": null
+        }
+      },
+      {
+        "FeatureIndex": 1,
+        "Threshold": -0.18219219125797967,
+        "Value": 0,
+        "Left": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": 0.04241092314567241,
+          "Left": null,
+          "Right": null
+        },
+        "Right": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": -0.12369978838346489,
+          "Left": null,
+          "Right": null
+        }
+      },
+      {
+        "FeatureIndex": 1,
+        "Threshold": 0.28711839562704017,
+        "Value": 0,
+        "Left": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": -0.013437351470012366,
+          "Left": null,
+          "Right": null
+        },
+        "Right": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": 0.18068999718313394,
+          "Left": null,
+          "Right": null
+        }
+      },
+      {
+        "FeatureIndex": 1,
+        "Threshold": -0.18219219125797967,
+        "Value": 0,
+        "Left": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": 0.25799142879010734,
+          "Left": null,
+          "Right": null
+        },
+        "Right": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": -0.08248367253120054,
+          "Left": null,
+          "Right": null
+        }
+      },
+      {
+        "FeatureIndex": 1,
+        "Threshold": -0.05944319810201845,
+        "Value": 0,
+        "Left": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": -0.09300158967755284,
+          "Left": null,
+          "Right": null
+        },
+        "Right": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": 0.05006364585926573,
+          "Left": null,
+          "Right": null
+        }
+      },
+      {
+        "FeatureIndex": 1,
+        "Threshold": -0.18219219125797967,
+        "Value": 0,
+        "Left": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": 0.06369230576797065,
+          "Left": null,
+          "Right": null
+        },
+        "Right": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": -0.12561012775641817,
+          "Left": null,
+          "Right": null
+        }
+      },
+      {
+        "FeatureIndex": 0,
+        "Threshold": -0.4701057953023048,
+        "Value": 0,
+        "Left": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": -0.05162289853448625,
+          "Left": null,
+          "Right": null
+        },
+        "Right": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": 0.0763947702723562,
+          "Left": null,
+          "Right": null
+        }
+      },
+      {
+        "FeatureIndex": 1,
+        "Threshold": 0.28711839562704017,
+        "Value": 0,
+        "Left": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": -0.06691850152102558,
+          "Left": null,
+          "Right": null
+        },
+        "Right": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": 0.22690387044235646,
+          "Left": null,
+          "Right": null
+        }
+      },
+      {
+        "FeatureIndex": 1,
+        "Threshold": -0.18219219125797967,
+        "Value": 0,
+        "Left": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": 0.05038051705816855,
+          "Left": null,
+          "Right": null
+        },
+        "Right": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": -0.15055007723041178,
+          "Left": null,
+          "Right": null
+        }
+      },
+      {
+        "FeatureIndex": 1,
+        "Threshold": 0.28711839562704017,
+        "Value": 0,
+        "Left": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": -0.14408842996353263,
+          "Left": null,
+          "Right": null
+        },
+        "Right": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": 0.08238127252842695,
+          "Left": null,
+          "Right": null
+        }
+      },
+      {
+        "FeatureIndex": 1,
+        "Threshold": -0.18219219125797967,
+        "Value": 0,
+        "Left": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": 0.04076398609790715,
+          "Left": null,
+          "Right": null
+        },
+        "Right": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": -0.1480315313093806,
+          "Left": null,
+          "Right": null
+        }
+      },
+      {
+        "FeatureIndex": 1,
+        "Threshold": 0.1954140280747949,
+        "Value": 0,
+        "Left": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": -0.003505849148855398,
+          "Left": null,
+          "Right": null
+        },
+        "Right": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": 0.16028248656864666,
+          "Left": null,
+          "Right": null
+        }
+      },
+      {
+        "FeatureIndex": 1,
+        "Threshold": -0.18219219125797967,
+        "Value": 0,
+        "Left": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": 0.12979730136899312,
+          "Left": null,
+          "Right": null
+        },
+        "Right": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": -0.17588466517732193,
+          "Left": null,
+          "Right": null
+        }
+      },
+      {
+        "FeatureIndex": 1,
+        "Threshold": 0.1954140280747949,
+        "Value": 0,
+        "Left": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": -0.17140761379757846,
+          "Left": null,
+          "Right": null
+        },
+        "Right": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": 0.08760400271114223,
+          "Left": null,
+          "Right": null
+        }
+      },
+      {
+        "FeatureIndex": 1,
+        "Threshold": -0.18219219125797967,
+        "Value": 0,
+        "Left": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": 0.06987046518684309,
+          "Left": null,
+          "Right": null
+        },
+        "Right": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": -0.15363937185780366,
+          "Left": null,
+          "Right": null
+        }
+      },
+      {
+        "FeatureIndex": 1,
+        "Threshold": -0.3979671737338509,
+        "Value": 0,
+        "Left": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": 0.1868420338560881,
+          "Left": null,
+          "Right": null
+        },
+        "Right": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": -0.08628269706550389,
+          "Left": null,
+          "Right": null
+        }
+      },
+      {
+        "FeatureIndex": 1,
+        "Threshold": 0.1954140280747949,
+        "Value": 0,
+        "Left": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": -0.08868378247854827,
+          "Left": null,
+          "Right": null
+        },
+        "Right": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": 0.10444326611448747,
+          "Left": null,
+          "Right": null
+        }
+      },
+      {
+        "FeatureIndex": 1,
+        "Threshold": 0.28711839562704017,
+        "Value": 0,
+        "Left": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": -0.058295605234714214,
+          "Left": null,
+          "Right": null
+        },
+        "Right": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": 0.1790934930034978,
+          "Left": null,
+          "Right": null
+        }
+      },
+      {
+        "FeatureIndex": 0,
+        "Threshold": -0.4701057953023048,
+        "Value": 0,
+        "Left": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": -0.023914293318247643,
+          "Left": null,
+          "Right": null
+        },
+        "Right": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": 0.0953206436088701,
+          "Left": null,
+          "Right": null
+        }
+      },
+      {
+        "FeatureIndex": 1,
+        "Threshold": -0.05944319810201845,
+        "Value": 0,
+        "Left": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": -0.07043691573447709,
+          "Left": null,
+          "Right": null
+        },
+        "Right": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": 0.1059458646111854,
+          "Left": null,
+          "Right": null
+        }
+      },
+      {
+        "FeatureIndex": 0,
+        "Threshold": -0.4701057953023048,
+        "Value": 0,
+        "Left": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": -0.0937624237632716,
+          "Left": null,
+          "Right": null
+        },
+        "Right": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": 0.12084751644977194,
+          "Left": null,
+          "Right": null
+        }
+      },
+      {
+        "FeatureIndex": 0,
+        "Threshold": -0.4701057953023048,
+        "Value": 0,
+        "Left": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": -0.07713839200243014,
+          "Left": null,
+          "Right": null
+        },
+        "Right": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": 0.1868157362917863,
+          "Left": null,
+          "Right": null
+        }
+      },
+      {
+        "FeatureIndex": 1,
+        "Threshold": -0.18219219125797967,
+        "Value": 0,
+        "Left": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": 0.0912714965198746,
+          "Left": null,
+          "Right": null
+        },
+        "Right": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": -0.11773968427986249,
+          "Left": null,
+          "Right": null
+        }
+      },
+      {
+        "FeatureIndex": 1,
+        "Threshold": -0.18219219125797967,
+        "Value": 0,
+        "Left": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": 0.1421554939812295,
+          "Left": null,
+          "Right": null
+        },
+        "Right": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": -0.09774390815229986,
+          "Left": null,
+          "Right": null
+        }
+      },
+      {
+        "FeatureIndex": 1,
+        "Threshold": 0.1954140280747949,
+        "Value": 0,
+        "Left": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": -0.05423059180996046,
+          "Left": null,
+          "Right": null
+        },
+        "Right": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": 0.157407617588665,
+          "Left": null,
+          "Right": null
+        }
+      },
+      {
+        "FeatureIndex": 0,
+        "Threshold": -0.14774753566642188,
+        "Value": 0,
+        "Left": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": 0.05024342198293588,
+          "Left": null,
+          "Right": null
+        },
+        "Right": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": 0.13895053345758518,
+          "Left": null,
+          "Right": null
+        }
+      },
+      {
+        "FeatureIndex": 1,
+        "Threshold": -0.3979671737338509,
+        "Value": 0,
+        "Left": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": 0.15160421703410493,
+          "Left": null,
+          "Right": null
+        },
+        "Right": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": -0.020232570358580865,
+          "Left": null,
+          "Right": null
+        }
+      },
+      {
+        "FeatureIndex": 1,
+        "Threshold": -0.18219219125797967,
+        "Value": 0,
+        "Left": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": 0.11925508795541105,
+          "Left": null,
+          "Right": null
+        },
+        "Right": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": -0.06320486690417519,
+          "Left": null,
+          "Right": null
+        }
+      },
+      {
+        "FeatureIndex": 1,
+        "Threshold": -0.3979671737338509,
+        "Value": 0,
+        "Left": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": 0.16578585078166544,
+          "Left": null,
+          "Right": null
+        },
+        "Right": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": -0.0560823263486681,
+          "Left": null,
+          "Right": null
+        }
+      },
+      {
+        "FeatureIndex": 1,
+        "Threshold": 0.1954140280747949,
+        "Value": 0,
+        "Left": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": -0.1439762071405573,
+          "Left": null,
+          "Right": null
+        },
+        "Right": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": 0.06155903606070868,
+          "Left": null,
+          "Right": null
+        }
+      },
+      {
+        "FeatureIndex": 1,
+        "Threshold": -0.3979671737338509,
+        "Value": 0,
+        "Left": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": 0.20258125014414446,
+          "Left": null,
+          "Right": null
+        },
+        "Right": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": -0.1209158450615716,
+          "Left": null,
+          "Right": null
+        }
+      },
+      {
+        "FeatureIndex": 1,
+        "Threshold": -0.05944319810201845,
+        "Value": 0,
+        "Left": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": -0.10145510119724918,
+          "Left": null,
+          "Right": null
+        },
+        "Right": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": 0.10858124955472091,
+          "Left": null,
+          "Right": null
+        }
+      },
+      {
+        "FeatureIndex": 0,
+        "Threshold": -0.7924640549381876,
+        "Value": 0,
+        "Left": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": 0.1482110500187779,
+          "Left": null,
+          "Right": null
+        },
+        "Right": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": 0.000601773963990773,
+          "Left": null,
+          "Right": null
+        }
+      },
+      {
+        "FeatureIndex": 0,
+        "Threshold": -0.4701057953023048,
+        "Value": 0,
+        "Left": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": -0.14371354759022165,
+          "Left": null,
+          "Right": null
+        },
+        "Right": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": 0.06366617604128309,
+          "Left": null,
+          "Right": null
+        }
+      },
+      {
+        "FeatureIndex": 1,
+        "Threshold": 0.1954140280747949,
+        "Value": 0,
+        "Left": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": -0.10653982991219016,
+          "Left": null,
+          "Right": null
+        },
+        "Right": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": 0.09002752029509913,
+          "Left": null,
+          "Right": null
+        }
+      },
+      {
+        "FeatureIndex": 1,
+        "Threshold": -0.3979671737338509,
+        "Value": 0,
+        "Left": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": 0.13537746560752145,
+          "Left": null,
+          "Right": null
+        },
+        "Right": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": -0.14907194994215675,
+          "Left": null,
+          "Right": null
+        }
+      },
+      {
+        "FeatureIndex": 1,
+        "Threshold": 0.28711839562704017,
+        "Value": 0,
+        "Left": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": -0.08319942856709572,
+          "Left": null,
+          "Right": null
+        },
+        "Right": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": 0.2098452556062452,
+          "Left": null,
+          "Right": null
+        }
+      },
+      {
+        "FeatureIndex": 0,
+        "Threshold": -0.4701057953023048,
+        "Value": 0,
+        "Left": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": -0.14510010897615105,
+          "Left": null,
+          "Right": null
+        },
+        "Right": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": 0.09251893364492196,
+          "Left": null,
+          "Right": null
+        }
+      },
+      {
+        "FeatureIndex": 1,
+        "Threshold": -0.3979671737338509,
+        "Value": 0,
+        "Left": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": 0.12265758233642612,
+          "Left": null,
+          "Right": null
+        },
+        "Right": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": -0.08928057052418034,
+          "Left": null,
+          "Right": null
+        }
+      },
+      {
+        "FeatureIndex": 0,
+        "Threshold": -0.4701057953023048,
+        "Value": 0,
+        "Left": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": -0.20021814464498205,
+          "Left": null,
+          "Right": null
+        },
+        "Right": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": 0.14351021177402487,
+          "Left": null,
+          "Right": null
+        }
+      },
+      {
+        "FeatureIndex": 1,
+        "Threshold": -0.05944319810201845,
+        "Value": 0,
+        "Left": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": -0.03482763078656883,
+          "Left": null,
+          "Right": null
+        },
+        "Right": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": 0.1538360744169957,
+          "Left": null,
+          "Right": null
+        }
+      },
+      {
+        "FeatureIndex": 1,
+        "Threshold": 0.1954140280747949,
+        "Value": 0,
+        "Left": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": -0.19520597926958047,
+          "Left": null,
+          "Right": null
+        },
+        "Right": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": 0.037554420669649625,
+          "Left": null,
+          "Right": null
+        }
+      },
+      {
+        "FeatureIndex": 1,
+        "Threshold": 0.28711839562704017,
+        "Value": 0,
+        "Left": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": -0.12165145386313933,
+          "Left": null,
+          "Right": null
+        },
+        "Right": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": 0.27073917607134235,
+          "Left": null,
+          "Right": null
+        }
+      },
+      {
+        "FeatureIndex": 1,
+        "Threshold": -0.3979671737338509,
+        "Value": 0,
+        "Left": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": 0.13607184857959542,
+          "Left": null,
+          "Right": null
+        },
+        "Right": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": -0.09560898326028444,
+          "Left": null,
+          "Right": null
+        }
+      },
+      {
+        "FeatureIndex": 1,
+        "Threshold": 0.28711839562704017,
+        "Value": 0,
+        "Left": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": -0.13353640298555153,
+          "Left": null,
+          "Right": null
+        },
+        "Right": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": 0.048216268659384574,
+          "Left": null,
+          "Right": null
+        }
+      },
+      {
+        "FeatureIndex": 1,
+        "Threshold": -0.18219219125797967,
+        "Value": 0,
+        "Left": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": 0.1678684182253018,
+          "Left": null,
+          "Right": null
+        },
+        "Right": {
+          "FeatureIndex": 0,
+          "Threshold": 0,
+          "Value": -0.19212108090905713,
+          "Left": null,
+          "Right": null
+        }
+      }
+    ],
+    "LearningRate": 0.03,
+    "MaxDepth": 4,
+    "MinSamplesSplit": 20,
+    "MinSamplesLeaf": 10,
+    "Subsample": 0.8,
+    "InitValue": -0.015876099814638438,
+    "BestIteration": -1
+  },
+  "Metrics": {
+    "linear": {
+      "MAE": 799.5646399750221,
+      "RMSE": 1142.9310039539976,
+      "R2": 0.7149009173070959
+    },
+    "ridge": {
+      "MAE": 807.6180978681919,
+      "RMSE": 1154.7191795062506,
+      "R2": 0.7089895724602675
+    },
+    "ridge_rf": {
+      "MAE": 723.5274965858565,
+      "RMSE": 1064.6638249809703,
+      "R2": 0.7526107704375419
+    },
+    "ridge_gb": {
+      "MAE": 806.7121289996012,
+      "RMSE": 1058.171407084448,
+      "R2": 0.7556187753789398
+    }
+  },
+  "TrainingTimes": {
+    "Linear": {
+      "MeanTrialMs": null,
+      "Trials": null,
+      "TotalMs": 21.1748
+    },
+    "Ridge": {
+      "MeanTrialMs": 0.01322794,
+      "Trials": 200,
+      "TotalMs": 2.645588
+    },
+    "RandomForest": {
+      "MeanTrialMs": 1.7310090500000002,
+      "Trials": 60,
+      "TotalMs": 103.860543
+    },
+    "GradientBoosting": {
+      "MeanTrialMs": 54.28333333333333,
+      "Trials": 60,
+      "TotalMs": 3257
+    }
+  }
+}
