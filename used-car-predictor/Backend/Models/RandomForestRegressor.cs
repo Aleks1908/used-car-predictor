@@ -152,6 +152,14 @@ namespace used_car_predictor.Backend.Models
 
                 var rmse = Metrics.RootMeanSquaredError(valResidualY, valPredRes);
 
+                Console.WriteLine(
+                    $"[RF tune] try={trial + 1}/{maxConfigs} " +
+                    $"nEst={p["nEstimators"]}, maxDepth={p["maxDepth"]}, " +
+                    $"minSplit={p["minSamplesSplit"]}, minLeaf={p["minSamplesLeaf"]}, " +
+                    $"sampleRatio={p["sampleRatio"]}, bootstrap={p["bootstrap"]} -> " +
+                    $"RMSE={rmse:F2}, time={sw.ElapsedMilliseconds}ms");
+
+                
                 if (rmse < bestRmse)
                 {
                     bestRmse = rmse;

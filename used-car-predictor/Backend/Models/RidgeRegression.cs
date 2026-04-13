@@ -240,7 +240,7 @@ namespace used_car_predictor.Backend.Models
                 }
 
                 double meanRmse = rmseSum / Math.Max(1, foldsUsed);
-                Console.WriteLine($"[Ridge kCV] α={a:g}, k={foldsUsed}, meanRMSE={meanRmse:F3}");
+                Console.WriteLine($"[Ridge] α={a:g}, k={foldsUsed}, meanRMSE={meanRmse:F3}");
 
                 if (meanRmse < bestRmse)
                 {
